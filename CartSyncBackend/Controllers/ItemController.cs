@@ -14,9 +14,33 @@ public class ItemController(CartSyncContext db) : ControllerBase
 {
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public IActionResult All()
+    public IActionResult All(Ulid? storeId)
     {
-        return Ok(db.Items.Select(i => i.ToResponse()));
+        if (storeId == null)
+        {
+            return Ok(db.Items.Select(i => i.ToResponse()));
+        }
+
+        Store? s = db.Stores.Find(storeId.Value);
+        if (s == null)
+        {
+            return NotFound("Store not found");
+        }
+
+        var x = db.ItemAisles
+            .Include(a => a.Store)
+            .Include(a => a.Aisle)
+            .Include(a => a.Item)
+            .Where(a => a.StoreId == s.StoreId)
+            .Select(ia => new
+            {
+                AisleId = ia.AisleId,
+                AisleName = ia.Aisle.AisleName,
+                ItemId = ia.ItemId,
+                ItemName = ia.Item.ItemName
+            });
+        
+        return Ok(x);
     }
     
     [HttpPost]

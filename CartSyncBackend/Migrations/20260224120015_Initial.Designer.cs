@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CartSyncBackend.Migrations
 {
     [DbContext(typeof(CartSyncContext))]
-    [Migration("20260224111210_Initial")]
+    [Migration("20260224120015_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -21,8 +21,10 @@ namespace CartSyncBackend.Migrations
 
             modelBuilder.Entity("CartSyncBackend.Database.Models.Aisle", b =>
                 {
-                    b.Property<byte[]>("AisleId")
-                        .HasColumnType("BLOB");
+                    b.Property<string>("AisleId")
+                        .HasMaxLength(26)
+                        .IsUnicode(false)
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("AisleName")
                         .IsRequired()
@@ -32,9 +34,11 @@ namespace CartSyncBackend.Migrations
                     b.Property<int>("AisleOrder")
                         .HasColumnType("INTEGER");
 
-                    b.Property<byte[]>("StoreId")
+                    b.Property<string>("StoreId")
                         .IsRequired()
-                        .HasColumnType("BLOB");
+                        .HasMaxLength(26)
+                        .IsUnicode(false)
+                        .HasColumnType("TEXT");
 
                     b.HasKey("AisleId");
 
@@ -45,22 +49,26 @@ namespace CartSyncBackend.Migrations
 
             modelBuilder.Entity("CartSyncBackend.Database.Models.Item", b =>
                 {
-                    b.Property<byte[]>("ItemId")
-                        .HasColumnType("BLOB");
+                    b.Property<string>("ItemId")
+                        .HasMaxLength(26)
+                        .IsUnicode(false)
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("CartAmount")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("DefaultUnitType")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("DefaultUnitType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("ItemName")
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("ItemTemp")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("ItemTemp")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.HasKey("ItemId");
 
@@ -69,18 +77,25 @@ namespace CartSyncBackend.Migrations
 
             modelBuilder.Entity("CartSyncBackend.Database.Models.ItemAisle", b =>
                 {
-                    b.Property<byte[]>("ItemId")
-                        .HasColumnType("BLOB");
+                    b.Property<string>("ItemId")
+                        .HasMaxLength(26)
+                        .IsUnicode(false)
+                        .HasColumnType("TEXT");
 
-                    b.Property<byte[]>("StoreId")
-                        .HasColumnType("BLOB");
+                    b.Property<string>("StoreId")
+                        .HasMaxLength(26)
+                        .IsUnicode(false)
+                        .HasColumnType("TEXT");
 
-                    b.Property<byte[]>("AisleId")
+                    b.Property<string>("AisleId")
                         .IsRequired()
-                        .HasColumnType("BLOB");
+                        .HasMaxLength(26)
+                        .IsUnicode(false)
+                        .HasColumnType("TEXT");
 
-                    b.Property<int>("Bay")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("Bay")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.HasKey("ItemId", "StoreId");
 
@@ -93,8 +108,10 @@ namespace CartSyncBackend.Migrations
 
             modelBuilder.Entity("CartSyncBackend.Database.Models.Store", b =>
                 {
-                    b.Property<byte[]>("StoreId")
-                        .HasColumnType("BLOB");
+                    b.Property<string>("StoreId")
+                        .HasMaxLength(26)
+                        .IsUnicode(false)
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("StoreName")
                         .IsRequired()

@@ -1,4 +1,6 @@
 using System.Text.Json.Serialization;
+using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace CartSyncBackend.Database.Objects;
 
@@ -55,3 +57,9 @@ public static class UnitTypeExtensions
         };
     }
 }
+
+[UsedImplicitly]
+public class UnitTypeConverter() : ValueConverter<UnitType, string>(
+    v => v.ToString(),
+    v => Enum.Parse<UnitType>(v)
+);

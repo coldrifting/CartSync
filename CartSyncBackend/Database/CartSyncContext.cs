@@ -21,11 +21,24 @@ public class CartSyncContext(DbContextOptions<CartSyncContext> options) : DbCont
         configurationBuilder
             .Properties<Amount>()
             .HaveConversion<AmountConverter>();
-           
+        
+        configurationBuilder
+            .Properties<BayType>()
+            .HaveConversion<BayTypeConverter>();
+        
+        configurationBuilder
+            .Properties<UnitType>()
+            .HaveConversion<UnitTypeConverter>();
+
+        configurationBuilder
+            .Properties<ItemTemp>()
+            .HaveConversion<ItemTempConverter>();
+        
         configurationBuilder
             .Properties<Ulid>()
-            .HaveConversion<UlidToStringConverter>()
-            .HaveConversion<UlidToBytesConverter>();
+            .HaveMaxLength(26)
+            .AreUnicode(false)
+            .HaveConversion<UlidConverter>();
     }
 
     public static void Seed(CartSyncContext db)

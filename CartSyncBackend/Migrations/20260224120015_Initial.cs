@@ -14,10 +14,10 @@ namespace CartSyncBackend.Migrations
                 name: "Items",
                 columns: table => new
                 {
-                    ItemId = table.Column<byte[]>(type: "BLOB", nullable: false),
+                    ItemId = table.Column<string>(type: "TEXT", unicode: false, maxLength: 26, nullable: false),
                     ItemName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
-                    ItemTemp = table.Column<int>(type: "INTEGER", nullable: false),
-                    DefaultUnitType = table.Column<int>(type: "INTEGER", nullable: false),
+                    ItemTemp = table.Column<string>(type: "TEXT", nullable: false),
+                    DefaultUnitType = table.Column<string>(type: "TEXT", nullable: false),
                     CartAmount = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
@@ -29,7 +29,7 @@ namespace CartSyncBackend.Migrations
                 name: "Stores",
                 columns: table => new
                 {
-                    StoreId = table.Column<byte[]>(type: "BLOB", nullable: false),
+                    StoreId = table.Column<string>(type: "TEXT", unicode: false, maxLength: 26, nullable: false),
                     StoreName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false)
                 },
                 constraints: table =>
@@ -41,8 +41,8 @@ namespace CartSyncBackend.Migrations
                 name: "Aisles",
                 columns: table => new
                 {
-                    AisleId = table.Column<byte[]>(type: "BLOB", nullable: false),
-                    StoreId = table.Column<byte[]>(type: "BLOB", nullable: false),
+                    AisleId = table.Column<string>(type: "TEXT", unicode: false, maxLength: 26, nullable: false),
+                    StoreId = table.Column<string>(type: "TEXT", unicode: false, maxLength: 26, nullable: false),
                     AisleName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
                     AisleOrder = table.Column<int>(type: "INTEGER", nullable: false)
                 },
@@ -61,10 +61,10 @@ namespace CartSyncBackend.Migrations
                 name: "ItemAisles",
                 columns: table => new
                 {
-                    ItemId = table.Column<byte[]>(type: "BLOB", nullable: false),
-                    StoreId = table.Column<byte[]>(type: "BLOB", nullable: false),
-                    AisleId = table.Column<byte[]>(type: "BLOB", nullable: false),
-                    Bay = table.Column<int>(type: "INTEGER", nullable: false)
+                    ItemId = table.Column<string>(type: "TEXT", unicode: false, maxLength: 26, nullable: false),
+                    StoreId = table.Column<string>(type: "TEXT", unicode: false, maxLength: 26, nullable: false),
+                    AisleId = table.Column<string>(type: "TEXT", unicode: false, maxLength: 26, nullable: false),
+                    Bay = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {

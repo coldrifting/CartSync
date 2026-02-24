@@ -1,15 +1,14 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace CartSyncBackend.Database.Models;
 
+[PrimaryKey(nameof(StoreId))]
 public class Store
 {
-    [Key]
-    [Required]
     public Ulid StoreId { get; init; } = Ulid.NewUlid();
 
-    [StringLength(256)] 
-    [Required]
+    [StringLength(256)]
     public string StoreName { get; set; } = null!;
 
     // Navigation
