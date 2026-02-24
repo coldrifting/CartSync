@@ -11,4 +11,8 @@ if ! dotnet ef migrations add --configuration Debug Initial --output-dir Migrati
 	exit 1
 fi
 
+if ! dotnet ef database update; then
+	exit 1
+fi
+
 git add "Migrations"
