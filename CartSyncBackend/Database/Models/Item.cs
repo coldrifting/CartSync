@@ -16,6 +16,9 @@ public class Item
     
     public Amount? CartAmount { get; set; }
 
+    // Navigation
+    public virtual List<Prep> Preps { get; set; } = null!;
+
     public ItemResponse ToResponse()
     {
         return new ItemResponse()
@@ -24,7 +27,8 @@ public class Item
             ItemName = ItemName,
             ItemTemp = ItemTemp,
             DefaultUnitType = DefaultUnitType,
-            CartAmount = CartAmount
+            CartAmount = CartAmount,
+            Preps = Preps?.Select(p => p.ToResponse()).ToList() ?? []
         };
     }
 }
@@ -40,6 +44,8 @@ public class ItemResponse
     public UnitType DefaultUnitType { get; set; } = UnitType.Count;
     
     public Amount? CartAmount { get; set; }
+    
+    public List<PrepResponse> Preps { get; set; } = [];
 }
 
 public class ItemAddRequest
@@ -59,6 +65,8 @@ public class ItemEditRequest
     
     public ItemTemp? ItemTemp { get; set; } = null;
     public UnitType? DefaultUnitType { get; set; } = null;
+    
+    public List<Ulid>? PrepIds { get; set; } = null;
 }
 
 public class ItemAisleResponse

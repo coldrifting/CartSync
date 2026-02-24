@@ -15,13 +15,26 @@ public class ItemController(CartSyncContext db) : ControllerBase
 {
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [Route("/api/items/preps")]
+    public IActionResult AllPreps()
+    {
+        List<PrepResponse> preps = db.Preps.Select(prep => prep.ToResponse()).ToList();
+        return Ok(preps);
+    }
+    
+    [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public IActionResult All(Ulid? storeId)
     {
         if (storeId == null)
         {
-            return Ok(db.Items.Select(i => i.ToResponse()));
+            var allItems = db.Items
+                .Include(i => i.Preps)
+                .Select(i => i.ToResponse());
+            
+            return Ok(allItems);
         }
 
         Store? s = db.Stores.Find(storeId.Value);
@@ -31,10 +44,14 @@ public class ItemController(CartSyncContext db) : ControllerBase
         }
 
         var items = db.ItemAisles
+            .Include(i => i.Item)
+            .ThenInclude(ix => ix.Preps)
             .Where(i => i.StoreId == s.StoreId)
             .Select(ia => ia.Item);
         
         var itemAisles = db.ItemAisles
+            .Include(i => i.Item)
+            .ThenInclude(ix => ix.Preps)
             .Where(ia => ia.StoreId == s.StoreId)
             .GroupBy(ia => ia.AisleId)
             .Select(g => new ItemAisleResponse 
@@ -48,16 +65,35 @@ public class ItemController(CartSyncContext db) : ControllerBase
         {
             Aisle = null,
             Items = db.Items
+                .Include(i => i.Preps)
                 .Where(i => !items.Any(ix => ix.ItemId == i.ItemId))
                 .Select(i => i.ToResponse())
                 .ToList()
         };
 
-        var allItems = itemAisles
+        var allItemsByAisle = itemAisles
             .Append(otherItems)
             .OrderBy(a => a.Aisle?.AisleOrder ?? int.MaxValue);
         
-        return Ok(allItems);
+        return Ok(allItemsByAisle);
+    }
+
+    [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public IActionResult Details([Required] Ulid itemId)
+    {
+        var item = db.Items
+            .Include(i => i.Preps)
+            .FirstOrDefault(i => i.ItemId == itemId);
+        
+        if (item == null)
+        {
+            return Error.NotFoundItem;
+        }
+        
+        return Ok(item.ToResponse());
     }
     
     [HttpPost]
@@ -91,6 +127,25 @@ public class ItemController(CartSyncContext db) : ControllerBase
         i.ItemName = itemEditRequest.ItemName ?? i.ItemName;
         i.ItemTemp = itemEditRequest.ItemTemp ?? i.ItemTemp;
         i.DefaultUnitType = itemEditRequest.DefaultUnitType ?? i.DefaultUnitType;
+
+        if (itemEditRequest.PrepIds != null)
+        {
+            Item item = db.Items
+                .Include(p => p.Preps)
+                .First(ix => ix.ItemId == itemId);
+
+            item.Preps.Clear();
+            
+            foreach (Ulid prepId in itemEditRequest.PrepIds)
+            {
+                Prep? prep = db.Preps.Find(prepId);
+                if (prep != null)
+                {
+                    item.Preps.Add(prep);
+                }
+            }
+        }
+        
         db.SaveChanges();
         
         return NoContent();

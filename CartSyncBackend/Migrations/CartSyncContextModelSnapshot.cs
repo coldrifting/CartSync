@@ -103,6 +103,22 @@ namespace CartSyncBackend.Migrations
                     b.ToTable("ItemAisles");
                 });
 
+            modelBuilder.Entity("CartSyncBackend.Database.Models.Prep", b =>
+                {
+                    b.Property<string>("PrepId")
+                        .HasMaxLength(26)
+                        .IsUnicode(false)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PrepName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("PrepId");
+
+                    b.ToTable("Preps");
+                });
+
             modelBuilder.Entity("CartSyncBackend.Database.Models.Store", b =>
                 {
                     b.Property<string>("StoreId")
@@ -118,6 +134,25 @@ namespace CartSyncBackend.Migrations
                     b.HasKey("StoreId");
 
                     b.ToTable("Stores");
+                });
+
+            modelBuilder.Entity("ItemPrep", b =>
+                {
+                    b.Property<string>("ItemsItemId")
+                        .HasMaxLength(26)
+                        .IsUnicode(false)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PrepsPrepId")
+                        .HasMaxLength(26)
+                        .IsUnicode(false)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("ItemsItemId", "PrepsPrepId");
+
+                    b.HasIndex("PrepsPrepId");
+
+                    b.ToTable("ItemPrep");
                 });
 
             modelBuilder.Entity("CartSyncBackend.Database.Models.Aisle", b =>
@@ -156,6 +191,21 @@ namespace CartSyncBackend.Migrations
                     b.Navigation("Item");
 
                     b.Navigation("Store");
+                });
+
+            modelBuilder.Entity("ItemPrep", b =>
+                {
+                    b.HasOne("CartSyncBackend.Database.Models.Item", null)
+                        .WithMany()
+                        .HasForeignKey("ItemsItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CartSyncBackend.Database.Models.Prep", null)
+                        .WithMany()
+                        .HasForeignKey("PrepsPrepId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("CartSyncBackend.Database.Models.Store", b =>

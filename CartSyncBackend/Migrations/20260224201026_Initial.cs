@@ -26,6 +26,18 @@ namespace CartSyncBackend.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Preps",
+                columns: table => new
+                {
+                    PrepId = table.Column<string>(type: "TEXT", unicode: false, maxLength: 26, nullable: false),
+                    PrepName = table.Column<string>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Preps", x => x.PrepId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Stores",
                 columns: table => new
                 {
@@ -35,6 +47,30 @@ namespace CartSyncBackend.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Stores", x => x.StoreId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ItemPrep",
+                columns: table => new
+                {
+                    ItemsItemId = table.Column<string>(type: "TEXT", unicode: false, maxLength: 26, nullable: false),
+                    PrepsPrepId = table.Column<string>(type: "TEXT", unicode: false, maxLength: 26, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ItemPrep", x => new { x.ItemsItemId, x.PrepsPrepId });
+                    table.ForeignKey(
+                        name: "FK_ItemPrep_Items_ItemsItemId",
+                        column: x => x.ItemsItemId,
+                        principalTable: "Items",
+                        principalColumn: "ItemId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ItemPrep_Preps_PrepsPrepId",
+                        column: x => x.PrepsPrepId,
+                        principalTable: "Preps",
+                        principalColumn: "PrepId",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -103,6 +139,11 @@ namespace CartSyncBackend.Migrations
                 name: "IX_ItemAisles_StoreId",
                 table: "ItemAisles",
                 column: "StoreId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ItemPrep_PrepsPrepId",
+                table: "ItemPrep",
+                column: "PrepsPrepId");
         }
 
         /// <inheritdoc />
@@ -112,10 +153,16 @@ namespace CartSyncBackend.Migrations
                 name: "ItemAisles");
 
             migrationBuilder.DropTable(
+                name: "ItemPrep");
+
+            migrationBuilder.DropTable(
                 name: "Aisles");
 
             migrationBuilder.DropTable(
                 name: "Items");
+
+            migrationBuilder.DropTable(
+                name: "Preps");
 
             migrationBuilder.DropTable(
                 name: "Stores");

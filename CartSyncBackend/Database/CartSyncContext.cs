@@ -10,11 +10,12 @@ public class CartSyncContext(DbContextOptions<CartSyncContext> options) : DbCont
     public DbSet<Aisle> Aisles { get; set; }
     public DbSet<Item> Items { get; set; }
     public DbSet<ItemAisle> ItemAisles { get; set; }
+    public DbSet<Prep> Preps { get; set; }
     
     public static string DefaultPath => Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CartSync.db");
 
     protected override void OnConfiguring(DbContextOptionsBuilder options)
-        => options.UseSqlite($"Data Source={DefaultPath}");
+        => options.UseSqlite($"Data Source={DefaultPath};foreign keys=true;");
     
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
@@ -551,6 +552,47 @@ public class CartSyncContext(DbContextOptions<CartSyncContext> options) : DbCont
             (items[0].itemUlid, stores[1].storeUlid, aisles[^1].aisleUlid, BayType.Start)
         ];
 
+        (Ulid prepId, string prepName)[] preps =
+        [
+            (Ulid.Parse("01KJ8AQ9DK0ZJXKX98J1JWFVK9"), "Crumbled"),
+            (Ulid.Parse("01KJ8AQ9DKPNW8KCR2ZDG05GE7"), "Diced"),
+            (Ulid.Parse("01KJ8AQ9DKCDJ9SFX9XXBCG8H1"), "Minced"),
+            (Ulid.Parse("01KJ8AQ9DKZ7VQKAC27VRAWBRW"), "Shredded"),
+            (Ulid.Parse("01KJ8AQ9DKR01ZTNR87JASJPTV"), "Sliced"),
+            (Ulid.Parse("01KJ8AQ9DK9BC9DTDE6KQSQV3Z"), "Sliced (Halves)"),
+            (Ulid.Parse("01KJ8AQ9DM0N30S4073K3X3CQ1"), "Cooked")
+        ];
+
+        (Ulid itemId, Ulid prepId)[] itemPreps =
+        [
+            (items[178].itemUlid, preps[0].prepId), // Feta, Crumbled
+            
+            (items[216].itemUlid, preps[1].prepId), // Red Bell Peppers, Diced
+            (items[217].itemUlid, preps[1].prepId), // Red Bell Peppers, Diced
+            
+            (items[207].itemUlid, preps[2].prepId), // Garlic, Minced
+            
+            (items[179].itemUlid, preps[3].prepId), // Cheddar Cheese, Shredded
+            (items[180].itemUlid, preps[3].prepId), // Monterey Jack Cheese, Shredded
+            (items[181].itemUlid, preps[3].prepId), // Mozzarella Cheese, Shredded
+            (items[182].itemUlid, preps[3].prepId), // Pepper jack Cheese, Shredded
+            (items[183].itemUlid, preps[3].prepId), // Provolone Cheese, Shredded
+            (items[184].itemUlid, preps[3].prepId), // White Cheddar Cheese, Shredded
+            
+            (items[179].itemUlid, preps[4].prepId), // Cheddar Cheese, Sliced
+            (items[180].itemUlid, preps[4].prepId), // Monterey Jack Cheese, Sliced
+            (items[181].itemUlid, preps[4].prepId), // Mozzarella Cheese, Sliced
+            (items[182].itemUlid, preps[4].prepId), // Pepper jack Cheese, Sliced
+            (items[183].itemUlid, preps[4].prepId), // Provolone Cheese, Sliced
+            (items[184].itemUlid, preps[4].prepId), // White Cheddar Cheese, Sliced
+            (items[205].itemUlid, preps[4].prepId), // Cucumbers, Sliced
+            
+            (items[209].itemUlid, preps[5].prepId), // Cucumbers, Sliced
+            (items[215].itemUlid, preps[5].prepId), // Cucumbers, Sliced
+            
+            (items[56].itemUlid, preps[6].prepId) // Rice, Cooked
+        ];
+
         for (int i = 0; i < stores.Length; i++)
         {
             db.Stores.Add(new Store
@@ -599,6 +641,37 @@ public class CartSyncContext(DbContextOptions<CartSyncContext> options) : DbCont
                 StoreId = itemAisles[i].storeId,
                 Bay =  itemAisles[i].bayType
             });
+        }
+
+        for (int i = 0; i < preps.Length; i++)
+        {
+            db.Preps.Add(new Prep
+            {
+                PrepId = preps[i].prepId,
+                PrepName = preps[i].prepName,
+            });
+        }
+        
+        db.SaveChanges();
+        
+        for (int i = 0; i < itemPreps.Length; i++)
+        {
+            Item? item = db.Items
+                .Include(ix => ix.Preps)
+                .FirstOrDefault(ix => ix.ItemId == itemPreps[i].itemId);
+
+            if (item == null)
+            {
+                continue;
+            }
+            
+            Prep? prep = db.Preps.Find(itemPreps[i].prepId);
+            if (prep == null)
+            {
+                continue;
+            }
+            
+            item.Preps?.Add(prep);
         }
 
         db.SaveChanges();
