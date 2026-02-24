@@ -9,7 +9,18 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddDbContext<CartSyncContext>(options => options.UseSqlite(CartSyncContext.DefaultPath));
+builder.Services.AddDbContext<CartSyncContext>(optionsBuilder 
+    => optionsBuilder
+        .UseSqlite(CartSyncContext.DefaultPath)
+        .UseSeeding((context, _) =>
+        {
+            if (context is CartSyncContext cartSyncContext)
+            {
+                CartSyncContext.Seed(cartSyncContext);
+            }
+        })
+    
+    );
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi(opt =>
