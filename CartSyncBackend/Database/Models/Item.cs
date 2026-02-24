@@ -60,3 +60,9 @@ public class ItemEditRequest
     public ItemTemp? ItemTemp { get; set; } = null;
     public UnitType? DefaultUnitType { get; set; } = null;
 }
+
+public class ItemAisleResponse
+{
+    public AisleResponse?  Aisle { get; set; }
+    public List<ItemResponse> Items { get; set; } = [];
+}

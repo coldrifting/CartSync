@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using CartSyncBackend;
 using CartSyncBackend.Database;
 using Microsoft.AspNetCore.Rewrite;
@@ -21,7 +22,11 @@ builder.Services.AddDbContext<CartSyncContext>(optionsBuilder
         })
     
     );
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(opt =>
+    {
+        opt.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    });
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi(opt =>
 {

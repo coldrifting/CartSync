@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CartSyncBackend.Controllers;
 
+
 [ApiController]
 [Tags("Items")]
 [Route("/api/items/[action]")]
@@ -14,6 +15,8 @@ public class ItemController(CartSyncContext db) : ControllerBase
 {
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public IActionResult All(Ulid? storeId)
     {
         if (storeId == null)
@@ -24,23 +27,37 @@ public class ItemController(CartSyncContext db) : ControllerBase
         Store? s = db.Stores.Find(storeId.Value);
         if (s == null)
         {
-            return NotFound("Store not found");
+            return Error.NotFoundStore;
         }
 
-        var x = db.ItemAisles
-            .Include(a => a.Store)
-            .Include(a => a.Aisle)
-            .Include(a => a.Item)
-            .Where(a => a.StoreId == s.StoreId)
-            .Select(ia => new
-            {
-                AisleId = ia.AisleId,
-                AisleName = ia.Aisle.AisleName,
-                ItemId = ia.ItemId,
-                ItemName = ia.Item.ItemName
-            });
+        var items = db.ItemAisles
+            .Where(i => i.StoreId == s.StoreId)
+            .Select(ia => ia.Item);
         
-        return Ok(x);
+        var itemAisles = db.ItemAisles
+            .Where(ia => ia.StoreId == s.StoreId)
+            .GroupBy(ia => ia.AisleId)
+            .Select(g => new ItemAisleResponse 
+            {
+                Aisle = g.First().Aisle.ToResponse(),
+                Items = g.Select(x => x.Item.ToResponse()).ToList()
+            })
+            .ToList();
+
+        ItemAisleResponse otherItems = new()
+        {
+            Aisle = null,
+            Items = db.Items
+                .Where(i => !items.Any(ix => ix.ItemId == i.ItemId))
+                .Select(i => i.ToResponse())
+                .ToList()
+        };
+
+        var allItems = itemAisles
+            .Append(otherItems)
+            .OrderBy(a => a.Aisle?.AisleOrder ?? int.MaxValue);
+        
+        return Ok(allItems);
     }
     
     [HttpPost]
@@ -68,7 +85,7 @@ public class ItemController(CartSyncContext db) : ControllerBase
         Item? i = db.Items.FirstOrDefault(i => i.ItemId == itemId);
         if (i == null)
         {
-            return NotFound("Item not found");
+            return Error.NotFoundItem;
         }
         
         i.ItemName = itemEditRequest.ItemName ?? i.ItemName;
@@ -88,7 +105,7 @@ public class ItemController(CartSyncContext db) : ControllerBase
         Item? i = db.Items.FirstOrDefault(i => i.ItemId == itemId);
         if (i == null)
         {
-            return NotFound("Item not found");
+            return Error.NotFoundItem;
         }
         
         Store? s = db.Stores
@@ -96,12 +113,17 @@ public class ItemController(CartSyncContext db) : ControllerBase
             .FirstOrDefault(s => s.StoreId == storeId);
         if (s == null)
         {
-            return NotFound("Store not found");
+            return Error.NotFoundStore;
         }
 
+        if (db.Aisles.All(a => a.AisleId != itemAisleLocChangeRequest.AisleId))
+        {
+            return Error.NotFoundAisle;
+        }
+        
         if (s.Aisles.All(a => a.AisleId != itemAisleLocChangeRequest.AisleId))
         {
-            return NotFound("Aisle not found");
+            return Error.BadRequestAisleNotUnderStore;
         }
         
         ItemAisle? itemAisle = db.ItemAisles.FirstOrDefault(ia => ia.ItemId == itemId && ia.StoreId == s.StoreId);
@@ -134,7 +156,7 @@ public class ItemController(CartSyncContext db) : ControllerBase
         Item? i = db.Items.FirstOrDefault(i => i.ItemId == itemId);
         if (i == null)
         {
-            return NotFound("Item not found");
+            return Error.NotFoundItem;
         }
 
         db.Items.Remove(i);

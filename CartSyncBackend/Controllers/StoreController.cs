@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using CartSyncBackend.Database;
 using CartSyncBackend.Database.Models;
+using CartSyncBackend.Database.Objects;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CartSyncBackend.Controllers;
@@ -39,7 +40,7 @@ public class StoreController(CartSyncContext db) : ControllerBase
         Store? s = db.Stores.FirstOrDefault(s => s.StoreId == storeId);
         if (s == null)
         {
-            return NotFound("Store not found");
+            return Error.NotFoundStore;
         }
         
         s.StoreName = storeAddRenameRequest.StoreName;
@@ -57,7 +58,7 @@ public class StoreController(CartSyncContext db) : ControllerBase
         Store? s = db.Stores.FirstOrDefault(s => s.StoreId == storeId);
         if (s == null)
         {
-            return NotFound("Store not found");
+            return Error.NotFoundStore;
         }
 
         db.Stores.Remove(s);

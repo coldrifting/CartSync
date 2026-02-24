@@ -1,5 +1,6 @@
 using CartSyncBackend.Database;
 using CartSyncBackend.Database.Models;
+using CartSyncBackend.Database.Objects;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,10 +22,15 @@ public class AisleController(CartSyncContext db) : ControllerBase
             .FirstOrDefault(s => s.StoreId == storeId);
         if (s == null)
         {
-            return NotFound("Store not found");
+            return Error.NotFoundStore;
         }
+
+        List<AisleResponse> aisles = s.Aisles
+            .OrderBy(a => a.AisleOrder)
+            .Select(a => a.ToResponse())
+            .ToList();
         
-        return Ok(s.Aisles.Select(a => a.ToResponse()));
+        return Ok(aisles);
     }
     
     [HttpPost]
@@ -36,7 +42,7 @@ public class AisleController(CartSyncContext db) : ControllerBase
         Store? s = db.Stores.FirstOrDefault(s => s.StoreId == aisleAddRequest.StoreId);
         if (s == null)
         {
-            return NotFound("Store not found");
+            return Error.NotFoundStore;
         }
 
         db.Add(new Aisle
@@ -59,7 +65,7 @@ public class AisleController(CartSyncContext db) : ControllerBase
         Aisle? a = db.Aisles.FirstOrDefault(s => s.AisleId == aisleId);
         if (a == null)
         {
-            return NotFound("Aisle not found");
+            return Error.NotFoundAisle;
         }
         
         a.AisleName = aisleRenameRequest.AisleName;
@@ -72,17 +78,12 @@ public class AisleController(CartSyncContext db) : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public IActionResult Reorder(string aisleId, [FromBody] AisleReorderRequest aisleReorderRequest)
+    public IActionResult Reorder(Ulid aisleId, [FromBody] AisleReorderRequest aisleReorderRequest)
     {
-        if (!Ulid.TryParse(aisleId, out Ulid aisleUlid))
-        {
-            return BadRequest("Invalid Aisle Id");
-        }
-        
-        Aisle? a = db.Aisles.FirstOrDefault(s => s.AisleId == aisleUlid);
+        Aisle? a = db.Aisles.FirstOrDefault(s => s.AisleId == aisleId);
         if (a == null)
         {
-            return NotFound("Aisle not found");
+            return Error.NotFoundAisle;
         }
         
         a.AisleOrder = aisleReorderRequest.AisleOrder;
@@ -100,7 +101,7 @@ public class AisleController(CartSyncContext db) : ControllerBase
         Aisle? a = db.Aisles.FirstOrDefault(a => a.AisleId == aisleId);
         if (a == null)
         {
-            return NotFound("Aisle not found");
+            return Error.NotFoundAisle;
         }
 
         db.Aisles.Remove(a);

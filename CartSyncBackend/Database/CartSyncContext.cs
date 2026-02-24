@@ -548,7 +548,7 @@ public class CartSyncContext(DbContextOptions<CartSyncContext> options) : DbCont
             (items[230].itemUlid, stores[0].storeUlid, aisles[22].aisleUlid, BayType.Middle),
             (items[231].itemUlid, stores[0].storeUlid, aisles[0].aisleUlid, BayType.End),
             
-            (items[0].itemUlid, stores[1].storeUlid, aisles[0].aisleUlid, BayType.Start)
+            (items[0].itemUlid, stores[1].storeUlid, aisles[^1].aisleUlid, BayType.Start)
         ];
 
         for (int i = 0; i < stores.Length; i++)
@@ -573,7 +573,7 @@ public class CartSyncContext(DbContextOptions<CartSyncContext> options) : DbCont
         
         db.Aisles.Add(new Aisle
         {
-            StoreId = stores[0].storeUlid,
+            StoreId = stores[1].storeUlid,
             AisleId = aisles[^1].aisleUlid,
             AisleName = aisles[^1].aisleName,
             AisleOrder = 1
