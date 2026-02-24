@@ -1,0 +1,56 @@
+using CartSyncBackend;
+using CartSyncBackend.Database;
+using Microsoft.AspNetCore.Rewrite;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi;
+using Scalar.AspNetCore;
+
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+
+builder.Services.AddDbContext<CartSyncContext>(options => options.UseSqlite(CartSyncContext.DefaultPath));
+builder.Services.AddControllers();
+// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.AddOpenApi(opt =>
+{
+    opt.AddSchemaTransformer((schema, context, _) =>
+    {
+        if (context.JsonTypeInfo.Type == typeof(Ulid))
+        {
+            schema.Type = JsonSchemaType.String;
+            schema.Example = "01ARZ3NDEKTSV4RRFFQ69G5FAV";
+        }
+
+        return Task.CompletedTask;
+    });
+});
+
+builder.Services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(opt =>
+    opt.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
+
+builder.Services.Configure<RouteOptions>(options =>
+{
+    options.LowercaseUrls = true;
+});
+
+WebApplication app = builder.Build();
+
+// enforce lowercase URLs
+// by redirecting uppercase urls to lowercase urls
+app.UseRewriter(new RewriteOptions().Add(new RedirectLowerCaseRule()));
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+    app.MapScalarApiReference("/api", opt => opt
+        .WithTheme(ScalarTheme.Solarized)
+        .WithClassicLayout()
+    );
+}
+
+
+app.MapControllers();
+
+app.Run();
