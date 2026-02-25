@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +11,9 @@ public class RecipeStep
     public Ulid RecipeStepId { get; set; }
 
     public Ulid RecipeId { get; set; }
-    public string RecipeStepContent { get; set; } = String.Empty;
+    
+    [StringLength(2048)]
+    public string RecipeStepContent { get; set; } = string.Empty;
     public int RecipeStepOrder { get; set; }
     public bool IsImage { get; set; }
     
@@ -22,4 +25,12 @@ public class RecipeStep
         set;
         get => field ?? throw new InvalidOperationException("Uninitialized property: " + nameof(Recipe));
     }
+}
+
+public class RecipeStepResponse
+{
+    public Ulid RecipeStepId { get; set; }
+    public string RecipeStepContent { get; set; } = string.Empty;
+    public int RecipeStepOrder { get; set; }
+    public bool IsImage { get; set; }
 }

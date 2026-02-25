@@ -15,6 +15,8 @@ public class CartSyncContext(DbContextOptions<CartSyncContext> options) : DbCont
 
     public DbSet<Recipe> Recipes { get; set; }
     public DbSet<RecipeStep> RecipeSteps { get; set; }
+    public DbSet<RecipeSection> RecipeSections { get; set; }
+    public DbSet<RecipeSectionEntry> RecipeSectionEntries { get; set; }
 
     public static string DefaultPath => Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CartSync.db");
 
@@ -31,6 +33,20 @@ public class CartSyncContext(DbContextOptions<CartSyncContext> options) : DbCont
             .HasMany<Item>(a => a.Items)
             .WithMany(i => i.Aisles)
             .UsingEntity<ItemAisle>();
+
+        /*
+        modelBuilder.Entity<Recipe>()
+            .HasMany<RecipeStep>(r => r.RecipeSteps)
+            .WithOne(r => r.Recipe);
+        
+        modelBuilder.Entity<Recipe>()
+            .HasMany(r => r.RecipeSections)
+            .WithOne(r => r.Recipe);
+        
+        modelBuilder.Entity<RecipeSection>()
+            .HasMany(r => r.RecipeSectionEntries)
+            .WithOne(r => r.RecipeSection);
+            */
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder options)
@@ -74,7 +90,9 @@ public class CartSyncContext(DbContextOptions<CartSyncContext> options) : DbCont
 
         Recipes.Seed();
         RecipeSteps.Seed();
-
+        RecipeSections.Seed();
+        RecipeSectionEntries.Seed();
+        
         SaveChanges();
     }
 }

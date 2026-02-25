@@ -1,4 +1,6 @@
 using System.Globalization;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace CartSyncBackend.Database.Objects;
 
@@ -7,10 +9,16 @@ public class Fraction
     public int Num { get; set; }
     public int Dem { get; set; } = 1;
 
+    [JsonIgnore]
     public int AsInt => Num / Dem;
+    
+    [JsonIgnore]
     public double AsDouble => Num / (double)Dem;
     
+    [JsonIgnore]
     public string DecimalString => ((int)(Num * 1000.0) / (double)(Dem) / 1000.0).ToString(CultureInfo.InvariantCulture);
+    
+    [JsonIgnore]
     public bool IsPlural => (Num / (float)Dem) > 1.0 || this.ToString().Contains('.');
 
     public Fraction(FixedPoint input)
@@ -135,8 +143,8 @@ public class Fraction
             case "7/8": return "⅞";
             
             default:
-                string test = (Num / (float)Dem).ToString("%g");
-                return test[..4];
+                string decimalString = (Num / (float)Dem).ToString("g");
+                return decimalString[..Math.Min(decimalString.Length, 4)];
         }
     }
 
@@ -180,5 +188,33 @@ public class Fraction
         }
 
         return this;
+    }
+}
+
+public class FractionJsonConverter : JsonConverter<Fraction>
+{
+    public override Fraction? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        string? s = reader.GetString();
+        if (s is null)
+        {
+            return null;
+        }
+
+        if (!s.Contains('/'))
+        {
+            return new Fraction(int.Parse(s), 1);
+        }
+
+        string[] arr = s.Split('/');
+        return arr.Length != 2
+            ? null
+            : new Fraction(int.Parse(arr[0]), int.Parse(arr[1]));
+    }
+
+    public override void Write(Utf8JsonWriter writer, Fraction value, JsonSerializerOptions options)
+    {
+        string asString = $"{value.Num}/{value.Dem}";
+        JsonSerializer.Serialize(writer, asString, value.GetType(), options);
     }
 }

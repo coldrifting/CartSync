@@ -39,6 +39,16 @@ public class ItemResponse
     public List<PrepResponse> Preps { get; set; } = [];
 }
 
+public class ItemResponseNoPrep
+{
+    public Ulid ItemId { get; set; }
+    
+    [StringLength(256)]
+    public string ItemName { get; set; } = "(Default)";
+
+    public ItemTemp ItemTemp { get; set; } = ItemTemp.Ambient;
+}
+
 public class ItemAddRequest
 {
     [Required]
