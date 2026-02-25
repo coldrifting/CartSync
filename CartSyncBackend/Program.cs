@@ -20,13 +20,15 @@ builder.Services.AddDbContext<CartSyncContext>(optionsBuilder
                 cartSyncContext.Seed();
             }
         })
-    
     );
-builder.Services.AddControllers()
+
+builder.Services
+    .AddControllers()
     .AddJsonOptions(opt =>
     {
         opt.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     });
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi(opt =>
 {
