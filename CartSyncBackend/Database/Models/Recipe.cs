@@ -34,7 +34,7 @@ public class RecipeResponse
     public string Url { get; set; } = string.Empty;
     public bool IsPinned { get; set; }
     public int CartAmount { get; set; }
-    
-    public List<RecipeStepResponse> RecipeStepsResponse { get; set; }
-    public List<RecipeSectionResponse> RecipeSectionsResponse { get; set; }
+
+    public List<RecipeStepResponse> RecipeStepsResponse { get; set; } = [];
+    public List<RecipeSectionResponse> RecipeSectionsResponse { get; set; } = [];
 }

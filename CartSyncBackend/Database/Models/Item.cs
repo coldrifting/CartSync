@@ -51,9 +51,9 @@ public class ItemResponseNoPrep
 
 public class ItemAddRequest
 {
-    [Required]
-    [StringLength(256)]
-    public string ItemName { get; set; } = "New Item";
+    [Required] 
+    [StringLength(256)] 
+    public string ItemName { get; set; } = null!;
     
     public ItemTemp? ItemTemp { get; set; } = null;
     public UnitType? DefaultUnitType { get; set; } = null;

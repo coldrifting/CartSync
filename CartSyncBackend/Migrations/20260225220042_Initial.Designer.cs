@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CartSyncBackend.Migrations
 {
     [DbContext(typeof(CartSyncContext))]
-    [Migration("20260225130215_Initial")]
+    [Migration("20260225220042_Initial")]
     partial class Initial
     {
         /// <inheritdoc />

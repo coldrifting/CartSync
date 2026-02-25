@@ -14,55 +14,41 @@ namespace CartSyncBackend.Controllers;
 public class ItemController(CartSyncContext db) : ControllerBase
 {
     [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [Route("/api/items/preps")]
-    public IActionResult AllPreps()
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<ItemResponse>))]
+    public IActionResult All()
     {
-        List<PrepResponse> preps = db.Preps
-            .Select(p => new PrepResponse
+        List<ItemResponse> allItems = db.Items
+            .Select(i => new ItemResponse
             {
-                PrepId = p.PrepId,
-                PrepName = p.PrepName
-            })
-            .ToList();
-        return Ok(preps);
-    }
-    
-    [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public IActionResult All(Ulid? storeId)
-    {
-        if (storeId == null)
-        {
-            List<ItemResponse> allItems = db.Items
-                .Select(i => new ItemResponse
+                ItemId = i.ItemId,
+                ItemName = i.ItemName,
+                ItemTemp = i.ItemTemp,
+                DefaultUnitType = i.DefaultUnitType,
+                CartAmount = i.CartAmount,
+                Preps = i.Preps.Select(p => new PrepResponse
                 {
-                    ItemId = i.ItemId,
-                    ItemName = i.ItemName,
-                    ItemTemp = i.ItemTemp,
-                    DefaultUnitType = i.DefaultUnitType,
-                    CartAmount = i.CartAmount,
-                    Preps = i.Preps.Select(p => new PrepResponse
-                    {
-                        PrepId = p.PrepId,
-                        PrepName = p.PrepName
-                    }).ToList()
-                })
-                .OrderBy(i => i.ItemName)
-                .ToList();
-            
-            return Ok(allItems);
-        }
+                    PrepId = p.PrepId,
+                    PrepName = p.PrepName
+                }).ToList()
+            })
+            .OrderBy(i => i.ItemName)
+            .ToList();
+        
+        return Ok(allItems);
+    }
 
-        Store? s = db.Stores.Find(storeId.Value);
+    [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<ItemAisleResponse>))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
+    [Route("/api/items/all/located")]
+    public IActionResult AllWithLocation([Required] Ulid storeId)
+    {
+        Store? s = db.Stores.Find(storeId);
         if (s == null)
         {
             return Error.NotFoundStore;
         }
-
-        
+    
         // Unlocated Items
         ItemAisleResponse unlocated = new()
         {
@@ -88,44 +74,43 @@ public class ItemController(CartSyncContext db) : ControllerBase
                 })
                 .OrderBy(i => i.ItemName)
                 .ToList()
-        };
 
+        };
+        
         // Items associated with an Aisle
         List<ItemAisleResponse> located = db.Aisles
             .Where(a => a.Store == s)
             .Select(a => new ItemAisleResponse
             {
-                Aisle = new AisleResponse()
-                {
-                    AisleId = a.AisleId,
-                    AisleName = a.AisleName,
-                    AisleOrder = a.AisleOrder
-                },
-                Items = a.Items.Select(i => new ItemResponse
-                {
-                    ItemId = i.ItemId,
-                    ItemName = i.ItemName,
-                    ItemTemp = i.ItemTemp,
-                    DefaultUnitType = i.DefaultUnitType,
-                    CartAmount = i.CartAmount,
-                    Preps = i.Preps.Select(p => new PrepResponse
-                    {
-                        PrepId = p.PrepId,
-                        PrepName = p.PrepName
-                    }).ToList()
-                }).ToList()
-            })
-            .ToList();
-        
+            Aisle = new AisleResponse()
+            {
+            AisleId = a.AisleId,
+            AisleName = a.AisleName,
+            AisleOrder = a.AisleOrder
+        },
+        Items = a.Items.Select(i => new ItemResponse
+        {
+            ItemId = i.ItemId,
+            ItemName = i.ItemName,
+            ItemTemp = i.ItemTemp,
+            DefaultUnitType = i.DefaultUnitType,
+            CartAmount = i.CartAmount,
+            Preps = i.Preps.Select(p => new PrepResponse
+            {
+                PrepId = p.PrepId,
+                PrepName = p.PrepName
+            }).ToList()
+        }).ToList()
+        })
+        .ToList();
+    
         List<ItemAisleResponse> result = unlocated.Items.Count != 0 ? located.Prepend(unlocated).ToList() : located;
-
         return Ok(result);
     }
 
     [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ItemResponse))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
     public IActionResult Details([Required] Ulid itemId)
     {
         ItemResponse? itemResponse = db.Items
@@ -154,9 +139,19 @@ public class ItemController(CartSyncContext db) : ControllerBase
     
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     public IActionResult Add([FromBody] ItemAddRequest itemAddRequest)
     {
+        if (!ModelState.IsValid)
+        {
+            List<string> errors = ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .ToList();
+            
+            return Error.BadRequestItemAddRequestInvalid(errors);
+        }
+        
         db.Add(new Item
         {
             ItemName = itemAddRequest.ItemName,
@@ -170,10 +165,20 @@ public class ItemController(CartSyncContext db) : ControllerBase
     
     [HttpPut]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
     public IActionResult Edit([Required] Ulid itemId, [FromBody] ItemEditRequest itemEditRequest)
     {
+        if (!ModelState.IsValid)
+        {
+            List<string> errors = ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .ToList();
+            
+            return Error.BadRequestItemEditRequestInvalid(errors);
+        }
+        
         Item? i = db.Items.FirstOrDefault(i => i.ItemId == itemId);
         if (i == null)
         {
@@ -209,10 +214,21 @@ public class ItemController(CartSyncContext db) : ControllerBase
     
     [HttpPut]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
+    [Route("/api/items/edit/[action]")]
     public IActionResult Location([Required] Ulid itemId, [Required] Ulid storeId, [FromBody] ItemAisleLocChangeRequest itemAisleLocChangeRequest)
     {
+        if (!ModelState.IsValid)
+        {
+            List<string> errors = ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .ToList();
+            
+            return Error.BadRequestItemEditRequestInvalid(errors);
+        }
+        
         Item? i = db.Items.FirstOrDefault(i => i.ItemId == itemId);
         if (i == null)
         {
@@ -260,9 +276,9 @@ public class ItemController(CartSyncContext db) : ControllerBase
     
     [HttpDelete]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public IActionResult Delete(Ulid itemId)
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
+    public IActionResult Delete([Required] Ulid itemId)
     {
         Item? i = db.Items.FirstOrDefault(i => i.ItemId == itemId);
         if (i == null)

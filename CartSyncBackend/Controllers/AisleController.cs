@@ -8,7 +8,7 @@ namespace CartSyncBackend.Controllers;
 
 [ApiController]
 [Tags("Aisles")]
-[Route("/api/stores/aisles/[action]")]
+[Route("/api/aisles/[action]")]
 public class AisleController(CartSyncContext db) : ControllerBase
 {
     [HttpGet]

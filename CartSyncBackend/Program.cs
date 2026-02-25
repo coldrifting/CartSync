@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using CartSyncBackend;
 using CartSyncBackend.Database;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
@@ -44,8 +45,12 @@ builder.Services.AddOpenApi(opt =>
     });
 });
 
+builder.Services.Configure<ApiBehaviorOptions>(apiBehaviorOptions => {
+    apiBehaviorOptions.SuppressModelStateInvalidFilter = true;
+});
+
 builder.Services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(opt =>
-    opt.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
+    opt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 builder.Services.Configure<RouteOptions>(options =>
 {
@@ -64,7 +69,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.MapScalarApiReference("/api", opt => opt
         .WithTheme(ScalarTheme.Solarized)
-        .WithClassicLayout()
+        //.WithClassicLayout()
     );
 }
 
