@@ -12,16 +12,7 @@ public class Store
     public string StoreName { get; set; } = null!;
 
     // Navigation
-    public virtual ICollection<Aisle> Aisles { get; init; } = null!;
-    
-    public StoreResponse ToResponse()
-    {
-        return new StoreResponse
-        {
-            StoreId = StoreId,
-            StoreName = StoreName
-        };
-    }
+    public List<Aisle> Aisles { get; init; } = null!;
 }
 
 public class StoreResponse

@@ -17,20 +17,11 @@ public class Item
     public Amount? CartAmount { get; set; }
 
     // Navigation
-    public virtual List<Prep> Preps { get; set; } = null!;
-
-    public ItemResponse ToResponse()
-    {
-        return new ItemResponse()
-        {
-            ItemId = ItemId,
-            ItemName = ItemName,
-            ItemTemp = ItemTemp,
-            DefaultUnitType = DefaultUnitType,
-            CartAmount = CartAmount,
-            Preps = Preps?.Select(p => p.ToResponse()).ToList() ?? []
-        };
-    }
+    public List<Prep> Preps { get; set; } = null!;
+    public List<ItemPrep> ItemPreps { get; set; } = null!;
+    
+    // Enforce max of 1 linked aisle per store
+    public List<Aisle> Aisles { get; set; } = null!;
 }
 
 public class ItemResponse

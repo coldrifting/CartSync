@@ -17,7 +17,7 @@ builder.Services.AddDbContext<CartSyncContext>(optionsBuilder
         {
             if (context is CartSyncContext cartSyncContext)
             {
-                CartSyncContext.Seed(cartSyncContext);
+                cartSyncContext.Seed();
             }
         })
     

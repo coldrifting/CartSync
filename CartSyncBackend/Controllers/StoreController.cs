@@ -17,7 +17,11 @@ public class StoreController(CartSyncContext db) : ControllerBase
     {
         return db.Stores
             .OrderBy(s => s.StoreName)
-            .Select(s => s.ToResponse());
+            .Select(s => new StoreResponse
+            {
+                StoreId = s.StoreId,
+                StoreName = s.StoreName
+            });
     }
     
     [HttpPost]

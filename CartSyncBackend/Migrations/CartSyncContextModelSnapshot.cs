@@ -103,6 +103,25 @@ namespace CartSyncBackend.Migrations
                     b.ToTable("ItemAisles");
                 });
 
+            modelBuilder.Entity("CartSyncBackend.Database.Models.ItemPrep", b =>
+                {
+                    b.Property<string>("ItemId")
+                        .HasMaxLength(26)
+                        .IsUnicode(false)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PrepId")
+                        .HasMaxLength(26)
+                        .IsUnicode(false)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("ItemId", "PrepId");
+
+                    b.HasIndex("PrepId");
+
+                    b.ToTable("ItemPreps");
+                });
+
             modelBuilder.Entity("CartSyncBackend.Database.Models.Prep", b =>
                 {
                     b.Property<string>("PrepId")
@@ -117,6 +136,62 @@ namespace CartSyncBackend.Migrations
                     b.HasKey("PrepId");
 
                     b.ToTable("Preps");
+                });
+
+            modelBuilder.Entity("CartSyncBackend.Database.Models.Recipe", b =>
+                {
+                    b.Property<string>("RecipeId")
+                        .HasMaxLength(26)
+                        .IsUnicode(false)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CartAmount")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsPinned")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("RecipeName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("RecipeId");
+
+                    b.ToTable("Recipes");
+                });
+
+            modelBuilder.Entity("CartSyncBackend.Database.Models.RecipeStep", b =>
+                {
+                    b.Property<string>("RecipeStepId")
+                        .HasMaxLength(26)
+                        .IsUnicode(false)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsImage")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("RecipeId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .IsUnicode(false)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RecipeStepContent")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("RecipeStepOrder")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("RecipeStepId");
+
+                    b.HasIndex("RecipeId");
+
+                    b.ToTable("RecipeSteps");
                 });
 
             modelBuilder.Entity("CartSyncBackend.Database.Models.Store", b =>
@@ -134,25 +209,6 @@ namespace CartSyncBackend.Migrations
                     b.HasKey("StoreId");
 
                     b.ToTable("Stores");
-                });
-
-            modelBuilder.Entity("ItemPrep", b =>
-                {
-                    b.Property<string>("ItemsItemId")
-                        .HasMaxLength(26)
-                        .IsUnicode(false)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("PrepsPrepId")
-                        .HasMaxLength(26)
-                        .IsUnicode(false)
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("ItemsItemId", "PrepsPrepId");
-
-                    b.HasIndex("PrepsPrepId");
-
-                    b.ToTable("ItemPrep");
                 });
 
             modelBuilder.Entity("CartSyncBackend.Database.Models.Aisle", b =>
@@ -193,19 +249,44 @@ namespace CartSyncBackend.Migrations
                     b.Navigation("Store");
                 });
 
-            modelBuilder.Entity("ItemPrep", b =>
+            modelBuilder.Entity("CartSyncBackend.Database.Models.ItemPrep", b =>
                 {
-                    b.HasOne("CartSyncBackend.Database.Models.Item", null)
-                        .WithMany()
-                        .HasForeignKey("ItemsItemId")
+                    b.HasOne("CartSyncBackend.Database.Models.Item", "Item")
+                        .WithMany("ItemPreps")
+                        .HasForeignKey("ItemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("CartSyncBackend.Database.Models.Prep", null)
-                        .WithMany()
-                        .HasForeignKey("PrepsPrepId")
+                    b.HasOne("CartSyncBackend.Database.Models.Prep", "Prep")
+                        .WithMany("ItemPreps")
+                        .HasForeignKey("PrepId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Item");
+
+                    b.Navigation("Prep");
+                });
+
+            modelBuilder.Entity("CartSyncBackend.Database.Models.RecipeStep", b =>
+                {
+                    b.HasOne("CartSyncBackend.Database.Models.Recipe", "Recipe")
+                        .WithMany()
+                        .HasForeignKey("RecipeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Recipe");
+                });
+
+            modelBuilder.Entity("CartSyncBackend.Database.Models.Item", b =>
+                {
+                    b.Navigation("ItemPreps");
+                });
+
+            modelBuilder.Entity("CartSyncBackend.Database.Models.Prep", b =>
+                {
+                    b.Navigation("ItemPreps");
                 });
 
             modelBuilder.Entity("CartSyncBackend.Database.Models.Store", b =>

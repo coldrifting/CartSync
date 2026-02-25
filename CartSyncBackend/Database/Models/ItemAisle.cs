@@ -15,14 +15,15 @@ public class ItemAisle
     public Ulid AisleId { get; set; }
     public BayType Bay { get; set; } = BayType.Middle;
     
+    // Navigation
     [ForeignKey(nameof(ItemId))] 
-    public virtual Item Item { get; set; } = null!;
+    public Item Item { get; set; } = null!;
     
     [ForeignKey(nameof(StoreId))]
-    public virtual Store Store { get; set; } = null!;
+    public Store Store { get; set; } = null!;
 
     [ForeignKey(nameof(AisleId))] 
-    public virtual Aisle Aisle { get; set; } = null!;
+    public Aisle Aisle { get; set; } = null!;
 }
 
 public class ItemAisleLocChangeRequest

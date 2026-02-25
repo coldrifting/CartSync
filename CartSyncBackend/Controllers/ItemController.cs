@@ -18,7 +18,13 @@ public class ItemController(CartSyncContext db) : ControllerBase
     [Route("/api/items/preps")]
     public IActionResult AllPreps()
     {
-        List<PrepResponse> preps = db.Preps.Select(prep => prep.ToResponse()).ToList();
+        List<PrepResponse> preps = db.Preps
+            .Select(p => new PrepResponse
+            {
+                PrepId = p.PrepId,
+                PrepName = p.PrepName
+            })
+            .ToList();
         return Ok(preps);
     }
     
@@ -30,9 +36,22 @@ public class ItemController(CartSyncContext db) : ControllerBase
     {
         if (storeId == null)
         {
-            var allItems = db.Items
-                .Include(i => i.Preps)
-                .Select(i => i.ToResponse());
+            List<ItemResponse> allItems = db.Items
+                .Select(i => new ItemResponse
+                {
+                    ItemId = i.ItemId,
+                    ItemName = i.ItemName,
+                    ItemTemp = i.ItemTemp,
+                    DefaultUnitType = i.DefaultUnitType,
+                    CartAmount = i.CartAmount,
+                    Preps = i.Preps.Select(p => new PrepResponse
+                    {
+                        PrepId = p.PrepId,
+                        PrepName = p.PrepName
+                    }).ToList()
+                })
+                .OrderBy(i => i.ItemName)
+                .ToList();
             
             return Ok(allItems);
         }
@@ -43,39 +62,64 @@ public class ItemController(CartSyncContext db) : ControllerBase
             return Error.NotFoundStore;
         }
 
-        var items = db.ItemAisles
-            .Include(i => i.Item)
-            .ThenInclude(ix => ix.Preps)
-            .Where(i => i.StoreId == s.StoreId)
-            .Select(ia => ia.Item);
         
-        var itemAisles = db.ItemAisles
-            .Include(i => i.Item)
-            .ThenInclude(ix => ix.Preps)
-            .Where(ia => ia.StoreId == s.StoreId)
-            .GroupBy(ia => ia.AisleId)
-            .Select(g => new ItemAisleResponse 
-            {
-                Aisle = g.First().Aisle.ToResponse(),
-                Items = g.Select(x => x.Item.ToResponse()).ToList()
-            })
-            .ToList();
-
-        ItemAisleResponse otherItems = new()
+        // Unlocated Items
+        ItemAisleResponse unlocated = new()
         {
-            Aisle = null,
+            Aisle = new AisleResponse
+            {
+                AisleId = Ulid.Empty,
+                AisleName = "(No Location)"
+            },
             Items = db.Items
-                .Include(i => i.Preps)
-                .Where(i => !items.Any(ix => ix.ItemId == i.ItemId))
-                .Select(i => i.ToResponse())
+                .Where(i => i.Aisles.All(a => a.Store != s))
+                .Select(i => new ItemResponse
+                {
+                    ItemId = i.ItemId,
+                    ItemName = i.ItemName,
+                    ItemTemp = i.ItemTemp,
+                    DefaultUnitType = i.DefaultUnitType,
+                    CartAmount = i.CartAmount,
+                    Preps = i.Preps.Select(p => new PrepResponse
+                    {
+                        PrepId = p.PrepId,
+                        PrepName = p.PrepName
+                    }).ToList()
+                })
+                .OrderBy(i => i.ItemName)
                 .ToList()
         };
 
-        var allItemsByAisle = itemAisles
-            .Append(otherItems)
-            .OrderBy(a => a.Aisle?.AisleOrder ?? int.MaxValue);
+        // Items associated with an Aisle
+        List<ItemAisleResponse> located = db.Aisles
+            .Where(a => a.Store == s)
+            .Select(a => new ItemAisleResponse
+            {
+                Aisle = new AisleResponse()
+                {
+                    AisleId = a.AisleId,
+                    AisleName = a.AisleName,
+                    AisleOrder = a.AisleOrder
+                },
+                Items = a.Items.Select(i => new ItemResponse
+                {
+                    ItemId = i.ItemId,
+                    ItemName = i.ItemName,
+                    ItemTemp = i.ItemTemp,
+                    DefaultUnitType = i.DefaultUnitType,
+                    CartAmount = i.CartAmount,
+                    Preps = i.Preps.Select(p => new PrepResponse
+                    {
+                        PrepId = p.PrepId,
+                        PrepName = p.PrepName
+                    }).ToList()
+                }).ToList()
+            })
+            .ToList();
         
-        return Ok(allItemsByAisle);
+        List<ItemAisleResponse> result = unlocated.Items.Count != 0 ? located.Prepend(unlocated).ToList() : located;
+
+        return Ok(result);
     }
 
     [HttpGet]
@@ -84,16 +128,28 @@ public class ItemController(CartSyncContext db) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public IActionResult Details([Required] Ulid itemId)
     {
-        var item = db.Items
-            .Include(i => i.Preps)
+        ItemResponse? itemResponse = db.Items
+            .Select(i => new ItemResponse
+            {
+                ItemId = i.ItemId,
+                ItemName = i.ItemName,
+                ItemTemp = i.ItemTemp,
+                DefaultUnitType = i.DefaultUnitType,
+                CartAmount = i.CartAmount,
+                Preps = i.Preps.Select(p => new PrepResponse
+                {
+                    PrepId = p.PrepId,
+                    PrepName = p.PrepName
+                }).ToList()
+            })
             .FirstOrDefault(i => i.ItemId == itemId);
-        
-        if (item == null)
+
+        if (itemResponse == null)
         {
             return Error.NotFoundItem;
         }
-        
-        return Ok(item.ToResponse());
+
+        return Ok(itemResponse);
     }
     
     [HttpPost]

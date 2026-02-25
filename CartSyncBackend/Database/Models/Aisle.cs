@@ -16,15 +16,7 @@ public class Aisle
     [ForeignKey(nameof(StoreId))]
     public Store Store { get; set; } = null!;
 
-    public AisleResponse ToResponse()
-    {
-        return new AisleResponse()
-        {
-            AisleId = AisleId,
-            AisleName = AisleName,
-            AisleOrder = AisleOrder
-        };
-    }
+    public List<Item> Items { get; set; } = null!;
 }
 
 public class AisleResponse

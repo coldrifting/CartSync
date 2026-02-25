@@ -27,7 +27,12 @@ public class AisleController(CartSyncContext db) : ControllerBase
 
         List<AisleResponse> aisles = s.Aisles
             .OrderBy(a => a.AisleOrder)
-            .Select(a => a.ToResponse())
+            .Select(a => new AisleResponse()
+            {
+                AisleId = a.AisleId,
+                AisleName = a.AisleName,
+                AisleOrder = a.AisleOrder
+            })
             .ToList();
         
         return Ok(aisles);
