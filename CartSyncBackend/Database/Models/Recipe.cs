@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 
 namespace CartSyncBackend.Database.Models;
@@ -6,11 +8,17 @@ namespace CartSyncBackend.Database.Models;
 public class Recipe
 {
     public Ulid RecipeId { get; set; }
+    
+    [StringLength(255)]
     public string RecipeName { get; set; } = string.Empty;
+    
+    [StringLength(255)]
     public string Url { get; set; } = string.Empty;
+    
     public bool IsPinned { get; set; }
     public int CartAmount { get; set; }
 
     // Navigation
-    public List<RecipeStep> RecipeSteps = null!;
+    [JsonIgnore] 
+    public List<RecipeStep> RecipeSteps = [];
 }

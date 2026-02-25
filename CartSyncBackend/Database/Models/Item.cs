@@ -17,11 +17,11 @@ public class Item
     public Amount? CartAmount { get; set; }
 
     // Navigation
-    public List<Prep> Preps { get; set; } = null!;
-    public List<ItemPrep> ItemPreps { get; set; } = null!;
+    public List<Prep> Preps { get; set; } = [];
+    public List<ItemPrep> ItemPreps { get; set; } = [];
     
     // Enforce max of 1 linked aisle per store
-    public List<Aisle> Aisles { get; set; } = null!;
+    public List<Aisle> Aisles { get; set; } = [];
 }
 
 public class ItemResponse

@@ -9,23 +9,21 @@ public class Store
     public Ulid StoreId { get; init; } = Ulid.NewUlid();
 
     [StringLength(256)]
-    public string StoreName { get; set; } = null!;
+    public string StoreName { get; set; } = string.Empty;
 
     // Navigation
-    public List<Aisle> Aisles { get; init; } = null!;
+    public List<Aisle> Aisles { get; init; } = [];
 }
 
 public class StoreResponse
 {
     public Ulid StoreId { get; init; }
-
-    [StringLength(256)]
-    public string StoreName { get; init; } = null!;
+    public string StoreName { get; set; } = string.Empty;
 }
 
 public class StoreAddRenameRequest
 {
     [Required]
     [StringLength(256)]
-    public required string StoreName { get; init; }
+    public string StoreName { get; set; } = string.Empty;
 }

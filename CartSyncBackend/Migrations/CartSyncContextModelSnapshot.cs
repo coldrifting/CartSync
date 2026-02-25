@@ -153,10 +153,12 @@ namespace CartSyncBackend.Migrations
 
                     b.Property<string>("RecipeName")
                         .IsRequired()
+                        .HasMaxLength(255)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Url")
                         .IsRequired()
+                        .HasMaxLength(255)
                         .HasColumnType("TEXT");
 
                     b.HasKey("RecipeId");

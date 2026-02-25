@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CartSyncBackend.Migrations
 {
     [DbContext(typeof(CartSyncContext))]
-    [Migration("20260225100632_Initial")]
+    [Migration("20260225102401_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -156,10 +156,12 @@ namespace CartSyncBackend.Migrations
 
                     b.Property<string>("RecipeName")
                         .IsRequired()
+                        .HasMaxLength(255)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Url")
                         .IsRequired()
+                        .HasMaxLength(255)
                         .HasColumnType("TEXT");
 
                     b.HasKey("RecipeId");

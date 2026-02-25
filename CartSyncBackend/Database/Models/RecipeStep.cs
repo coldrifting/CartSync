@@ -17,5 +17,9 @@ public class RecipeStep
     // Navigation
     [JsonIgnore]
     [ForeignKey(nameof(RecipeId))] 
-    public Recipe Recipe { get; set; } = null!;
+    public Recipe Recipe
+    {
+        set;
+        get => field ?? throw new InvalidOperationException("Uninitialized property: " + nameof(Recipe));
+    }
 }

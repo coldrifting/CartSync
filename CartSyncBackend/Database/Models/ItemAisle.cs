@@ -17,13 +17,25 @@ public class ItemAisle
     
     // Navigation
     [ForeignKey(nameof(ItemId))] 
-    public Item Item { get; set; } = null!;
+    public Item Item
+    {
+        set;
+        get => field ?? throw new InvalidOperationException("Uninitialized property: " + nameof(Item));
+    }
     
     [ForeignKey(nameof(StoreId))]
-    public Store Store { get; set; } = null!;
+    public Store Store
+    {
+        set;
+        get => field ?? throw new InvalidOperationException("Uninitialized property: " + nameof(Store));
+    }
 
     [ForeignKey(nameof(AisleId))] 
-    public Aisle Aisle { get; set; } = null!;
+    public Aisle Aisle
+    {
+        set;
+        get => field ?? throw new InvalidOperationException("Uninitialized property: " + nameof(Aisle));
+    }
 }
 
 public class ItemAisleLocChangeRequest

@@ -42,8 +42,8 @@ namespace CartSyncBackend.Migrations
                 columns: table => new
                 {
                     RecipeId = table.Column<string>(type: "TEXT", unicode: false, maxLength: 26, nullable: false),
-                    RecipeName = table.Column<string>(type: "TEXT", nullable: false),
-                    Url = table.Column<string>(type: "TEXT", nullable: false),
+                    RecipeName = table.Column<string>(type: "TEXT", maxLength: 255, nullable: false),
+                    Url = table.Column<string>(type: "TEXT", maxLength: 255, nullable: false),
                     IsPinned = table.Column<bool>(type: "INTEGER", nullable: false),
                     CartAmount = table.Column<int>(type: "INTEGER", nullable: false)
                 },

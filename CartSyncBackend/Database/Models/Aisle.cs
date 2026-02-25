@@ -14,15 +14,19 @@ public class Aisle
     
     // Navigation
     [ForeignKey(nameof(StoreId))]
-    public Store Store { get; set; } = null!;
+    public Store Store
+    {
+        set;
+        get => field ?? throw new InvalidOperationException("Uninitialized property: " + nameof(Store));
+    }
 
-    public List<Item> Items { get; set; } = null!;
+    public List<Item> Items { get; set; } = [];
 }
 
 public class AisleResponse
 {
     public Ulid AisleId { get; set; }
-    public string AisleName { get; set; } = null!;
+    public string AisleName { get; set; } = string.Empty;
     public int AisleOrder { get; set; } = -1;
 }
 
@@ -33,7 +37,7 @@ public class AisleAddRequest
     public Ulid StoreId { get; set; }
     
     [Required] 
-    public string AisleName { get; set; } = null!;
+    public string AisleName { get; set; } = string.Empty;
 }
 
 public class AisleRenameRequest
@@ -42,7 +46,7 @@ public class AisleRenameRequest
     public Ulid AisleId { get; set; }
     
     [Required] 
-    public string AisleName { get; set; } = null!;
+    public string AisleName { get; set; } = string.Empty;
 }
 
 public class AisleReorderRequest

@@ -11,8 +11,16 @@ public class ItemPrep
     
     // Navigation
     [ForeignKey(nameof(ItemId))]
-    public Item Item { get; set; } = null!;
+    public Item Item
+    {
+        set;
+        get => field ?? throw new InvalidOperationException("Uninitialized property: " + nameof(Item));
+    }
     
     [ForeignKey(nameof(PrepId))]
-    public Prep Prep { get; set; } = null!;
+    public Prep Prep
+    {
+        set;
+        get => field ?? throw new InvalidOperationException("Uninitialized property: " + nameof(Prep));
+    }
 }
