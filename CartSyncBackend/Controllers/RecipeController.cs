@@ -12,6 +12,8 @@ public class RecipeController(CartSyncContext db) : ControllerBase
 {
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public IActionResult GetRecipe(Ulid? recipeId)
     {
         if (recipeId == null)
