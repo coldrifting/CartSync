@@ -8,11 +8,11 @@ namespace CartSyncBackend.Database.Models;
 [PrimaryKey(nameof(RecipeSectionId))]
 public class RecipeSection
 {
-    public Ulid RecipeSectionId { get; set; }
+    public Ulid RecipeSectionId { get; set; } = Ulid.NewUlid();
     
     public Ulid RecipeId { get; set; }
     
-    public int RecipeSectionOrder { get; set; }
+    public int RecipeSectionIndex { get; set; }
 
     [StringLength(255)] 
     public string RecipeSectionName { get; set; } = string.Empty;
@@ -32,7 +32,13 @@ public class RecipeSection
 public class RecipeSectionResponse
 {
     public Ulid? RecipeSectionId { get; set; }
-    public int RecipeSectionOrder { get; set; }
+    public int RecipeSectionIndex { get; set; }
     public string RecipeSectionName { get; set; } = string.Empty;
     public List<RecipeSectionEntryResponse> RecipeSectionEntries { get; set; } = [];
+}
+
+public class RecipeSectionEditRequest
+{
+    public int? RecipeSectionIndex { get; set; }
+    public string? RecipeSectionName { get; set; }
 }

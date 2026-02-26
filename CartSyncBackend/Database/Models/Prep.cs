@@ -5,7 +5,7 @@ namespace CartSyncBackend.Database.Models;
 [PrimaryKey(nameof(PrepId))]
 public class Prep
 {
-    public Ulid PrepId { get; set; }
+    public Ulid PrepId { get; set; } = Ulid.NewUlid();
     public string PrepName { get; set; } = string.Empty;
 
     // Navigation

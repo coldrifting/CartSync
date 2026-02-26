@@ -23,25 +23,27 @@ public class RecipeController(CartSyncContext db) : ControllerBase
                 Url = r.Url,
                 IsPinned = r.IsPinned,
                 CartAmount = r.CartAmount,
-                RecipeStepsResponse = r.RecipeSteps
-                    .Select(rs => new RecipeStepResponse
+                RecipeInstructionsResponse = r.RecipeInstructions
+                    .Select(rs => new RecipeInstructionResponse
                     {
-                        RecipeStepId = rs.RecipeStepId,
-                        RecipeStepOrder = rs.RecipeStepOrder,
-                        RecipeStepContent = rs.RecipeStepContent,
+                        RecipeInstructionId = rs.RecipeInstructionId,
+                        RecipeInstructionIndex = rs.RecipeInstructionIndex,
+                        RecipeInstructionContent = rs.RecipeInstructionContent,
                         IsImage = rs.IsImage
                     })
+                    .OrderBy(rs => rs.RecipeInstructionIndex)
                     .ToList(),
                 RecipeSectionsResponse = r.RecipeSections
                     .Select(rs => new RecipeSectionResponse
                     {
                         RecipeSectionId = rs.RecipeSectionId,
-                        RecipeSectionOrder = rs.RecipeSectionOrder,
+                        RecipeSectionIndex = rs.RecipeSectionIndex,
                         RecipeSectionName = rs.RecipeSectionName,
                         RecipeSectionEntries = rs.RecipeSectionEntries
                             .Select(re => new RecipeSectionEntryResponse
                             {
                                 RecipeSectionEntryId = re.RecipeSectionEntryId,
+                                RecipeSectionEntryIndex = re.RecipeSectionEntryIndex,
                                 Item = new ItemResponseNoPrep
                                 {
                                     ItemId = re.ItemId,
@@ -57,9 +59,13 @@ public class RecipeController(CartSyncContext db) : ControllerBase
                                     : null,
                                 Amount = re.Amount
                             })
+                            .OrderBy(re => re.RecipeSectionEntryIndex)
                             .ToList()
-                    }).ToList()
+                    })
+                    .OrderBy(rs => rs.RecipeSectionIndex)
+                    .ToList()
             })
+            .OrderBy(r => r.RecipeName)
             .ToList();
         
         return Ok(recipes);
@@ -73,7 +79,7 @@ public class RecipeController(CartSyncContext db) : ControllerBase
     {
         if (!ModelState.IsValid && recipeId == Ulid.Empty)
         {
-            return Error.BadRequestInvalidRecipeId;
+            return Error.BadRequestRecipeIdInvalid;
         }
         
         if (db.Recipes.Find(recipeId) == null)
@@ -89,25 +95,27 @@ public class RecipeController(CartSyncContext db) : ControllerBase
                 Url = r.Url,
                 IsPinned = r.IsPinned,
                 CartAmount = r.CartAmount,
-                RecipeStepsResponse = r.RecipeSteps
-                    .Select(rs => new RecipeStepResponse
+                RecipeInstructionsResponse = r.RecipeInstructions
+                    .Select(rs => new RecipeInstructionResponse
                     {
-                        RecipeStepId = rs.RecipeStepId,
-                        RecipeStepOrder = rs.RecipeStepOrder,
-                        RecipeStepContent = rs.RecipeStepContent,
+                        RecipeInstructionId = rs.RecipeInstructionId,
+                        RecipeInstructionIndex = rs.RecipeInstructionIndex,
+                        RecipeInstructionContent = rs.RecipeInstructionContent,
                         IsImage = rs.IsImage
                     })
+                    .OrderBy(rs => rs.RecipeInstructionIndex)
                     .ToList(),
                 RecipeSectionsResponse = r.RecipeSections
                     .Select(rs => new RecipeSectionResponse
                     {
                         RecipeSectionId = rs.RecipeSectionId,
-                        RecipeSectionOrder = rs.RecipeSectionOrder,
+                        RecipeSectionIndex = rs.RecipeSectionIndex,
                         RecipeSectionName = rs.RecipeSectionName,
                         RecipeSectionEntries = rs.RecipeSectionEntries
                             .Select(re => new RecipeSectionEntryResponse
                             {
                                 RecipeSectionEntryId = re.RecipeSectionEntryId,
+                                RecipeSectionEntryIndex = re.RecipeSectionEntryIndex,
                                 Item = new ItemResponseNoPrep
                                 {
                                     ItemId = re.ItemId,
@@ -123,11 +131,93 @@ public class RecipeController(CartSyncContext db) : ControllerBase
                                     : null,
                                 Amount = re.Amount
                             })
+                            .OrderBy(re => re.RecipeSectionEntryIndex)
                             .ToList()
-                    }).ToList()
+                    })
+                    .OrderBy(rs => rs.RecipeSectionIndex)
+                    .ToList()
             })
             .First(s => s.RecipeId == recipeId);
 
         return Ok(recipe);
     }
+
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
+    public IActionResult Add([Required] string recipeName)
+    {
+        if (!ModelState.IsValid || recipeName.Length == 0)
+        {
+            return Error.BadRequestRecipeNameInvalid;
+        }
+        
+        db.Recipes.Add(new Recipe
+        {
+            RecipeName = recipeName
+        });
+        
+        db.SaveChanges();
+        return NoContent();
+    }
+
+    [HttpPut]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
+    public IActionResult Edit([Required] Ulid recipeId, [Required] RecipeEditRequest recipeEditRequest)
+    {
+        switch (ModelState.IsValid)
+        {
+            case false when recipeId == Ulid.Empty:
+                return Error.BadRequestRecipeIdInvalid;
+            case false:
+            {
+                List<string> errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+            
+                return Error.BadRequestRecipeEditRequestInvalid(errors);
+            }
+        }
+
+        Recipe? recipe = db.Recipes.Find(recipeId);
+        if (recipe == null)
+        {
+            return Error.NotFoundRecipe;
+        }
+
+        recipe.RecipeName = recipeEditRequest.RecipeName ?? recipe.RecipeName;
+        recipe.Url = recipeEditRequest.Url ?? recipe.Url;
+        recipe.IsPinned = recipeEditRequest.IsPinned ?? recipe.IsPinned;
+        recipe.CartAmount = recipeEditRequest.CartAmount ?? recipe.CartAmount;
+
+        db.SaveChanges();
+        return NoContent();
+    }
+
+    [HttpDelete]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
+    public IActionResult Delete([Required] Ulid recipeId)
+    {
+        if (!ModelState.IsValid && recipeId == Ulid.Empty)
+        {
+            return Error.BadRequestRecipeIdInvalid;
+        }
+
+        Recipe? recipe = db.Recipes.Find(recipeId);
+        if (recipe == null)
+        {
+            return Error.NotFoundRecipe;
+        }
+
+        db.Recipes.Remove(recipe);
+        db.SaveChanges();
+        
+        return NoContent();
+    }
+    
 }

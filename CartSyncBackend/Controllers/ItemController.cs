@@ -169,16 +169,21 @@ public class ItemController(CartSyncContext db) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
     public IActionResult Edit([Required] Ulid itemId, [FromBody] ItemEditRequest itemEditRequest)
     {
-        if (!ModelState.IsValid)
+        switch (ModelState.IsValid)
         {
-            List<string> errors = ModelState.Values
-                .SelectMany(v => v.Errors)
-                .Select(e => e.ErrorMessage)
-                .ToList();
+            case false when itemId == Ulid.Empty:
+                return Error.BadRequestItemIdInvalid;
+            case false:
+            {
+                List<string> errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
             
-            return Error.BadRequestItemEditRequestInvalid(errors);
+                return Error.BadRequestItemEditRequestInvalid(errors);
+            }
         }
-        
+
         Item? i = db.Items.FirstOrDefault(i => i.ItemId == itemId);
         if (i == null)
         {

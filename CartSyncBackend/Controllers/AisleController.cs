@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace CartSyncBackend.Controllers;
 
 [ApiController]
-[Tags("Aisles")]
+[Tags("Stores - Aisles")]
 [Route("/api/aisles/[action]")]
 public class AisleController(CartSyncContext db) : ControllerBase
 {

@@ -2,25 +2,25 @@
   {
     "recipeSectionId": "01KJA5G3X8HR8YEY9EAQXDQHS6",
     "recipeId": "01KJ9PVFD1TYQQECV2GSSH6BHH",
-    "recipeSectionOrder": 1,
+    "recipeSectionIndex": 0,
     "recipeSectionName": "Main"
   },
   {
     "recipeSectionId": "01KJA5G3X8NYZG081G3WMAEGX8",
     "recipeId": "01KJ9PVFD2VQAAP34S5HW2JPY8",
-    "recipeSectionOrder": 1,
+    "recipeSectionIndex": 0,
     "recipeSectionName": "Main"
   },
   {
     "recipeSectionId": "01KJA5G3X8558WCDNN06Q475BQ",
     "recipeId": "01KJ9PVFD2JW12Q4Q5EVDCJEDB",
-    "recipeSectionOrder": 1,
+    "recipeSectionIndex": 0,
     "recipeSectionName": "Main"
   },
   {
     "recipeSectionId": "01KJA5G3X8CZCPT74P9CS96CNP",
     "recipeId": "01KJ9PVFD2ZQP78817A8RN41MZ",
-    "recipeSectionOrder": 1,
+    "recipeSectionIndex": 0,
     "recipeSectionName": "Main"
   }
 ]

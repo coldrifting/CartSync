@@ -7,7 +7,7 @@ namespace CartSyncBackend.Database.Models;
 [PrimaryKey(nameof(RecipeId))]
 public class Recipe
 {
-    public Ulid RecipeId { get; set; }
+    public Ulid RecipeId { get; set; } = Ulid.NewUlid();
     
     [StringLength(255)]
     public string RecipeName { get; set; } = string.Empty;
@@ -20,7 +20,7 @@ public class Recipe
 
     // Navigation
     [JsonIgnore] 
-    public List<RecipeStep> RecipeSteps { get; set; } = [];
+    public List<RecipeInstruction> RecipeInstructions { get; set; } = [];
 
     [JsonIgnore] 
     public List<RecipeSection> RecipeSections  { get; set; } = [];
@@ -35,6 +35,14 @@ public class RecipeResponse
     public bool IsPinned { get; set; }
     public int CartAmount { get; set; }
 
-    public List<RecipeStepResponse> RecipeStepsResponse { get; set; } = [];
+    public List<RecipeInstructionResponse> RecipeInstructionsResponse { get; set; } = [];
     public List<RecipeSectionResponse> RecipeSectionsResponse { get; set; } = [];
+}
+
+public class RecipeEditRequest
+{
+    public string? RecipeName  { get; set; }
+    public string? Url { get; set; }
+    public bool? IsPinned { get; set; }
+    public int? CartAmount { get; set; }
 }

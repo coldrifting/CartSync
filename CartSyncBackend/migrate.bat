@@ -11,4 +11,4 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 dotnet ef database update
 if %errorlevel% neq 0 exit /b %errorlevel%
 
-REM git add Migrations
+git add Migrations

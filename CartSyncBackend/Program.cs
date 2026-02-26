@@ -69,6 +69,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.MapScalarApiReference("/api", opt => opt
         .WithTheme(ScalarTheme.Solarized)
+        .SortTagsAlphabetically()
         //.WithClassicLayout()
     );
 }

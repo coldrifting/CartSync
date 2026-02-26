@@ -17,6 +17,8 @@ public class Error(int status, string message,  Dictionary<string, object>? deta
     [UsedImplicitly]
     public Dictionary<string, object>? Details { get; init; } = details;
 
+    // TODO - Clean this up
+    
     public static BadRequestObjectResult BadRequestInvalidStoreId =>
         new(new Error(
             StatusCodes.Status400BadRequest,
@@ -37,15 +39,45 @@ public class Error(int status, string message,  Dictionary<string, object>? deta
             StatusCodes.Status400BadRequest,
             BadRequest + "Aisle does not belong to the selected store"));
     
+    public static BadRequestObjectResult BadRequestItemIdInvalid =>
+        new(new Error(
+            StatusCodes.Status400BadRequest,
+            BadRequest + "ItemId is invalid"));
+    
     public static BadRequestObjectResult BadRequestPrepNameInvalid =>
         new(new Error(
             StatusCodes.Status400BadRequest,
             BadRequest + "Prep name is invalid"));
+    
+    public static BadRequestObjectResult BadRequestRecipeNameInvalid =>
+        new(new Error(
+            StatusCodes.Status400BadRequest,
+            BadRequest + "Recipe name is invalid"));
 
-    public static BadRequestObjectResult BadRequestInvalidRecipeId =>
+    public static BadRequestObjectResult BadRequestRecipeIdInvalid =>
         new(new Error(
             StatusCodes.Status400BadRequest,
             BadRequest + "RecipeId is invalid"));
+    
+    public static BadRequestObjectResult BadRequestRecipeInstructionIdInvalid =>
+        new(new Error(
+            StatusCodes.Status400BadRequest,
+            BadRequest + "RecipeInstructionId is invalid"));
+    
+    public static BadRequestObjectResult BadRequestRecipeSectionIdInvalid =>
+        new(new Error(
+            StatusCodes.Status400BadRequest,
+            BadRequest + "RecipeSectionId is invalid"));
+    
+    public static BadRequestObjectResult BadRequestRecipeSectionEntryIdInvalid =>
+        new(new Error(
+            StatusCodes.Status400BadRequest,
+            BadRequest + "RecipeSectionEntryId is invalid"));
+
+    public static BadRequestObjectResult BadRequestRecipeSectionNameInvalid =>
+        new(new Error(
+            StatusCodes.Status400BadRequest,
+            BadRequest + "RecipeSection name is invalid"));
     
     public static BadRequestObjectResult BadRequestPrepDeleteFailed(Dictionary<string, object> details)
     {
@@ -90,6 +122,96 @@ public class Error(int status, string message,  Dictionary<string, object>? deta
             ));
     }
     
+    public static BadRequestObjectResult BadRequestRecipeEditRequestInvalid(List<string> errorList)
+    {
+        Dictionary<string, object> validationErrors = new()
+        {
+            ["errors"] = errorList
+        };
+
+        return new BadRequestObjectResult(
+            new Error(
+                StatusCodes.Status400BadRequest,
+                BadRequest + "Invalid model object provided to edit recipe",
+                validationErrors
+            ));
+    }
+    
+    public static BadRequestObjectResult BadRequestRecipeInstructionAddRequestInvalid(List<string> errorList)
+    {
+        Dictionary<string, object> validationErrors = new()
+        {
+            ["errors"] = errorList
+        };
+
+        return new BadRequestObjectResult(
+            new Error(
+                StatusCodes.Status400BadRequest,
+                BadRequest + "Invalid model object provided to add recipe Instruction",
+                validationErrors
+            ));
+    }
+    
+    public static BadRequestObjectResult BadRequestRecipeInstructionEditRequestInvalid(List<string> errorList)
+    {
+        Dictionary<string, object> validationErrors = new()
+        {
+            ["errors"] = errorList
+        };
+
+        return new BadRequestObjectResult(
+            new Error(
+                StatusCodes.Status400BadRequest,
+                BadRequest + "Invalid model object provided to edit recipe Instruction",
+                validationErrors
+            ));
+    }
+    
+    public static BadRequestObjectResult BadRequestRecipeSectionEditRequestInvalid(List<string> errorList)
+    {
+        Dictionary<string, object> validationErrors = new()
+        {
+            ["errors"] = errorList
+        };
+
+        return new BadRequestObjectResult(
+            new Error(
+                StatusCodes.Status400BadRequest,
+                BadRequest + "Invalid model object provided to edit recipe section",
+                validationErrors
+            ));
+    }
+    
+    public static BadRequestObjectResult BadRequestRecipeSectionEntryAddRequestInvalid(List<string> errorList)
+    {
+        Dictionary<string, object> validationErrors = new()
+        {
+            ["errors"] = errorList
+        };
+
+        return new BadRequestObjectResult(
+            new Error(
+                StatusCodes.Status400BadRequest,
+                BadRequest + "Invalid model object provided to add recipe section entry",
+                validationErrors
+            ));
+    }
+    
+    public static BadRequestObjectResult BadRequestRecipeSectionEntryEditRequestInvalid(List<string> errorList)
+    {
+        Dictionary<string, object> validationErrors = new()
+        {
+            ["errors"] = errorList
+        };
+
+        return new BadRequestObjectResult(
+            new Error(
+                StatusCodes.Status400BadRequest,
+                BadRequest + "Invalid model object provided to edit recipe section entry",
+                validationErrors
+            ));
+    }
+    
     public static NotFoundObjectResult NotFoundStore => 
         new(new Error(
             StatusCodes.Status404NotFound,
@@ -114,4 +236,19 @@ public class Error(int status, string message,  Dictionary<string, object>? deta
         new(new Error(
             StatusCodes.Status404NotFound,
             NotFound + "Recipe matching given ID not found"));
+    
+    public static NotFoundObjectResult NotFoundRecipeInstruction => 
+        new(new Error(
+            StatusCodes.Status404NotFound,
+            NotFound + "RecipeInstruction matching given ID not found"));
+    
+    public static NotFoundObjectResult NotFoundRecipeSection => 
+        new(new Error(
+            StatusCodes.Status404NotFound,
+            NotFound + "RecipeSection matching given ID not found"));
+    
+    public static NotFoundObjectResult NotFoundRecipeSectionEntry => 
+        new(new Error(
+            StatusCodes.Status404NotFound,
+            NotFound + "RecipeSectionEntry matching given ID not found"));
 }
