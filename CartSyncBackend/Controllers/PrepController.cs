@@ -3,6 +3,7 @@ using CartSyncBackend.Database;
 using CartSyncBackend.Database.Models;
 using CartSyncBackend.Database.Objects;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CartSyncBackend.Controllers;
 
@@ -13,15 +14,15 @@ public class PrepController(CartSyncContext db) : ControllerBase
 {
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<PrepResponse>))]
-    public IActionResult All()
+    public async Task<IActionResult> All()
     {
-        List<PrepResponse> preps = db.Preps
+        List<PrepResponse> preps = await db.Preps
             .Select(p => new PrepResponse
             {
                 PrepId = p.PrepId,
                 PrepName = p.PrepName
             })
-            .ToList();
+            .ToListAsync();
         
         return Ok(preps);
     }
@@ -29,7 +30,7 @@ public class PrepController(CartSyncContext db) : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
-    public IActionResult Add([Required] string prepName)
+    public async Task<IActionResult> Add([Required] string prepName)
     {
         if (!ModelState.IsValid || prepName.Length == 0)
         {
@@ -37,7 +38,7 @@ public class PrepController(CartSyncContext db) : ControllerBase
         }
         
         db.Preps.Add(new Prep { PrepName = prepName });
-        db.SaveChanges();
+        await db.SaveChangesAsync();
         
         return NoContent();
     }
@@ -46,9 +47,9 @@ public class PrepController(CartSyncContext db) : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public IActionResult Edit([Required] Ulid prepId, [Required] string prepName)
+    public async Task<IActionResult> Edit([Required] Ulid prepId, [Required] string prepName)
     {
-        Prep? prep = db.Preps.Find(prepId);
+        Prep? prep = await db.Preps.FindAsync(prepId);
         if (prep == null)
         {
             return Error.NotFoundPrep;
@@ -60,7 +61,7 @@ public class PrepController(CartSyncContext db) : ControllerBase
         }
         
         prep.PrepName = prepName;
-        db.SaveChanges();
+        await db.SaveChangesAsync();
         
         return NoContent();
     }
@@ -69,9 +70,9 @@ public class PrepController(CartSyncContext db) : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public IActionResult Delete([Required] Ulid prepId, bool enableOverride = false)
+    public async Task<IActionResult> Delete([Required] Ulid prepId, bool enableOverride = false)
     {
-        Prep? prep = db.Preps.Find(prepId);
+        Prep? prep = await db.Preps.FindAsync(prepId);
         if (prep == null)
         {
             return Error.NotFoundPrep;
@@ -99,7 +100,7 @@ public class PrepController(CartSyncContext db) : ControllerBase
         }
         
         db.Remove(prep);
-        db.SaveChanges();
+        await db.SaveChangesAsync();
         
         return NoContent();
     }

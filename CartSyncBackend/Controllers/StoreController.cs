@@ -3,6 +3,7 @@ using CartSyncBackend.Database;
 using CartSyncBackend.Database.Models;
 using CartSyncBackend.Database.Objects;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CartSyncBackend.Controllers;
 
@@ -13,16 +14,16 @@ public class StoreController(CartSyncContext db) : ControllerBase
 {
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<StoreResponse>))]
-    public IActionResult All()
+    public async Task<IActionResult> All()
     {
-        List<StoreResponse> stores = db.Stores
+        List<StoreResponse> stores = await db.Stores
             .OrderBy(s => s.StoreName)
             .Select(s => new StoreResponse
             {
                 StoreId = s.StoreId,
                 StoreName = s.StoreName
             })
-            .ToList();
+            .ToListAsync();
 
         return Ok(stores);
     }
@@ -30,18 +31,18 @@ public class StoreController(CartSyncContext db) : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
-    public IActionResult Add([Required] string storeName)
+    public async Task<IActionResult> Add([Required] string storeName)
     {
         if (!ModelState.IsValid || storeName.Length == 0)
         {
             return Error.BadRequestStoreNameInvalid;
         }
         
-        db.Add(new Store
+        await db.AddAsync(new Store
         {
             StoreName = storeName
         });
-        db.SaveChanges();
+        await db.SaveChangesAsync();
         
         return NoContent();
     }
@@ -50,14 +51,14 @@ public class StoreController(CartSyncContext db) : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public IActionResult Edit([Required] Ulid storeId, [Required] string storeName)
+    public async Task<IActionResult> Edit([Required] Ulid storeId, [Required] string storeName)
     {
         if (!ModelState.IsValid && storeId == Ulid.Empty)
         {
             return Error.BadRequestInvalidStoreId;
         }
         
-        Store? s = db.Stores.FirstOrDefault(s => s.StoreId == storeId);
+        Store? s = await db.Stores.FirstOrDefaultAsync(s => s.StoreId == storeId);
         if (s == null)
         {
             return Error.NotFoundStore;
@@ -69,7 +70,7 @@ public class StoreController(CartSyncContext db) : ControllerBase
         }
         
         s.StoreName = storeName;
-        db.SaveChanges();
+        await db.SaveChangesAsync();
 
         return NoContent();
     }
@@ -78,21 +79,21 @@ public class StoreController(CartSyncContext db) : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public IActionResult Delete([Required] Ulid storeId)
+    public async Task<IActionResult> Delete([Required] Ulid storeId)
     {
         if (!ModelState.IsValid && storeId == Ulid.Empty)
         {
             return Error.BadRequestInvalidStoreId;
         }
         
-        Store? s = db.Stores.FirstOrDefault(s => s.StoreId == storeId);
+        Store? s = await db.Stores.FirstOrDefaultAsync(s => s.StoreId == storeId);
         if (s == null)
         {
             return Error.NotFoundStore;
         }
 
         db.Stores.Remove(s);
-        db.SaveChanges();
+        await db.SaveChangesAsync();
         
         return NoContent();
     }

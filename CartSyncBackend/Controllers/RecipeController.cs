@@ -3,6 +3,7 @@ using CartSyncBackend.Database;
 using CartSyncBackend.Database.Models;
 using CartSyncBackend.Database.Objects;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CartSyncBackend.Controllers;
 
@@ -13,9 +14,9 @@ public class RecipeController(CartSyncContext db) : ControllerBase
 {
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<RecipeResponse>))]
-    public IActionResult All()
+    public async Task<IActionResult> All()
     {
-        List<RecipeResponse> recipes = db.Recipes
+        List<RecipeResponse> recipes = await db.Recipes
             .Select(r => new RecipeResponse
             {
                 RecipeId = r.RecipeId,
@@ -66,7 +67,7 @@ public class RecipeController(CartSyncContext db) : ControllerBase
                     .ToList()
             })
             .OrderBy(r => r.RecipeName)
-            .ToList();
+            .ToListAsync();
         
         return Ok(recipes);
     }
@@ -75,19 +76,19 @@ public class RecipeController(CartSyncContext db) : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RecipeResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public IActionResult Details([Required] Ulid recipeId)
+    public async Task<IActionResult> Details([Required] Ulid recipeId)
     {
         if (!ModelState.IsValid && recipeId == Ulid.Empty)
         {
             return Error.BadRequestRecipeIdInvalid;
         }
         
-        if (db.Recipes.Find(recipeId) == null)
+        if (await db.Recipes.FindAsync(recipeId) == null)
         {
             return Error.NotFoundRecipe;
         }
 
-        RecipeResponse recipe = db.Recipes
+        RecipeResponse recipe = await db.Recipes
             .Select(r => new RecipeResponse
             {
                 RecipeId = r.RecipeId,
@@ -137,7 +138,7 @@ public class RecipeController(CartSyncContext db) : ControllerBase
                     .OrderBy(rs => rs.RecipeSectionIndex)
                     .ToList()
             })
-            .First(s => s.RecipeId == recipeId);
+            .FirstAsync(s => s.RecipeId == recipeId);
 
         return Ok(recipe);
     }
@@ -145,7 +146,7 @@ public class RecipeController(CartSyncContext db) : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
-    public IActionResult Add([Required] string recipeName)
+    public async Task<IActionResult> Add([Required] string recipeName)
     {
         if (!ModelState.IsValid || recipeName.Length == 0)
         {
@@ -157,7 +158,7 @@ public class RecipeController(CartSyncContext db) : ControllerBase
             RecipeName = recipeName
         });
         
-        db.SaveChanges();
+        await db.SaveChangesAsync();
         return NoContent();
     }
 
@@ -165,7 +166,7 @@ public class RecipeController(CartSyncContext db) : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public IActionResult Edit([Required] Ulid recipeId, [Required] RecipeEditRequest recipeEditRequest)
+    public async Task<IActionResult> Edit([Required] Ulid recipeId, [Required] RecipeEditRequest recipeEditRequest)
     {
         switch (ModelState.IsValid)
         {
@@ -182,7 +183,7 @@ public class RecipeController(CartSyncContext db) : ControllerBase
             }
         }
 
-        Recipe? recipe = db.Recipes.Find(recipeId);
+        Recipe? recipe = await db.Recipes.FindAsync(recipeId);
         if (recipe == null)
         {
             return Error.NotFoundRecipe;
@@ -193,7 +194,7 @@ public class RecipeController(CartSyncContext db) : ControllerBase
         recipe.IsPinned = recipeEditRequest.IsPinned ?? recipe.IsPinned;
         recipe.CartAmount = recipeEditRequest.CartAmount ?? recipe.CartAmount;
 
-        db.SaveChanges();
+        await db.SaveChangesAsync();
         return NoContent();
     }
 
@@ -201,21 +202,21 @@ public class RecipeController(CartSyncContext db) : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public IActionResult Delete([Required] Ulid recipeId)
+    public async Task<IActionResult> Delete([Required] Ulid recipeId)
     {
         if (!ModelState.IsValid && recipeId == Ulid.Empty)
         {
             return Error.BadRequestRecipeIdInvalid;
         }
 
-        Recipe? recipe = db.Recipes.Find(recipeId);
+        Recipe? recipe = await db.Recipes.FindAsync(recipeId);
         if (recipe == null)
         {
             return Error.NotFoundRecipe;
         }
 
         db.Recipes.Remove(recipe);
-        db.SaveChanges();
+        await db.SaveChangesAsync();
         
         return NoContent();
     }

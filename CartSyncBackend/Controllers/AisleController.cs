@@ -15,11 +15,11 @@ public class AisleController(CartSyncContext db) : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public IActionResult All(Ulid storeId)
+    public async Task<IActionResult> All(Ulid storeId)
     {
-        Store? s = db.Stores
+        Store? s = await db.Stores
             .Include(s => s.Aisles)
-            .FirstOrDefault(s => s.StoreId == storeId);
+            .FirstOrDefaultAsync(s => s.StoreId == storeId);
         if (s == null)
         {
             return Error.NotFoundStore;
@@ -27,7 +27,7 @@ public class AisleController(CartSyncContext db) : ControllerBase
 
         List<AisleResponse> aisles = s.Aisles
             .OrderBy(a => a.AisleOrder)
-            .Select(a => new AisleResponse()
+            .Select(a => new AisleResponse
             {
                 AisleId = a.AisleId,
                 AisleName = a.AisleName,
@@ -42,9 +42,9 @@ public class AisleController(CartSyncContext db) : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public IActionResult Add([FromBody] AisleAddRequest aisleAddRequest)
+    public async Task<IActionResult> Add([FromBody] AisleAddRequest aisleAddRequest)
     {
-        Store? s = db.Stores.FirstOrDefault(s => s.StoreId == aisleAddRequest.StoreId);
+        Store? s = await db.Stores.FirstOrDefaultAsync(s => s.StoreId == aisleAddRequest.StoreId);
         if (s == null)
         {
             return Error.NotFoundStore;
@@ -56,7 +56,7 @@ public class AisleController(CartSyncContext db) : ControllerBase
             AisleName = aisleAddRequest.AisleName,
             AisleOrder = 0
         });
-        db.SaveChanges();
+        await db.SaveChangesAsync();
         
         return NoContent();
     }
@@ -65,16 +65,16 @@ public class AisleController(CartSyncContext db) : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public IActionResult Rename(Ulid aisleId, [FromBody] AisleRenameRequest aisleRenameRequest)
+    public async Task<IActionResult> Rename(Ulid aisleId, [FromBody] AisleRenameRequest aisleRenameRequest)
     {
-        Aisle? a = db.Aisles.FirstOrDefault(s => s.AisleId == aisleId);
+        Aisle? a = await db.Aisles.FirstOrDefaultAsync(s => s.AisleId == aisleId);
         if (a == null)
         {
             return Error.NotFoundAisle;
         }
         
         a.AisleName = aisleRenameRequest.AisleName;
-        db.SaveChanges();
+        await db.SaveChangesAsync();
         
         return NoContent();
     }
@@ -83,16 +83,16 @@ public class AisleController(CartSyncContext db) : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public IActionResult Reorder(Ulid aisleId, [FromBody] AisleReorderRequest aisleReorderRequest)
+    public async Task<IActionResult> Reorder(Ulid aisleId, [FromBody] AisleReorderRequest aisleReorderRequest)
     {
-        Aisle? a = db.Aisles.FirstOrDefault(s => s.AisleId == aisleId);
+        Aisle? a = await db.Aisles.FirstOrDefaultAsync(s => s.AisleId == aisleId);
         if (a == null)
         {
             return Error.NotFoundAisle;
         }
         
         a.AisleOrder = aisleReorderRequest.AisleOrder;
-        db.SaveChanges();
+        await db.SaveChangesAsync();
         
         return NoContent();
     }
@@ -101,16 +101,16 @@ public class AisleController(CartSyncContext db) : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public IActionResult Delete(Ulid aisleId)
+    public async Task<IActionResult> Delete(Ulid aisleId)
     {
-        Aisle? a = db.Aisles.FirstOrDefault(a => a.AisleId == aisleId);
+        Aisle? a = await db.Aisles.FirstOrDefaultAsync(a => a.AisleId == aisleId);
         if (a == null)
         {
             return Error.NotFoundAisle;
         }
 
         db.Aisles.Remove(a);
-        db.SaveChanges();
+        await db.SaveChangesAsync();
         
         return NoContent();
     }

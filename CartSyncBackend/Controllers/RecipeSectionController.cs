@@ -16,7 +16,7 @@ public class RecipeSectionController(CartSyncContext db) : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public IActionResult Add([Required] Ulid recipeId, [Required] string recipeSectionName)
+    public async Task<IActionResult> Add([Required] Ulid recipeId, [Required] string recipeSectionName)
     {
         if (!ModelState.IsValid && recipeId == Ulid.Empty)
         {
@@ -28,9 +28,9 @@ public class RecipeSectionController(CartSyncContext db) : ControllerBase
             return Error.BadRequestRecipeSectionNameInvalid;
         }
         
-        Recipe? recipe = db.Recipes
+        Recipe? recipe = await db.Recipes
             .Include(r => r.RecipeSections)
-            .FirstOrDefault(r => r.RecipeId == recipeId);
+            .FirstOrDefaultAsync(r => r.RecipeId == recipeId);
         if (recipe == null)
         {
             return Error.NotFoundRecipe;
@@ -42,7 +42,7 @@ public class RecipeSectionController(CartSyncContext db) : ControllerBase
             RecipeSectionName = recipeSectionName,
             RecipeSectionIndex = recipe.RecipeSections.Count
         });
-        db.SaveChanges();
+        await db.SaveChangesAsync();
         
         return NoContent();
     }
@@ -51,7 +51,7 @@ public class RecipeSectionController(CartSyncContext db) : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public IActionResult Edit([Required] Ulid recipeSectionId, [FromBody] RecipeSectionEditRequest recipeSectionEditRequest)
+    public async Task<IActionResult> Edit([Required] Ulid recipeSectionId, [FromBody] RecipeSectionEditRequest recipeSectionEditRequest)
     {
         switch (ModelState.IsValid)
         {
@@ -68,7 +68,7 @@ public class RecipeSectionController(CartSyncContext db) : ControllerBase
             }
         }
 
-        RecipeSection? recipeSection = db.RecipeSections.Find(recipeSectionId);
+        RecipeSection? recipeSection = await db.RecipeSections.FindAsync(recipeSectionId);
         if (recipeSection == null)
         {
             return Error.NotFoundRecipeSection;
@@ -100,7 +100,7 @@ public class RecipeSectionController(CartSyncContext db) : ControllerBase
             }
         }
         
-        db.SaveChanges();
+        await db.SaveChangesAsync();
         return NoContent();
     }
     
@@ -108,14 +108,14 @@ public class RecipeSectionController(CartSyncContext db) : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public IActionResult Delete([Required] Ulid recipeSectionId)
+    public async Task<IActionResult> Delete([Required] Ulid recipeSectionId)
     {
         if (!ModelState.IsValid && recipeSectionId == Ulid.Empty)
         {
             return Error.BadRequestRecipeSectionIdInvalid;
         }
 
-        RecipeSection? recipeSection = db.RecipeSections.Find(recipeSectionId);
+        RecipeSection? recipeSection = await db.RecipeSections.FindAsync(recipeSectionId);
         if (recipeSection == null)
         {
             return Error.NotFoundRecipeSection;
@@ -141,7 +141,7 @@ public class RecipeSectionController(CartSyncContext db) : ControllerBase
             }
         }
 
-        db.SaveChanges();
+        await db.SaveChangesAsync();
         
         return NoContent();
     }

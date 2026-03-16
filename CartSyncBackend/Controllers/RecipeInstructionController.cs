@@ -16,7 +16,7 @@ public class RecipeInstructionController(CartSyncContext db) : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public IActionResult Add([Required] Ulid recipeId, [FromBody] RecipeInstructionAddRequest recipeInstructionAddRequest)
+    public async Task<IActionResult> Add([Required] Ulid recipeId, [FromBody] RecipeInstructionAddRequest recipeInstructionAddRequest)
     {
         switch (ModelState.IsValid)
         {
@@ -49,7 +49,7 @@ public class RecipeInstructionController(CartSyncContext db) : ControllerBase
             RecipeInstructionIndex = recipe.RecipeInstructions.Count
         });
         
-        db.SaveChanges();
+        await db.SaveChangesAsync();
         return NoContent();
     }
     
@@ -57,7 +57,7 @@ public class RecipeInstructionController(CartSyncContext db) : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public IActionResult Edit([Required] Ulid recipeInstructionId, [FromBody] RecipeInstructionEditRequest recipeInstructionEditRequest)
+    public async Task<IActionResult> Edit([Required] Ulid recipeInstructionId, [FromBody] RecipeInstructionEditRequest recipeInstructionEditRequest)
     {
         switch (ModelState.IsValid)
         {
@@ -74,7 +74,7 @@ public class RecipeInstructionController(CartSyncContext db) : ControllerBase
             }
         }
 
-        RecipeInstruction? recipeInstruction = db.RecipeInstructions.Find(recipeInstructionId);
+        RecipeInstruction? recipeInstruction = await db.RecipeInstructions.FindAsync(recipeInstructionId);
         if (recipeInstruction == null)
         {
             return Error.NotFoundRecipeInstruction;
@@ -107,7 +107,7 @@ public class RecipeInstructionController(CartSyncContext db) : ControllerBase
             }
         }
         
-        db.SaveChanges();
+        await db.SaveChangesAsync();
         return NoContent();
     }
     
@@ -115,14 +115,14 @@ public class RecipeInstructionController(CartSyncContext db) : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public IActionResult Delete([Required] Ulid recipeInstructionId)
+    public async Task<IActionResult> Delete([Required] Ulid recipeInstructionId)
     {
         if (!ModelState.IsValid && recipeInstructionId == Ulid.Empty)
         {
             return Error.BadRequestRecipeInstructionIdInvalid;
         }
 
-        RecipeInstruction? recipeInstruction = db.RecipeInstructions.Find(recipeInstructionId);
+        RecipeInstruction? recipeInstruction = await db.RecipeInstructions.FindAsync(recipeInstructionId);
         if (recipeInstruction == null)
         {
             return Error.NotFoundRecipeInstruction;
