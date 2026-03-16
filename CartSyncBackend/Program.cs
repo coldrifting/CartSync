@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
-using CartSyncBackend;
 using CartSyncBackend.Database;
+using CartSyncBackend.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.EntityFrameworkCore;
@@ -11,17 +11,28 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddDbContext<CartSyncContext>(optionsBuilder 
-    => optionsBuilder
-        .UseNpgsql(CartSyncContext.ConnectionString)
+string conString = builder.Configuration.GetConnectionString("DatabaseContext") ??
+                   throw new InvalidOperationException("Connection string 'DatabaseContext' not found.");
+
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddDbContext<CartSyncContext>((_, options) => options
+        .UseNpgsql(conString)
+        .EnableDetailedErrors()
+        .EnableSensitiveDataLogging()
         .UseSeeding((context, _) =>
         {
             if (context is CartSyncContext cartSyncContext)
             {
                 cartSyncContext.Seed();
             }
-        })
-    );
+        }));
+}
+else
+{
+    builder.Services.AddDbContext<CartSyncContext>((_, options) => options
+        .UseNpgsql(conString));
+}
 
 builder.Services
     .AddControllers()
@@ -38,6 +49,7 @@ builder.Services.AddOpenApi(opt =>
         if (context.JsonTypeInfo.Type == typeof(Ulid))
         {
             schema.Type = JsonSchemaType.String;
+            // ReSharper disable once StringLiteralTypo
             schema.Example = "01ARZ3NDEKTSV4RRFFQ69G5FAV";
         }
 
@@ -49,7 +61,7 @@ builder.Services.Configure<ApiBehaviorOptions>(apiBehaviorOptions => {
     apiBehaviorOptions.SuppressModelStateInvalidFilter = true;
 });
 
-builder.Services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(opt =>
+builder.Services.Configure<JsonOptions>(opt =>
     opt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 builder.Services.Configure<RouteOptions>(options =>
@@ -70,7 +82,7 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference("/api", opt => opt
         .WithTheme(ScalarTheme.Solarized)
         .SortTagsAlphabetically()
-        //.WithClassicLayout()
+        .WithClassicLayout()
     );
 }
 

@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CartSyncBackend.Migrations
 {
     [DbContext(typeof(CartSyncContext))]
-    [Migration("20260316011102_Initial")]
+    [Migration("20260316203541_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -36,7 +36,7 @@ namespace CartSyncBackend.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
-                    b.Property<int>("AisleOrder")
+                    b.Property<int>("SortOrder")
                         .HasColumnType("integer");
 
                     b.Property<string>("StoreId")
@@ -197,7 +197,7 @@ namespace CartSyncBackend.Migrations
                         .HasMaxLength(2048)
                         .HasColumnType("character varying(2048)");
 
-                    b.Property<int>("RecipeInstructionIndex")
+                    b.Property<int>("SortOrder")
                         .HasColumnType("integer");
 
                     b.HasKey("RecipeInstructionId");
@@ -220,13 +220,13 @@ namespace CartSyncBackend.Migrations
                         .IsUnicode(false)
                         .HasColumnType("character varying(26)");
 
-                    b.Property<int>("RecipeSectionIndex")
-                        .HasColumnType("integer");
-
                     b.Property<string>("RecipeSectionName")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
 
                     b.HasKey("RecipeSectionId");
 
@@ -257,14 +257,14 @@ namespace CartSyncBackend.Migrations
                         .IsUnicode(false)
                         .HasColumnType("character varying(26)");
 
-                    b.Property<int>("RecipeSectionEntryIndex")
-                        .HasColumnType("integer");
-
                     b.Property<string>("RecipeSectionId")
                         .IsRequired()
                         .HasMaxLength(26)
                         .IsUnicode(false)
                         .HasColumnType("character varying(26)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
 
                     b.HasKey("RecipeSectionEntryId");
 

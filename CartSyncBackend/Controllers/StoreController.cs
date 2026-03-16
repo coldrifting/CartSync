@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using CartSyncBackend.Database;
 using CartSyncBackend.Database.Models;
 using CartSyncBackend.Database.Objects;
+using CartSyncBackend.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -58,8 +59,8 @@ public class StoreController(CartSyncContext db) : ControllerBase
             return Error.BadRequestInvalidStoreId;
         }
         
-        Store? s = await db.Stores.FirstOrDefaultAsync(s => s.StoreId == storeId);
-        if (s == null)
+        Store? store = await db.Stores.GetAsync(storeId);
+        if (store == null)
         {
             return Error.NotFoundStore;
         }
@@ -69,7 +70,7 @@ public class StoreController(CartSyncContext db) : ControllerBase
             return Error.BadRequestStoreNameInvalid;
         }
         
-        s.StoreName = storeName;
+        store.StoreName = storeName;
         await db.SaveChangesAsync();
 
         return NoContent();
@@ -86,13 +87,13 @@ public class StoreController(CartSyncContext db) : ControllerBase
             return Error.BadRequestInvalidStoreId;
         }
         
-        Store? s = await db.Stores.FirstOrDefaultAsync(s => s.StoreId == storeId);
-        if (s == null)
+        Store? store = await db.Stores.GetAsync(storeId);
+        if (store == null)
         {
             return Error.NotFoundStore;
         }
 
-        db.Stores.Remove(s);
+        db.Stores.Remove(store);
         await db.SaveChangesAsync();
         
         return NoContent();

@@ -3,14 +3,16 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace CartSyncBackendTests.Core;
 
-public class DatabaseControllerFixture(DatabaseFixture fixture) : IClassFixture<DatabaseFixture>, IAsyncLifetime
+public class WebAppFixture(WebAppFactory<Program> factory) : IClassFixture<WebAppFactory<Program>>, IAsyncLifetime
 {
-    private IDbContextTransaction _transaction = null!;
+    protected HttpClient Client = null!;
     protected CartSyncContext Context = null!;
+    private IDbContextTransaction _transaction = null!;
 
     public virtual async Task InitializeAsync()
     {
-        Context = DatabaseFixture.Context;
+        Client = factory.CreateClient();
+        Context = factory.GetDbContext();
         _transaction = await Context.Database.BeginTransactionAsync();
     }
 

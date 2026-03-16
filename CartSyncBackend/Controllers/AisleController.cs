@@ -1,6 +1,7 @@
 using CartSyncBackend.Database;
 using CartSyncBackend.Database.Models;
 using CartSyncBackend.Database.Objects;
+using CartSyncBackend.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,26 +13,31 @@ namespace CartSyncBackend.Controllers;
 public class AisleController(CartSyncContext db) : ControllerBase
 {
     [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<AisleResponse>))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
     public async Task<IActionResult> All(Ulid storeId)
     {
+        if (!ModelState.IsValid)
+        {
+            return Error.BadRequestInvalidStoreId;
+        }
+        
         Store? s = await db.Stores
             .Include(s => s.Aisles)
-            .FirstOrDefaultAsync(s => s.StoreId == storeId);
+            .GetAsync(storeId);
         if (s == null)
         {
-            return Error.NotFoundStore;
+            return Error.BadRequestInvalidStoreId;
         }
 
         List<AisleResponse> aisles = s.Aisles
-            .OrderBy(a => a.AisleOrder)
+            .OrderBy(a => a.SortOrder)
             .Select(a => new AisleResponse
             {
                 AisleId = a.AisleId,
                 AisleName = a.AisleName,
-                AisleOrder = a.AisleOrder
+                SortOrder = a.SortOrder
             })
             .ToList();
         
@@ -40,21 +46,23 @@ public class AisleController(CartSyncContext db) : ControllerBase
     
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
     public async Task<IActionResult> Add([FromBody] AisleAddRequest aisleAddRequest)
     {
-        Store? s = await db.Stores.FirstOrDefaultAsync(s => s.StoreId == aisleAddRequest.StoreId);
+        Store? s = await db.Stores
+            .Include(store => store.Aisles)
+            .GetAsync(aisleAddRequest.StoreId);
         if (s == null)
         {
-            return Error.NotFoundStore;
+            return Error.BadRequestInvalidStoreId;
         }
-
+        
         db.Add(new Aisle
         {
             StoreId = s.StoreId,
             AisleName = aisleAddRequest.AisleName,
-            AisleOrder = 0
+            SortOrder = s.Aisles.Count
         });
         await db.SaveChangesAsync();
         
@@ -63,35 +71,27 @@ public class AisleController(CartSyncContext db) : ControllerBase
     
     [HttpPut]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Rename(Ulid aisleId, [FromBody] AisleRenameRequest aisleRenameRequest)
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
+    public async Task<IActionResult> Edit(Ulid aisleId, [FromBody] AisleEditRequest aisleEditRequest)
     {
-        Aisle? a = await db.Aisles.FirstOrDefaultAsync(s => s.AisleId == aisleId);
+        Aisle? a = await db.Aisles
+            .Include(aisle => aisle.Store)
+            .ThenInclude(store => store.Aisles)
+            .GetAsync(aisleId);
         if (a == null)
         {
             return Error.NotFoundAisle;
         }
         
-        a.AisleName = aisleRenameRequest.AisleName;
-        await db.SaveChangesAsync();
+        a.AisleName = aisleEditRequest.AisleName ?? a.AisleName;
         
-        return NoContent();
-    }
-    
-    [HttpPut]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Reorder(Ulid aisleId, [FromBody] AisleReorderRequest aisleReorderRequest)
-    {
-        Aisle? a = await db.Aisles.FirstOrDefaultAsync(s => s.AisleId == aisleId);
-        if (a == null)
+        if (aisleEditRequest.SortOrder is { } newIndex)
         {
-            return Error.NotFoundAisle;
+            int oldIndex = a.SortOrder;
+            a.Store.Aisles.Reorder(oldIndex, newIndex);
         }
         
-        a.AisleOrder = aisleReorderRequest.AisleOrder;
         await db.SaveChangesAsync();
         
         return NoContent();
@@ -99,17 +99,24 @@ public class AisleController(CartSyncContext db) : ControllerBase
     
     [HttpDelete]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
     public async Task<IActionResult> Delete(Ulid aisleId)
     {
-        Aisle? a = await db.Aisles.FirstOrDefaultAsync(a => a.AisleId == aisleId);
+        Aisle? a = await db.Aisles
+            .Include(aisle => aisle.Store)
+            .ThenInclude(store => store.Aisles)
+            .GetAsync(aisleId);
         if (a == null)
         {
             return Error.NotFoundAisle;
         }
 
         db.Aisles.Remove(a);
+        
+        // Refresh Sort Order
+        a.Store.Aisles.RefreshOrder();
+        
         await db.SaveChangesAsync();
         
         return NoContent();

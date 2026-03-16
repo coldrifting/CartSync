@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using CartSyncBackend.Database;
 using CartSyncBackend.Database.Models;
 using CartSyncBackend.Database.Objects;
+using CartSyncBackend.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -85,7 +86,7 @@ public class ItemController(CartSyncContext db) : ControllerBase
             {
             AisleId = a.AisleId,
             AisleName = a.AisleName,
-            AisleOrder = a.AisleOrder
+            SortOrder = a.SortOrder
         },
         Items = a.Items.Select(i => new ItemResponse
         {
@@ -126,7 +127,7 @@ public class ItemController(CartSyncContext db) : ControllerBase
                     PrepName = p.PrepName
                 }).ToList()
             })
-            .FirstOrDefaultAsync(i => i.ItemId == itemId);
+            .GetAsync(itemId);
 
         if (itemResponse == null)
         {
@@ -183,23 +184,21 @@ public class ItemController(CartSyncContext db) : ControllerBase
             }
         }
 
-        Item? i = await db.Items.FirstOrDefaultAsync(i => i.ItemId == itemId);
-        if (i == null)
+        Item? item = await db.Items
+            .Include(p => p.Preps)
+            .GetAsync(itemId);
+        if (item == null)
         {
             return Error.NotFoundItem;
         }
         
-        i.ItemName = itemEditRequest.ItemName ?? i.ItemName;
-        i.ItemTemp = itemEditRequest.ItemTemp ?? i.ItemTemp;
-        i.DefaultUnitType = itemEditRequest.DefaultUnitType ?? i.DefaultUnitType;
-        i.CartAmount = itemEditRequest.CartAmount ?? i.CartAmount;
+        item.ItemName = itemEditRequest.ItemName ?? item.ItemName;
+        item.ItemTemp = itemEditRequest.ItemTemp ?? item.ItemTemp;
+        item.DefaultUnitType = itemEditRequest.DefaultUnitType ?? item.DefaultUnitType;
+        item.CartAmount = itemEditRequest.CartAmount ?? item.CartAmount;
 
         if (itemEditRequest.PrepIds != null)
         {
-            Item item = await db.Items
-                .Include(p => p.Preps)
-                .FirstAsync(ix => ix.ItemId == itemId);
-
             item.Preps.Clear();
             
             foreach (Ulid prepId in itemEditRequest.PrepIds)
@@ -242,7 +241,7 @@ public class ItemController(CartSyncContext db) : ControllerBase
         
         Store? s = await db.Stores
             .Include(s => s.Aisles)
-            .FirstOrDefaultAsync(s => s.StoreId == storeId);
+            .GetAsync(storeId);
         if (s == null)
         {
             return Error.NotFoundStore;
@@ -258,7 +257,7 @@ public class ItemController(CartSyncContext db) : ControllerBase
             return Error.BadRequestAisleNotUnderStore;
         }
         
-        ItemAisle? itemAisle = await db.ItemAisles.FirstOrDefaultAsync(ia => ia.ItemId == itemId && ia.StoreId == s.StoreId);
+        ItemAisle? itemAisle = await db.ItemAisles.GetAsync((itemId, s.StoreId));
         if (itemAisle == null)
         {
             ItemAisle newItemAisle = new()
@@ -285,7 +284,7 @@ public class ItemController(CartSyncContext db) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
     public async Task<IActionResult> Delete([Required] Ulid itemId)
     {
-        Item? i = await db.Items.FirstOrDefaultAsync(i => i.ItemId == itemId);
+        Item? i = await db.Items.FindAsync(itemId);
         if (i == null)
         {
             return Error.NotFoundItem;

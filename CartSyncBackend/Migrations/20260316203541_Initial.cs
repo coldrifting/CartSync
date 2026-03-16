@@ -95,7 +95,7 @@ namespace CartSyncBackend.Migrations
                     RecipeInstructionId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
                     RecipeId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
                     RecipeInstructionContent = table.Column<string>(type: "character varying(2048)", maxLength: 2048, nullable: false),
-                    RecipeInstructionIndex = table.Column<int>(type: "integer", nullable: false),
+                    SortOrder = table.Column<int>(type: "integer", nullable: false),
                     IsImage = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
@@ -115,7 +115,7 @@ namespace CartSyncBackend.Migrations
                 {
                     RecipeSectionId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
                     RecipeId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
-                    RecipeSectionIndex = table.Column<int>(type: "integer", nullable: false),
+                    SortOrder = table.Column<int>(type: "integer", nullable: false),
                     RecipeSectionName = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false)
                 },
                 constraints: table =>
@@ -136,7 +136,7 @@ namespace CartSyncBackend.Migrations
                     AisleId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
                     StoreId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
                     AisleName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    AisleOrder = table.Column<int>(type: "integer", nullable: false)
+                    SortOrder = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -155,7 +155,7 @@ namespace CartSyncBackend.Migrations
                 {
                     RecipeSectionEntryId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
                     RecipeSectionId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
-                    RecipeSectionEntryIndex = table.Column<int>(type: "integer", nullable: false),
+                    SortOrder = table.Column<int>(type: "integer", nullable: false),
                     ItemId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
                     PrepId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: true),
                     Amount = table.Column<string>(type: "text", nullable: false)

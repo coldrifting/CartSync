@@ -1,11 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using CartSyncBackend.Database.Objects;
+using Microsoft.EntityFrameworkCore;
 
 namespace CartSyncBackend.Database.Models;
 
+[PrimaryKey(nameof(ItemId))]
 public class Item
 {
-    [Key] 
     public Ulid ItemId { get; set; } = Ulid.NewUlid();
     
     [StringLength(256)]
@@ -15,7 +16,7 @@ public class Item
     public UnitType DefaultUnitType { get; set; } = UnitType.Count;
 
     public Amount CartAmount { get; set; } = Amount.None;
-
+    
     // Navigation
     public List<Prep> Preps { get; set; } = [];
     public List<ItemPrep> ItemPreps { get; set; } = [];

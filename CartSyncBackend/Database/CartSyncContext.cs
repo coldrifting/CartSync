@@ -1,11 +1,19 @@
 using CartSyncBackend.Database.Models;
 using CartSyncBackend.Database.Objects;
+using CartSyncBackend.Database.Seeding;
 using Microsoft.EntityFrameworkCore;
 
 namespace CartSyncBackend.Database;
 
-public class CartSyncContext(DbContextOptions<CartSyncContext> options) : DbContext(options)
+public class CartSyncContext : DbContext
 {
+    public CartSyncContext(DbContextOptions<CartSyncContext> options) : base(options)
+    {
+    }
+    public CartSyncContext(DbContextOptionsBuilder<CartSyncContext> options) : base(options.Options)
+    {
+    }
+
     public DbSet<Store> Stores { get; set; }
     public DbSet<Aisle> Aisles { get; set; }
     public DbSet<Item> Items { get; set; }
@@ -34,11 +42,6 @@ public class CartSyncContext(DbContextOptions<CartSyncContext> options) : DbCont
             .WithMany(i => i.Aisles)
             .UsingEntity<ItemAisle>();
     }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder options)
-        => options
-            .UseNpgsql(ConnectionString)
-            .EnableSensitiveDataLogging();
     
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
@@ -67,19 +70,16 @@ public class CartSyncContext(DbContextOptions<CartSyncContext> options) : DbCont
     
     public void Seed()
     {
-        Database.EnsureDeleted();
-        Database.EnsureCreated();
-        
-        AddRange(ExampleData.Stores);
-        AddRange(ExampleData.Aisles);
-        AddRange(ExampleData.Items);
-        AddRange(ExampleData.ItemAisles);
-        AddRange(ExampleData.Preps);
-        AddRange(ExampleData.ItemPreps);
-        AddRange(ExampleData.Recipes);
-        AddRange(ExampleData.RecipeInstructions);
-        AddRange(ExampleData.RecipeSections);
-        AddRange(ExampleData.RecipeSectionEntries);
+        AddRange(SeedData.Stores);
+        AddRange(SeedData.Aisles);
+        AddRange(SeedData.Items);
+        AddRange(SeedData.ItemAisles);
+        AddRange(SeedData.Preps);
+        AddRange(SeedData.ItemPreps);
+        AddRange(SeedData.Recipes);
+        AddRange(SeedData.RecipeInstructions);
+        AddRange(SeedData.RecipeSections);
+        AddRange(SeedData.RecipeSectionEntries);
         
         SaveChanges();
     }

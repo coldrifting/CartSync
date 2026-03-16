@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using CartSyncBackend.Database;
 using CartSyncBackend.Database.Models;
 using CartSyncBackend.Database.Objects;
+using CartSyncBackend.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,7 +31,7 @@ public class RecipeSectionController(CartSyncContext db) : ControllerBase
         
         Recipe? recipe = await db.Recipes
             .Include(r => r.RecipeSections)
-            .FirstOrDefaultAsync(r => r.RecipeId == recipeId);
+            .GetAsync(recipeId);
         if (recipe == null)
         {
             return Error.NotFoundRecipe;
@@ -40,7 +41,7 @@ public class RecipeSectionController(CartSyncContext db) : ControllerBase
         {
             RecipeId = recipeId,
             RecipeSectionName = recipeSectionName,
-            RecipeSectionIndex = recipe.RecipeSections.Count
+            SortOrder = recipe.RecipeSections.Count
         });
         await db.SaveChangesAsync();
         
@@ -68,7 +69,10 @@ public class RecipeSectionController(CartSyncContext db) : ControllerBase
             }
         }
 
-        RecipeSection? recipeSection = await db.RecipeSections.FindAsync(recipeSectionId);
+        RecipeSection? recipeSection = await db.RecipeSections
+            .Include(recipeSection => recipeSection.Recipe)
+            .ThenInclude(recipe => recipe.RecipeSections)
+            .GetAsync(recipeSectionId);
         if (recipeSection == null)
         {
             return Error.NotFoundRecipeSection;
@@ -76,28 +80,10 @@ public class RecipeSectionController(CartSyncContext db) : ControllerBase
 
         recipeSection.RecipeSectionName = recipeSectionEditRequest.RecipeSectionName ?? recipeSection.RecipeSectionName;
 
-        if (recipeSectionEditRequest.RecipeSectionIndex is { } newIndex)
+        if (recipeSectionEditRequest.SortOrder is { } newIndex)
         {
-            int oldIndex = recipeSection.RecipeSectionIndex;
-
-            if (newIndex != oldIndex)
-            {
-                // Insert at correct sorting index
-                Recipe? recipe = db.Recipes
-                    .Include(r => r.RecipeSections)
-                    .FirstOrDefault(r => r.RecipeId == recipeSection.RecipeId);
-
-                if (recipe != null)
-                {
-                    RecipeSection[] sections = recipe.RecipeSections.OrderBy(rs => rs.RecipeSectionIndex).ToArray();
-
-                    int[] indices = SortHelper.Reorder(sections.Length, oldIndex, newIndex);
-                    for (int i = 0; i < sections.Length; i++)
-                    {
-                        sections[indices[i]].RecipeSectionIndex = i;
-                    }
-                }
-            }
+            int oldIndex = recipeSection.SortOrder;
+            recipeSection.Recipe.RecipeSections.Reorder(oldIndex, newIndex);
         }
         
         await db.SaveChangesAsync();
@@ -115,31 +101,19 @@ public class RecipeSectionController(CartSyncContext db) : ControllerBase
             return Error.BadRequestRecipeSectionIdInvalid;
         }
 
-        RecipeSection? recipeSection = await db.RecipeSections.FindAsync(recipeSectionId);
+        RecipeSection? recipeSection = await db.RecipeSections
+            .Include(recipeSection => recipeSection.Recipe)
+            .ThenInclude(recipe => recipe.RecipeSections)
+            .GetAsync(recipeSectionId);
         if (recipeSection == null)
         {
             return Error.NotFoundRecipeSection;
         }
 
         db.RecipeSections.Remove(recipeSection);
-
-        // Normalize order index
-        if (recipeSection.RecipeSectionIndex != 0)
-        {
-            Recipe? recipe = db.Recipes
-                .Include(r => r.RecipeSections)
-                .FirstOrDefault(r => r.RecipeId == recipeSection.RecipeId);
-
-            if (recipe != null)
-            {
-                // Normalize order index
-                int index = 0;
-                foreach (RecipeSection rs in recipe.RecipeSections.OrderBy(rs => rs.RecipeSectionIndex))
-                {
-                    rs.RecipeSectionIndex = index++;
-                }
-            }
-        }
+        
+        // Refresh Sort Order
+        recipeSection.Recipe.RecipeSections.RefreshOrder();
 
         await db.SaveChangesAsync();
         

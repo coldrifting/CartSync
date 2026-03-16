@@ -28,23 +28,23 @@ public class RecipeController(CartSyncContext db) : ControllerBase
                     .Select(rs => new RecipeInstructionResponse
                     {
                         RecipeInstructionId = rs.RecipeInstructionId,
-                        RecipeInstructionIndex = rs.RecipeInstructionIndex,
+                        SortOrder = rs.SortOrder,
                         RecipeInstructionContent = rs.RecipeInstructionContent,
                         IsImage = rs.IsImage
                     })
-                    .OrderBy(rs => rs.RecipeInstructionIndex)
+                    .OrderBy(rs => rs.SortOrder)
                     .ToList(),
                 RecipeSectionsResponse = r.RecipeSections
                     .Select(rs => new RecipeSectionResponse
                     {
                         RecipeSectionId = rs.RecipeSectionId,
-                        RecipeSectionIndex = rs.RecipeSectionIndex,
+                        SortOrder = rs.SortOrder,
                         RecipeSectionName = rs.RecipeSectionName,
                         RecipeSectionEntries = rs.RecipeSectionEntries
                             .Select(re => new RecipeSectionEntryResponse
                             {
                                 RecipeSectionEntryId = re.RecipeSectionEntryId,
-                                RecipeSectionEntryIndex = re.RecipeSectionEntryIndex,
+                                SortOrder = re.SortOrder,
                                 Item = new ItemResponseNoPrep
                                 {
                                     ItemId = re.ItemId,
@@ -60,10 +60,10 @@ public class RecipeController(CartSyncContext db) : ControllerBase
                                     : null,
                                 Amount = re.Amount
                             })
-                            .OrderBy(re => re.RecipeSectionEntryIndex)
+                            .OrderBy(re => re.SortOrder)
                             .ToList()
                     })
-                    .OrderBy(rs => rs.RecipeSectionIndex)
+                    .OrderBy(rs => rs.SortOrder)
                     .ToList()
             })
             .OrderBy(r => r.RecipeName)
@@ -100,23 +100,23 @@ public class RecipeController(CartSyncContext db) : ControllerBase
                     .Select(rs => new RecipeInstructionResponse
                     {
                         RecipeInstructionId = rs.RecipeInstructionId,
-                        RecipeInstructionIndex = rs.RecipeInstructionIndex,
+                        SortOrder = rs.SortOrder,
                         RecipeInstructionContent = rs.RecipeInstructionContent,
                         IsImage = rs.IsImage
                     })
-                    .OrderBy(rs => rs.RecipeInstructionIndex)
+                    .OrderBy(rs => rs.SortOrder)
                     .ToList(),
                 RecipeSectionsResponse = r.RecipeSections
                     .Select(rs => new RecipeSectionResponse
                     {
                         RecipeSectionId = rs.RecipeSectionId,
-                        RecipeSectionIndex = rs.RecipeSectionIndex,
+                        SortOrder = rs.SortOrder,
                         RecipeSectionName = rs.RecipeSectionName,
                         RecipeSectionEntries = rs.RecipeSectionEntries
                             .Select(re => new RecipeSectionEntryResponse
                             {
                                 RecipeSectionEntryId = re.RecipeSectionEntryId,
-                                RecipeSectionEntryIndex = re.RecipeSectionEntryIndex,
+                                SortOrder = re.SortOrder,
                                 Item = new ItemResponseNoPrep
                                 {
                                     ItemId = re.ItemId,
@@ -132,10 +132,10 @@ public class RecipeController(CartSyncContext db) : ControllerBase
                                     : null,
                                 Amount = re.Amount
                             })
-                            .OrderBy(re => re.RecipeSectionEntryIndex)
+                            .OrderBy(re => re.SortOrder)
                             .ToList()
                     })
-                    .OrderBy(rs => rs.RecipeSectionIndex)
+                    .OrderBy(rs => rs.SortOrder)
                     .ToList()
             })
             .FirstAsync(s => s.RecipeId == recipeId);

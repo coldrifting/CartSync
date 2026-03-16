@@ -47,7 +47,7 @@ public class Amount
     
     public override string ToString()
     {
-        return Fraction.ToString() + " " + UnitType.GetAbbreviation(Fraction.IsPlural);
+        return Fraction + " " + UnitType.GetAbbreviation(Fraction.IsPlural);
     }
 }
 

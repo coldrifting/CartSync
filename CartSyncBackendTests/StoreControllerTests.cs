@@ -1,14 +1,15 @@
-﻿using CartSyncBackend.Controllers;
+﻿using System.Net;
+using CartSyncBackend.Controllers;
 using CartSyncBackend.Database.Models;
 using CartSyncBackend.Database.Objects;
 using CartSyncBackendTests.Core;
-using static CartSyncBackend.Database.ExampleData;
+using static CartSyncBackend.Database.Seeding.SeedData;
 using static CartSyncBackendTests.Core.Constants;
 
 namespace CartSyncBackendTests;
 
 [Collection("DatabaseUnitTests")]
-public class StoreControllerTests(DatabaseFixture fixture) : DatabaseControllerFixture(fixture)
+public class StoreControllerTests(WebAppFactory<Program> factory) : WebAppFixture(factory)
 {
     private StoreController _storeController = null!;
 
@@ -86,6 +87,14 @@ public class StoreControllerTests(DatabaseFixture fixture) : DatabaseControllerF
     }
     
     [Fact]
+    public async Task TestEditStoreIdInvalid()
+    {
+        HttpResponseMessage response = await Client.PutAsync($"api/stores/edit?storeId={BadIdString}&storeName=new store name", null);
+        
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+    
+    [Fact]
     public async Task TestDeleteStore()
     {
         await _storeController.Delete(Stores[0].StoreId);
@@ -109,18 +118,12 @@ public class StoreControllerTests(DatabaseFixture fixture) : DatabaseControllerF
         Assert.Contains(Stores[0].StoreId, stores.Select(s => s.StoreId));
         Assert.Contains(Stores[1].StoreId, stores.Select(s => s.StoreId));
     }
-    
+
     [Fact]
-    public async Task TestDeleteStoreInvalidBinding()
+    public async Task TestDeleteStoreIdInvalid()
     {
-        Error error = (await _storeController.Delete(BadId)).Error();
+        HttpResponseMessage response = await Client.DeleteAsync($"api/stores/delete?storeId={BadIdString}");
         
-        Assert.Equal(NotFoundStatusCode, error.Status);
-        
-        List<StoreResponse> stores = (await _storeController.All()).Value<List<StoreResponse>>();
-        
-        Assert.Equal(2, stores.Count);
-        Assert.Contains(Stores[0].StoreId, stores.Select(s => s.StoreId));
-        Assert.Contains(Stores[1].StoreId, stores.Select(s => s.StoreId));
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }
