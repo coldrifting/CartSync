@@ -67,17 +67,19 @@ public class CartSyncContext(DbContextOptions<CartSyncContext> options) : DbCont
     
     public void Seed()
     {
-        Stores.Seed();
-        Aisles.Seed();
-        Items.Seed();
-        ItemAisles.Seed();
-        Preps.Seed();
-        ItemPreps.Seed();
-
-        Recipes.Seed();
-        RecipeInstructions.Seed();
-        RecipeSections.Seed();
-        RecipeSectionEntries.Seed();
+        Database.EnsureDeleted();
+        Database.EnsureCreated();
+        
+        AddRange(ExampleData.Stores);
+        AddRange(ExampleData.Aisles);
+        AddRange(ExampleData.Items);
+        AddRange(ExampleData.ItemAisles);
+        AddRange(ExampleData.Preps);
+        AddRange(ExampleData.ItemPreps);
+        AddRange(ExampleData.Recipes);
+        AddRange(ExampleData.RecipeInstructions);
+        AddRange(ExampleData.RecipeSections);
+        AddRange(ExampleData.RecipeSectionEntries);
         
         SaveChanges();
     }
