@@ -13,7 +13,7 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<CartSyncContext>(optionsBuilder 
     => optionsBuilder
-        .UseSqlite(CartSyncContext.DefaultPath)
+        .UseNpgsql(CartSyncContext.ConnectionString)
         .UseSeeding((context, _) =>
         {
             if (context is CartSyncContext cartSyncContext)

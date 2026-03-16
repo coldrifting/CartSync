@@ -18,7 +18,7 @@ public class CartSyncContext(DbContextOptions<CartSyncContext> options) : DbCont
     public DbSet<RecipeSection> RecipeSections { get; set; }
     public DbSet<RecipeSectionEntry> RecipeSectionEntries { get; set; }
 
-    public static string DefaultPath => Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CartSync.db");
+    public static string ConnectionString => "Host=localhost;Username=coldrifting;Database=cartsyncdb";
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -37,7 +37,7 @@ public class CartSyncContext(DbContextOptions<CartSyncContext> options) : DbCont
 
     protected override void OnConfiguring(DbContextOptionsBuilder options)
         => options
-            .UseSqlite($"Data Source={DefaultPath};foreign keys=true;")
+            .UseNpgsql(ConnectionString)
             .EnableSensitiveDataLogging();
     
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)

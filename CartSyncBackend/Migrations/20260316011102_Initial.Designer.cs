@@ -4,41 +4,46 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace CartSyncBackend.Migrations
 {
     [DbContext(typeof(CartSyncContext))]
-    [Migration("20260316002445_Initial")]
+    [Migration("20260316011102_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "10.0.3");
+            modelBuilder
+                .HasAnnotation("ProductVersion", "10.0.5")
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("CartSyncBackend.Database.Models.Aisle", b =>
                 {
                     b.Property<string>("AisleId")
                         .HasMaxLength(26)
                         .IsUnicode(false)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(26)");
 
                     b.Property<string>("AisleName")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(256)");
 
                     b.Property<int>("AisleOrder")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.Property<string>("StoreId")
                         .IsRequired()
                         .HasMaxLength(26)
                         .IsUnicode(false)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(26)");
 
                     b.HasKey("AisleId");
 
@@ -52,24 +57,24 @@ namespace CartSyncBackend.Migrations
                     b.Property<string>("ItemId")
                         .HasMaxLength(26)
                         .IsUnicode(false)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(26)");
 
                     b.Property<string>("CartAmount")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<string>("DefaultUnitType")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<string>("ItemName")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("ItemTemp")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.HasKey("ItemId");
 
@@ -81,22 +86,22 @@ namespace CartSyncBackend.Migrations
                     b.Property<string>("ItemId")
                         .HasMaxLength(26)
                         .IsUnicode(false)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(26)");
 
                     b.Property<string>("StoreId")
                         .HasMaxLength(26)
                         .IsUnicode(false)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(26)");
 
                     b.Property<string>("AisleId")
                         .IsRequired()
                         .HasMaxLength(26)
                         .IsUnicode(false)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(26)");
 
                     b.Property<string>("Bay")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.HasKey("ItemId", "StoreId");
 
@@ -112,12 +117,12 @@ namespace CartSyncBackend.Migrations
                     b.Property<string>("ItemId")
                         .HasMaxLength(26)
                         .IsUnicode(false)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(26)");
 
                     b.Property<string>("PrepId")
                         .HasMaxLength(26)
                         .IsUnicode(false)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(26)");
 
                     b.HasKey("ItemId", "PrepId");
 
@@ -131,12 +136,12 @@ namespace CartSyncBackend.Migrations
                     b.Property<string>("PrepId")
                         .HasMaxLength(26)
                         .IsUnicode(false)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(26)");
 
                     b.Property<string>("PrepName")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(256)");
 
                     b.HasKey("PrepId");
 
@@ -148,23 +153,23 @@ namespace CartSyncBackend.Migrations
                     b.Property<string>("RecipeId")
                         .HasMaxLength(26)
                         .IsUnicode(false)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(26)");
 
                     b.Property<int>("CartAmount")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.Property<bool>("IsPinned")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("RecipeName")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(255)");
 
                     b.Property<string>("Url")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(255)");
 
                     b.HasKey("RecipeId");
 
@@ -176,24 +181,24 @@ namespace CartSyncBackend.Migrations
                     b.Property<string>("RecipeInstructionId")
                         .HasMaxLength(26)
                         .IsUnicode(false)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(26)");
 
                     b.Property<bool>("IsImage")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("RecipeId")
                         .IsRequired()
                         .HasMaxLength(26)
                         .IsUnicode(false)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(26)");
 
                     b.Property<string>("RecipeInstructionContent")
                         .IsRequired()
                         .HasMaxLength(2048)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(2048)");
 
                     b.Property<int>("RecipeInstructionIndex")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.HasKey("RecipeInstructionId");
 
@@ -207,21 +212,21 @@ namespace CartSyncBackend.Migrations
                     b.Property<string>("RecipeSectionId")
                         .HasMaxLength(26)
                         .IsUnicode(false)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(26)");
 
                     b.Property<string>("RecipeId")
                         .IsRequired()
                         .HasMaxLength(26)
                         .IsUnicode(false)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(26)");
 
                     b.Property<int>("RecipeSectionIndex")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.Property<string>("RecipeSectionName")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(255)");
 
                     b.HasKey("RecipeSectionId");
 
@@ -235,31 +240,31 @@ namespace CartSyncBackend.Migrations
                     b.Property<string>("RecipeSectionEntryId")
                         .HasMaxLength(26)
                         .IsUnicode(false)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(26)");
 
                     b.Property<string>("Amount")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<string>("ItemId")
                         .IsRequired()
                         .HasMaxLength(26)
                         .IsUnicode(false)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(26)");
 
                     b.Property<string>("PrepId")
                         .HasMaxLength(26)
                         .IsUnicode(false)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(26)");
 
                     b.Property<int>("RecipeSectionEntryIndex")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.Property<string>("RecipeSectionId")
                         .IsRequired()
                         .HasMaxLength(26)
                         .IsUnicode(false)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(26)");
 
                     b.HasKey("RecipeSectionEntryId");
 
@@ -277,12 +282,12 @@ namespace CartSyncBackend.Migrations
                     b.Property<string>("StoreId")
                         .HasMaxLength(26)
                         .IsUnicode(false)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(26)");
 
                     b.Property<string>("StoreName")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(256)");
 
                     b.HasKey("StoreId");
 

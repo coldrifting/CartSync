@@ -52,7 +52,7 @@ public class RecipeSectionEntryAddRequest
     public Ulid RecipeSectionId { get; init; }
     public Ulid ItemId { get; init; }
     public Ulid? PrepId { get; init; }
-    public Amount Amount { get; init; }
+    public Amount Amount { get; init; } = Amount.None;
 }
 
 
