@@ -8,6 +8,8 @@ public class Amount
     public Fraction Fraction { get; set; }
     public UnitType UnitType { get; set; }
 
+    public static readonly Amount None = new(0, UnitType.None);
+    
     public Amount()
     {
         Fraction = new Fraction(1);

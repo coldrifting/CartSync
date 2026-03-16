@@ -52,6 +52,7 @@ namespace CartSyncBackend.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("CartAmount")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("DefaultUnitType")
@@ -131,6 +132,7 @@ namespace CartSyncBackend.Migrations
 
                     b.Property<string>("PrepName")
                         .IsRequired()
+                        .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
                     b.HasKey("PrepId");

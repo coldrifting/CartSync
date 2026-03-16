@@ -7,6 +7,7 @@ namespace CartSyncBackend.Database.Objects;
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum UnitType
 {
+    None,
     Count,
     VolumeTeaspoons,
     VolumeTablespoons,
@@ -25,6 +26,7 @@ public static class UnitTypeExtensions
     {
         return unitType switch
         {
+            UnitType.None => "(none)",
             UnitType.Count => "ea.",
             UnitType.VolumeTeaspoons => "tsp",
             UnitType.VolumeTablespoons => "Tbsp",
@@ -43,6 +45,7 @@ public static class UnitTypeExtensions
     {
         return unitType switch
         {
+            UnitType.None => 0,
             UnitType.Count => 1,
             UnitType.VolumeTeaspoons => 1,
             UnitType.VolumeTablespoons => 3,

@@ -18,7 +18,7 @@ namespace CartSyncBackend.Migrations
                     ItemName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
                     ItemTemp = table.Column<string>(type: "TEXT", nullable: false),
                     DefaultUnitType = table.Column<string>(type: "TEXT", nullable: false),
-                    CartAmount = table.Column<string>(type: "TEXT", nullable: true)
+                    CartAmount = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -30,7 +30,7 @@ namespace CartSyncBackend.Migrations
                 columns: table => new
                 {
                     PrepId = table.Column<string>(type: "TEXT", unicode: false, maxLength: 26, nullable: false),
-                    PrepName = table.Column<string>(type: "TEXT", nullable: false)
+                    PrepName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false)
                 },
                 constraints: table =>
                 {

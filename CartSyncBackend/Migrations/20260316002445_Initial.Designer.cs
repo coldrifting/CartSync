@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CartSyncBackend.Migrations
 {
     [DbContext(typeof(CartSyncContext))]
-    [Migration("20260226015648_Initial")]
+    [Migration("20260316002445_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -55,6 +55,7 @@ namespace CartSyncBackend.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("CartAmount")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("DefaultUnitType")
@@ -134,6 +135,7 @@ namespace CartSyncBackend.Migrations
 
                     b.Property<string>("PrepName")
                         .IsRequired()
+                        .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
                     b.HasKey("PrepId");

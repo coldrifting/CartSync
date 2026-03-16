@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 
 namespace CartSyncBackend.Database.Models;
@@ -6,6 +7,8 @@ namespace CartSyncBackend.Database.Models;
 public class Prep
 {
     public Ulid PrepId { get; set; } = Ulid.NewUlid();
+    
+    [StringLength(256)] 
     public string PrepName { get; set; } = string.Empty;
 
     // Navigation

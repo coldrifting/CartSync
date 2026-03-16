@@ -193,6 +193,7 @@ public class ItemController(CartSyncContext db) : ControllerBase
         i.ItemName = itemEditRequest.ItemName ?? i.ItemName;
         i.ItemTemp = itemEditRequest.ItemTemp ?? i.ItemTemp;
         i.DefaultUnitType = itemEditRequest.DefaultUnitType ?? i.DefaultUnitType;
+        i.CartAmount = itemEditRequest.CartAmount ?? i.CartAmount;
 
         if (itemEditRequest.PrepIds != null)
         {

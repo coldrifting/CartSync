@@ -13,8 +13,8 @@ public class Item
 
     public ItemTemp ItemTemp { get; set; } = ItemTemp.Ambient;
     public UnitType DefaultUnitType { get; set; } = UnitType.Count;
-    
-    public Amount? CartAmount { get; set; }
+
+    public Amount CartAmount { get; set; } = Amount.None;
 
     // Navigation
     public List<Prep> Preps { get; set; } = [];
@@ -68,6 +68,8 @@ public class ItemEditRequest
     public UnitType? DefaultUnitType { get; set; } = null;
     
     public List<Ulid>? PrepIds { get; set; } = null;
+    
+    public Amount? CartAmount { get; set; } = null;
 }
 
 public class ItemAisleResponse
