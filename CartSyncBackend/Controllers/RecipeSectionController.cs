@@ -1,40 +1,32 @@
 using System.ComponentModel.DataAnnotations;
+using CartSyncBackend.Controllers.Core;
 using CartSyncBackend.Database;
 using CartSyncBackend.Database.Models;
 using CartSyncBackend.Database.Objects;
 using CartSyncBackend.Utils;
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace CartSyncBackend.Controllers;
 
 [ApiController]
-[Tags("Recipes - Sections")]
-[Route("/api/recipes/sections/[action]")]
-public class RecipeSectionController(CartSyncContext db) : ControllerBase
+[Tags("Recipes")]
+public class RecipeSectionController(CartSyncContext db) : ControllerCore
 {
     [HttpPost]
+    [Route("/api/recipes/{recipeId}/sections/add")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Add([Required] Ulid recipeId, [Required] string recipeSectionName)
+    public async Task<IActionResult> Add(Ulid recipeId, [Required] string recipeSectionName)
     {
-        if (!ModelState.IsValid && recipeId == Ulid.Empty)
-        {
-            return Error.BadRequestRecipeIdInvalid;
-        }
-
-        if (!ModelState.IsValid || recipeSectionName.Length == 0)
-        {
-            return Error.BadRequestRecipeSectionNameInvalid;
-        }
-        
         Recipe? recipe = await db.Recipes
             .Include(r => r.RecipeSections)
-            .GetAsync(recipeId);
+            .FirstOrDefaultAsync(recipe => recipe.RecipeId == recipeId);
         if (recipe == null)
         {
-            return Error.NotFoundRecipe;
+            return Recipe.NotFound(recipeId);
         }
         
         recipe.RecipeSections.Add(new RecipeSection
@@ -48,66 +40,57 @@ public class RecipeSectionController(CartSyncContext db) : ControllerBase
         return NoContent();
     }
     
-    [HttpPut]
+    [HttpPatch]
+    [Route("/api/recipes/{recipeId}/sections/{recipeSectionId}/edit")]
+    [Consumes("application/json-patch+json")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Edit([Required] Ulid recipeSectionId, [FromBody] RecipeSectionEditRequest recipeSectionEditRequest)
+    public async Task<IActionResult> Edit(Ulid recipeId, Ulid recipeSectionId, [FromBody] JsonPatchDocument<RecipeSectionEditRequest> recipeSectionEditPatch)
     {
-        switch (ModelState.IsValid)
-        {
-            case false when recipeSectionId == Ulid.Empty:
-                return Error.BadRequestRecipeSectionIdInvalid;
-            case false:
-            {
-                List<string> errors = ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage)
-                    .ToList();
-            
-                return Error.BadRequestRecipeSectionEditRequestInvalid(errors);
-            }
-        }
-
         RecipeSection? recipeSection = await db.RecipeSections
             .Include(recipeSection => recipeSection.Recipe)
             .ThenInclude(recipe => recipe.RecipeSections)
-            .GetAsync(recipeSectionId);
+            .FirstOrDefaultAsync(recipeSection => recipeSection.RecipeSectionId == recipeSectionId);
         if (recipeSection == null)
         {
-            return Error.NotFoundRecipeSection;
+            return RecipeSection.NotFound(recipeSectionId);
         }
 
-        recipeSection.RecipeSectionName = recipeSectionEditRequest.RecipeSectionName ?? recipeSection.RecipeSectionName;
-
-        if (recipeSectionEditRequest.SortOrder is { } newIndex)
+        if (recipeSection.RecipeId != recipeId)
         {
-            int oldIndex = recipeSection.SortOrder;
-            recipeSection.Recipe.RecipeSections.Reorder(oldIndex, newIndex);
+            return RecipeSection.NotFoundUnderRecipe(recipeSectionId, recipeId);
         }
         
+        if (!TryGetEditObject(recipeSection, recipeSectionEditPatch, out RecipeSectionEditRequest? recipeSectionEdit))
+        {
+            return Error.BadRequestPatchInvalid(ModelState);
+        }
+
+        recipeSection.UpdateFromEditRequest(recipeSectionEdit);
         await db.SaveChangesAsync();
         return NoContent();
     }
     
     [HttpDelete]
+    [Route("/api/recipes/{recipeId}/sections/{recipeSectionId}/delete")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Delete([Required] Ulid recipeSectionId)
+    public async Task<IActionResult> Delete(Ulid recipeId, Ulid recipeSectionId)
     {
-        if (!ModelState.IsValid && recipeSectionId == Ulid.Empty)
-        {
-            return Error.BadRequestRecipeSectionIdInvalid;
-        }
-
         RecipeSection? recipeSection = await db.RecipeSections
             .Include(recipeSection => recipeSection.Recipe)
             .ThenInclude(recipe => recipe.RecipeSections)
-            .GetAsync(recipeSectionId);
+            .FirstOrDefaultAsync(recipeSection => recipeSection.RecipeSectionId == recipeSectionId);
         if (recipeSection == null)
         {
-            return Error.NotFoundRecipeSection;
+            return RecipeSection.NotFound(recipeSectionId);
+        }
+
+        if (recipeSection.RecipeId != recipeId)
+        {
+            return RecipeSection.NotFoundUnderRecipe(recipeSectionId, recipeId);
         }
 
         db.RecipeSections.Remove(recipeSection);

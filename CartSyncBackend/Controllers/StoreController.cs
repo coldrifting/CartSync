@@ -1,96 +1,81 @@
-using System.ComponentModel.DataAnnotations;
+using CartSyncBackend.Controllers.Core;
 using CartSyncBackend.Database;
 using CartSyncBackend.Database.Models;
 using CartSyncBackend.Database.Objects;
-using CartSyncBackend.Utils;
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace CartSyncBackend.Controllers;
 
 [ApiController]
-[Tags("Stores")]
-[Route("/api/stores/[action]")]
-public class StoreController(CartSyncContext db) : ControllerBase
+[Tags("Locations")]
+public class StoreController(CartSyncContext db) : ControllerCore
 {
     [HttpGet]
+    [Route("/api/stores")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<StoreResponse>))]
     public async Task<IActionResult> All()
     {
         List<StoreResponse> stores = await db.Stores
             .OrderBy(s => s.StoreName)
-            .Select(s => new StoreResponse
-            {
-                StoreId = s.StoreId,
-                StoreName = s.StoreName
-            })
+            .Select(Store.ToStoreResponse)
             .ToListAsync();
 
         return Ok(stores);
     }
     
     [HttpPost]
+    [Route("/api/stores/add")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
-    public async Task<IActionResult> Add([Required] string storeName)
+    public async Task<IActionResult> Add([FromBody] StoreAddRequest storeAddRequest)
     {
-        if (!ModelState.IsValid || storeName.Length == 0)
-        {
-            return Error.BadRequestStoreNameInvalid;
-        }
-        
         await db.AddAsync(new Store
         {
-            StoreName = storeName
+            StoreName = storeAddRequest.StoreName,
         });
         await db.SaveChangesAsync();
         
         return NoContent();
     }
 
-    [HttpPut]
+    [HttpPatch]
+    [Route("/api/stores/{storeId}/edit")]
+    [Consumes("application/json-patch+json")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Edit([Required] Ulid storeId, [Required] string storeName)
+    public async Task<IActionResult> Edit(Ulid storeId, [FromBody] JsonPatchDocument<StoreEditRequest> storePatch)
     {
-        if (!ModelState.IsValid && storeId == Ulid.Empty)
-        {
-            return Error.BadRequestInvalidStoreId;
-        }
-        
-        Store? store = await db.Stores.GetAsync(storeId);
+        Store? store = await db.Stores.FindAsync(storeId);
         if (store == null)
         {
-            return Error.NotFoundStore;
+            return Store.NotFound(storeId);
         }
-        
-        if (!ModelState.IsValid || storeName.Length == 0)
+
+        if (!TryGetEditObject(store, storePatch, out StoreEditRequest? storeEdit))
         {
-            return Error.BadRequestStoreNameInvalid;
+            return Error.BadRequestPatchInvalid(ModelState);
         }
-        
-        store.StoreName = storeName;
+
+        store.UpdateFromEditRequest(storeEdit);
         await db.SaveChangesAsync();
 
         return NoContent();
     }
     
     [HttpDelete]
+    [Route("/api/stores/{storeId}/delete")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Delete([Required] Ulid storeId)
+    public async Task<IActionResult> Delete(Ulid storeId)
     {
-        if (!ModelState.IsValid && storeId == Ulid.Empty)
-        {
-            return Error.BadRequestInvalidStoreId;
-        }
-        
-        Store? store = await db.Stores.GetAsync(storeId);
+        Store? store = await db.Stores.FindAsync(storeId);
         if (store == null)
         {
-            return Error.NotFoundStore;
+            return Store.NotFound(storeId);
         }
 
         db.Stores.Remove(store);

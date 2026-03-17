@@ -1,102 +1,77 @@
-using System.ComponentModel.DataAnnotations;
+using CartSyncBackend.Controllers.Core;
 using CartSyncBackend.Database;
 using CartSyncBackend.Database.Models;
 using CartSyncBackend.Database.Objects;
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace CartSyncBackend.Controllers;
 
 [ApiController]
-[Tags("Preps")]
-[Route("/api/preps/[action]")]
-public class PrepController(CartSyncContext db) : ControllerBase
+[Tags("Items")]
+public class PrepController(CartSyncContext db) : ControllerCore
 {
     [HttpGet]
+    [Route("/api/preps")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<PrepResponse>))]
     public async Task<IActionResult> All()
     {
         List<PrepResponse> preps = await db.Preps
-            .Select(p => new PrepResponse
-            {
-                PrepId = p.PrepId,
-                PrepName = p.PrepName
-            })
+            .Select(Prep.ToResponse)
             .ToListAsync();
         
         return Ok(preps);
     }
 
     [HttpPost]
+    [Route("/api/preps/add")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
-    public async Task<IActionResult> Add([Required] string prepName)
+    public async Task<IActionResult> Add([FromBody] PrepAddRequest prepAddRequest)
     {
-        if (!ModelState.IsValid || prepName.Length == 0)
-        {
-            return Error.BadRequestPrepNameInvalid;
-        }
-        
-        db.Preps.Add(new Prep { PrepName = prepName });
+        db.Preps.Add(new Prep { PrepName = prepAddRequest.PrepName });
         await db.SaveChangesAsync();
         
         return NoContent();
     }
 
-    [HttpPut]
+    [HttpPatch]
+    [Route("/api/preps/{prepId}/edit")]
+    [Consumes("application/json-patch+json")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Edit([Required] Ulid prepId, [Required] string prepName)
+    public async Task<IActionResult> Edit(Ulid prepId, [FromBody] JsonPatchDocument<PrepEditRequest> prepPatch)
     {
         Prep? prep = await db.Preps.FindAsync(prepId);
         if (prep == null)
         {
-            return Error.NotFoundPrep;
+            return Prep.NotFound(prepId);
         }
         
-        if (!ModelState.IsValid || prepName.Length == 0)
+        if (!TryGetEditObject(prep, prepPatch, out PrepEditRequest? prepEdit))
         {
-            return Error.BadRequestPrepNameInvalid;
+            return Error.BadRequestPatchInvalid(ModelState);
         }
         
-        prep.PrepName = prepName;
+        prep.UpdateFromEditRequest(prepEdit);
         await db.SaveChangesAsync();
         
         return NoContent();
     }
     
     [HttpDelete]
+    [Route("/api/preps/{prepId}/delete")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Delete([Required] Ulid prepId, bool enableOverride = false)
+    public async Task<IActionResult> Delete(Ulid prepId)
     {
         Prep? prep = await db.Preps.FindAsync(prepId);
         if (prep == null)
         {
-            return Error.NotFoundPrep;
-        }
-
-        HashSet<ItemResponseNoPrep> itemsUsingPrep = db.Preps
-            .Where(p => p.PrepId == prepId)
-            .SelectMany(p => p.Items)
-            .Select(i => new ItemResponseNoPrep
-            {
-                ItemId =  i.ItemId,
-                ItemName = i.ItemName,
-                ItemTemp =  i.ItemTemp,
-            })
-            .ToHashSet();
-        
-        if (!enableOverride && itemsUsingPrep.Count != 0)
-        {
-            Dictionary<string, object> errorDetails = new()
-            {
-                ["items"] = itemsUsingPrep
-            };
-
-            return Error.BadRequestPrepDeleteFailed(errorDetails);
+            return Prep.NotFound(prepId);
         }
         
         db.Remove(prep);

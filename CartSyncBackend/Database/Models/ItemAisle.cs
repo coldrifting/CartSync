@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using CartSyncBackend.Database.Objects;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +15,7 @@ public class ItemAisle
     public BayType Bay { get; set; } = BayType.Middle;
     
     // Navigation
-    [ForeignKey(nameof(ItemId))] 
+    [ForeignKey(nameof(ItemId))]
     public Item Item
     {
         set;
@@ -30,7 +29,7 @@ public class ItemAisle
         get => field ?? throw new InvalidOperationException("Uninitialized property: " + nameof(Store));
     }
 
-    [ForeignKey(nameof(AisleId))] 
+    [ForeignKey(nameof(AisleId))]
     public Aisle Aisle
     {
         set;
@@ -38,9 +37,8 @@ public class ItemAisle
     }
 }
 
-public class ItemAisleLocChangeRequest
+public class ItemAisleResponse
 {
-    [Required]
-    public Ulid AisleId { get; init; }
-    public BayType? Bay { get; set; } = null;
+    public AisleResponse? Aisle { get; set; }
+    public List<ItemResponse> Items { get; set; } = [];
 }

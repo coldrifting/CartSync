@@ -1,45 +1,31 @@
-using System.ComponentModel.DataAnnotations;
+using CartSyncBackend.Controllers.Core;
 using CartSyncBackend.Database;
 using CartSyncBackend.Database.Models;
 using CartSyncBackend.Database.Objects;
 using CartSyncBackend.Utils;
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace CartSyncBackend.Controllers;
 
 [ApiController]
-[Tags("Recipes - Instructions")]
-[Route("/api/recipes/instructions/[action]")]
-public class RecipeInstructionController(CartSyncContext db) : ControllerBase
+[Tags("Recipes")]
+public class RecipeInstructionController(CartSyncContext db) : ControllerCore
 {
     [HttpPost]
+    [Route("/api/recipes/{recipeId}/instructions/add")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Add([Required] Ulid recipeId, [FromBody] RecipeInstructionAddRequest recipeInstructionAddRequest)
+    public async Task<IActionResult> Add(Ulid recipeId, [FromBody] RecipeInstructionAddRequest recipeInstructionAddRequest)
     {
-        switch (ModelState.IsValid)
-        {
-            case false when recipeId == Ulid.Empty:
-                return Error.BadRequestRecipeIdInvalid;
-            case false:
-            {
-                List<string> errors = ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage)
-                    .ToList();
-            
-                return Error.BadRequestRecipeInstructionAddRequestInvalid(errors);
-            }
-        }
-
         Recipe? recipe = await db.Recipes
             .Include(r => r.RecipeInstructions)
-            .GetAsync(recipeId);
+            .FirstOrDefaultAsync(recipe => recipe.RecipeId == recipeId);
         if (recipe == null)
         {
-            return Error.NotFoundRecipe;
+            return Recipe.NotFound(recipeId);
         }
         
         recipe.RecipeInstructions.Add(new RecipeInstruction
@@ -55,66 +41,55 @@ public class RecipeInstructionController(CartSyncContext db) : ControllerBase
     }
     
     [HttpPut]
+    [Route("/api/recipes/{recipeId}/instructions/{recipeInstructionId}/edit")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Edit([Required] Ulid recipeInstructionId, [FromBody] RecipeInstructionEditRequest recipeInstructionEditRequest)
+    public async Task<IActionResult> Edit(Ulid recipeId, Ulid recipeInstructionId, [FromBody] JsonPatchDocument<RecipeInstructionEditRequest> recipeInstructionPatch)
     {
-        switch (ModelState.IsValid)
-        {
-            case false when recipeInstructionId == Ulid.Empty:
-                return Error.BadRequestRecipeInstructionIdInvalid;
-            case false:
-            {
-                List<string> errors = ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage)
-                    .ToList();
-            
-                return Error.BadRequestRecipeInstructionEditRequestInvalid(errors);
-            }
-        }
-
         RecipeInstruction? recipeInstruction = await db.RecipeInstructions
             .Include(recipeInstruction => recipeInstruction.Recipe)
             .ThenInclude(recipe => recipe.RecipeInstructions)
-            .GetAsync(recipeInstructionId);
+            .FirstOrDefaultAsync(recipeInstruction => recipeInstruction.RecipeInstructionId == recipeInstructionId);
         if (recipeInstruction == null)
         {
-            return Error.NotFoundRecipeInstruction;
+            return RecipeInstruction.NotFound(recipeInstructionId);
         }
 
-        recipeInstruction.RecipeInstructionContent = recipeInstructionEditRequest.RecipeInstructionContent ?? recipeInstruction.RecipeInstructionContent;
-        recipeInstruction.IsImage = recipeInstructionEditRequest.IsImage ?? recipeInstruction.IsImage;
-        
-        if (recipeInstructionEditRequest.SortOrder is { } newIndex)
+        if (recipeInstruction.RecipeId != recipeId)
         {
-            int oldIndex = recipeInstruction.SortOrder;
-            recipeInstruction.Recipe.RecipeInstructions.Reorder(oldIndex, newIndex);
+            return RecipeInstruction.NotFoundUnderRecipe(recipeInstructionId, recipeId);
         }
-        
+
+        if (!TryGetEditObject(recipeInstruction, recipeInstructionPatch, out RecipeInstructionEditRequest? recipeInstructionEdit))
+        {
+            return Error.BadRequestPatchInvalid(ModelState);
+        }
+
+        recipeInstruction.UpdateFromEditRequest(recipeInstructionEdit);
         await db.SaveChangesAsync();
         return NoContent();
     }
     
     [HttpDelete]
+    [Route("/api/recipes/{recipeId}/instructions/{recipeInstructionId}/delete")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Delete([Required] Ulid recipeInstructionId)
+    public async Task<IActionResult> Delete(Ulid recipeId, Ulid recipeInstructionId)
     {
-        if (!ModelState.IsValid && recipeInstructionId == Ulid.Empty)
-        {
-            return Error.BadRequestRecipeInstructionIdInvalid;
-        }
-
         RecipeInstruction? recipeInstruction = await db.RecipeInstructions
             .Include(recipeInstruction => recipeInstruction.Recipe)
             .ThenInclude(recipe => recipe.RecipeInstructions)
-            .GetAsync(recipeInstructionId);
+            .FirstOrDefaultAsync(recipeInstruction => recipeInstruction.RecipeInstructionId == recipeInstructionId);
         if (recipeInstruction == null)
         {
-            return Error.NotFoundRecipeInstruction;
+            return RecipeInstruction.NotFound(recipeInstructionId);
+        }
+
+        if (recipeInstruction.RecipeId != recipeId)
+        {
+            return RecipeInstruction.NotFoundUnderRecipe(recipeInstructionId, recipeId);
         }
 
         db.RecipeInstructions.Remove(recipeInstruction);

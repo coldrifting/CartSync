@@ -5,15 +5,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CartSyncBackend.Database;
 
-public class CartSyncContext : DbContext
+public class CartSyncContext(DbContextOptions options) : DbContext(options)
 {
-    public CartSyncContext(DbContextOptions<CartSyncContext> options) : base(options)
-    {
-    }
-    public CartSyncContext(DbContextOptionsBuilder<CartSyncContext> options) : base(options.Options)
-    {
-    }
-
     public DbSet<Store> Stores { get; set; }
     public DbSet<Aisle> Aisles { get; set; }
     public DbSet<Item> Items { get; set; }
@@ -25,8 +18,6 @@ public class CartSyncContext : DbContext
     public DbSet<RecipeInstruction> RecipeInstructions { get; set; }
     public DbSet<RecipeSection> RecipeSections { get; set; }
     public DbSet<RecipeSectionEntry> RecipeSectionEntries { get; set; }
-
-    public static string ConnectionString => "Host=localhost;Username=coldrifting;Database=cartsyncdb";
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

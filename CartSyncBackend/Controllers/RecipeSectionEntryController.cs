@@ -1,57 +1,58 @@
 using System.ComponentModel.DataAnnotations;
+using CartSyncBackend.Controllers.Core;
 using CartSyncBackend.Database;
 using CartSyncBackend.Database.Models;
 using CartSyncBackend.Database.Objects;
 using CartSyncBackend.Utils;
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace CartSyncBackend.Controllers;
 
 [ApiController]
-[Tags("Recipes - Section Entries")]
-[Route("/api/recipes/sections/entries/[action]")]
-public class RecipeSectionEntryController(CartSyncContext db) : ControllerBase
+[Tags("Recipes")]
+public class RecipeSectionEntryController(CartSyncContext db) : ControllerCore
 {
     [HttpPost]
+    [Route("/api/recipes/{recipeId}/sections/{recipeSectionId}/entries/add")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Add([Required] Ulid recipeSectionId, [Required] RecipeSectionEntryAddRequest recipeSectionEntryAddRequest)
+    public async Task<IActionResult> Add(Ulid recipeId, Ulid recipeSectionId, [Required] RecipeSectionEntryAddRequest recipeSectionEntryAddRequest)
     {
-        switch (ModelState.IsValid)
-        {
-            case false when recipeSectionId == Ulid.Empty:
-                return Error.BadRequestRecipeSectionIdInvalid;
-            case false:
-            {
-                List<string> errors = ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage)
-                    .ToList();
-            
-                return Error.BadRequestRecipeSectionEntryAddRequestInvalid(errors);
-            }
-        }
-        
         RecipeSection? recipeSection = await db.RecipeSections
             .Include(rs => rs.RecipeSectionEntries)
-            .GetAsync(recipeSectionId);
+            .FirstOrDefaultAsync(recipeSection => recipeSection.RecipeSectionId == recipeSectionId);
         if (recipeSection == null)
         {
-            return Error.NotFoundRecipeSection;
+            return RecipeSection.NotFound(recipeSectionId);
         }
         
-        Item? item = await db.Items.FindAsync(recipeSectionEntryAddRequest.ItemId);
+        if (recipeSection.RecipeId != recipeId)
+        {
+            return RecipeSection.NotFoundUnderRecipe(recipeSectionId, recipeId);
+        }
+
+        Ulid itemId = recipeSectionEntryAddRequest.ItemId;
+        Item? item = await db.Items.FindAsync(itemId);
         if (item == null)
         {
-            return Error.NotFoundItem;
+            return Item.NotFound(itemId);
         }
-        
-        Prep? prep = await db.Preps.FindAsync(recipeSectionEntryAddRequest.PrepId);
-        if (recipeSectionEntryAddRequest.PrepId != null && prep == null)
+
+        Prep? prep;
+        if (recipeSectionEntryAddRequest.PrepId is { } prepId)
         {
-            return Error.NotFoundPrep;
+            prep = await db.Preps.FindAsync(prepId);
+            if (prep == null)
+            {
+                return Prep.NotFound(prepId);
+            }
+        }
+        else
+        {
+            prep = null;
         }
 
         RecipeSectionEntry entry = new()
@@ -69,95 +70,81 @@ public class RecipeSectionEntryController(CartSyncContext db) : ControllerBase
         return NoContent();
     }
     
-    [HttpPut]
+    [HttpPatch]
+    [Route("/api/recipes/{recipeId}/sections/{recipeSectionId}/entries/{recipeSectionEntryId}/edit")]
+    [Consumes("application/json-patch+json")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Edit([Required] Ulid recipeSectionEntryId, [FromBody] RecipeSectionEntryEditRequest recipeSectionEntryEditRequest)
+    public async Task<IActionResult> Edit(Ulid recipeId, Ulid recipeSectionId, Ulid recipeSectionEntryId, [FromBody] JsonPatchDocument<RecipeSectionEntryEditRequest> recipeSectionEntryPatch)
     {
-        switch (ModelState.IsValid)
-        {
-            case false when recipeSectionEntryId == Ulid.Empty:
-                return Error.BadRequestRecipeSectionEntryIdInvalid;
-            case false:
-            {
-                List<string> errors = ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage)
-                    .ToList();
-            
-                return Error.BadRequestRecipeSectionEntryEditRequestInvalid(errors);
-            }
-        }
-
         RecipeSectionEntry? recipeSectionEntry = await db.RecipeSectionEntries
             .Include(recipeSectionEntry => recipeSectionEntry.RecipeSection)
             .ThenInclude(recipeSection => recipeSection.RecipeSectionEntries)
-            .GetAsync(recipeSectionEntryId);
+            .FirstOrDefaultAsync(rse => rse.RecipeSectionEntryId == recipeSectionEntryId);
         if (recipeSectionEntry == null)
         {
-            return Error.NotFoundRecipeSectionEntry;
+            return RecipeSectionEntry.NotFound(recipeSectionEntryId);
         }
 
-        if (recipeSectionEntryEditRequest.ItemId is { } itemId)
+        if (recipeSectionEntry.RecipeSectionId != recipeSectionId)
         {
-            Item? item = await db.Items.FindAsync(itemId);
-            if (item == null)
-            {
-                return Error.NotFoundItem;
-            }
-            
-            recipeSectionEntry.Item = item;
+            return RecipeSectionEntry.NotFoundUnderRecipeSection(recipeSectionEntryId,  recipeSectionId);
         }
 
-        switch (recipeSectionEntryEditRequest.PrepId)
+        if (recipeSectionEntry.RecipeSection.RecipeId != recipeId)
         {
-            case null when recipeSectionEntryEditRequest.UpdatePrep:
-                recipeSectionEntry.Prep = null;
-                break;
-            case { } prepId:
+            return RecipeSectionEntry.NotFoundUnderRecipe(recipeSectionEntryId, recipeId);
+        }
+        
+        if (!TryGetEditObject(recipeSectionEntry, recipeSectionEntryPatch, out RecipeSectionEntryEditRequest? recipeSectionEntryEdit))
+        {
+            return Error.BadRequestPatchInvalid(ModelState);
+        }
+
+        if (await db.Items.FindAsync(recipeSectionEntry.ItemId) == null)
+        {
+            return Item.NotFound(recipeSectionEntry.ItemId);
+        }
+
+        if (recipeSectionEntryEdit.PrepId is { } prepId)
+        {
+            if (await db.Preps.FindAsync(prepId) == null)
             {
-                Prep? prep = await db.Preps.FindAsync(prepId);
-                if (prep == null)
-                {
-                    return Error.NotFoundPrep;
-                }
-            
-                recipeSectionEntry.Prep = prep;
-                break;
+                return Prep.NotFound(prepId);
             }
         }
         
-        recipeSectionEntry.Amount = recipeSectionEntryEditRequest.Amount ?? recipeSectionEntry.Amount;
-        
-        if (recipeSectionEntryEditRequest.SortOrder is { } newIndex)
-        {
-            int oldIndex = recipeSectionEntry.SortOrder;
-            recipeSectionEntry.RecipeSection.RecipeSectionEntries.Reorder(oldIndex, newIndex);
-        }
-        
+        recipeSectionEntry.UpdateFromEditRequest(recipeSectionEntryEdit);
         await db.SaveChangesAsync();
+        
         return NoContent();
     }
     
     [HttpDelete]
+    [Route("/api/recipes/{recipeId}/sections/{recipeSectionId}/entries/{recipeSectionEntryId}/delete")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Delete([Required] Ulid recipeSectionEntryId)
+    public async Task<IActionResult> Delete(Ulid recipeId, Ulid recipeSectionId, Ulid recipeSectionEntryId)
     {
-        if (!ModelState.IsValid && recipeSectionEntryId == Ulid.Empty)
-        {
-            return Error.BadRequestRecipeSectionEntryIdInvalid;
-        }
-
         RecipeSectionEntry? recipeSectionEntry = await db.RecipeSectionEntries
             .Include(recipeSectionEntry => recipeSectionEntry.RecipeSection)
             .ThenInclude(recipeSection => recipeSection.RecipeSectionEntries)
-            .GetAsync(recipeSectionEntryId);
+            .FirstOrDefaultAsync(recipeSectionEntry => recipeSectionEntry.RecipeSectionEntryId == recipeSectionEntryId);
         if (recipeSectionEntry == null)
         {
-            return Error.NotFoundRecipeSectionEntry;
+            return RecipeSectionEntry.NotFound(recipeSectionEntryId);
+        }
+        
+        if (recipeSectionEntry.RecipeSectionId != recipeSectionId)
+        {
+            return RecipeSectionEntry.NotFoundUnderRecipeSection(recipeSectionEntryId,  recipeSectionId);
+        }
+
+        if (recipeSectionEntry.RecipeSection.RecipeId != recipeId)
+        {
+            return RecipeSectionEntry.NotFoundUnderRecipe(recipeSectionEntryId, recipeId);
         }
         
         db.RecipeSectionEntries.Remove(recipeSectionEntry);

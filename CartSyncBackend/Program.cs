@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using CartSyncBackend.Database;
+using CartSyncBackend.Database.Objects;
 using CartSyncBackend.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Rewrite;
@@ -58,7 +59,17 @@ builder.Services.AddOpenApi(opt =>
 });
 
 builder.Services.Configure<ApiBehaviorOptions>(apiBehaviorOptions => {
-    apiBehaviorOptions.SuppressModelStateInvalidFilter = true;
+    apiBehaviorOptions.InvalidModelStateResponseFactory = actionContext =>
+    {
+        Dictionary<string, string?> errors = actionContext.ModelState
+            .Where(x => x.Value?.Errors.Count > 0)
+            .ToDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value?.AttemptedValue
+            );
+
+        return Error.BadRequestModelInvalid(errors);
+    };
 });
 
 builder.Services.Configure<JsonOptions>(opt =>
