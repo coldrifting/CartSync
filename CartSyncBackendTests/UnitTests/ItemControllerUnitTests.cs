@@ -3,6 +3,8 @@ using CartSyncBackend.Database.Models;
 using CartSyncBackend.Database.Objects;
 using CartSyncBackend.Database.Seeding;
 using CartSyncBackendTests.Core;
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson.Operations;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CartSyncBackendTests.UnitTests;
@@ -43,6 +45,13 @@ public class ItemControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fi
         AssertItemEqual(await ItemController.Details(SeedData.Items[179].ItemId).ValueAsync<ItemResponse>(), 179, [20]);
         AssertItemEqual(await ItemController.Details(SeedData.Items[181].ItemId).ValueAsync<ItemResponse>(), 181,[20]);
         AssertItemEqual(await ItemController.Details(SeedData.Items[209].ItemId).ValueAsync<ItemResponse>(), 209, [21]);
+    }
+
+    [Fact]
+    public async Task TestGetItemDetailsItemNotFound()
+    {
+        Error result = await ItemController.Details(Ulid.NotFound).ErrorAsync();
+        Assert.Equal((int)HttpStatusCode.NotFound, result.StatusCode);
     }
 
     private static void AssertItemEqual(ItemResponse itemResponse, int itemIndex, int[]? aisleIndices = null, int? storeIndex = null)
@@ -176,5 +185,512 @@ public class ItemControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fi
         Assert.Equal(newItem.ItemName, item.ItemName);
         Assert.Equal(newItem.DefaultUnitType, item.DefaultUnitType);
         Assert.Equal(newItem.ItemTemp, item.ItemTemp);
+    }
+
+    [Fact]
+    public async Task TestEditItemRename()
+    {
+        JsonPatchDocument<ItemEditRequest> jsonPatch = new()
+        {
+            Operations =
+            {
+                new Operation<ItemEditRequest>
+                {
+                    op = "replace",
+                    path = "/ItemName",
+                    value = "New Item"
+                }
+            }
+        };
+
+        Ulid itemId = SeedData.Items[5].ItemId;
+        
+        IActionResult result = await ItemController.Edit(itemId, jsonPatch);
+        Assert.IsType<NoContentResult>(result);
+        
+        List<ItemResponse> items = await ItemController.All(SeedData.Stores[0].StoreId).ValueAsync<List<ItemResponse>>();
+        Assert.Equal(SeedData.Items.Count, items.Count);
+        Assert.Contains("New Item", items.Where(i => i.ItemId == itemId).Select(i => i.ItemName));
+    }
+
+    [Fact]
+    public async Task TestEditItemTemp()
+    {
+        JsonPatchDocument<ItemEditRequest> jsonPatch = new()
+        {
+            Operations =
+            {
+                new Operation<ItemEditRequest>
+                {
+                    op = "replace",
+                    path = "/ItemTemp",
+                    value = "Frozen"
+                }
+            }
+        };
+
+        Ulid storeId = SeedData.Stores[0].StoreId;
+        Ulid itemId = SeedData.Items[4].ItemId;
+        
+        IActionResult result = await ItemController.Edit(itemId, jsonPatch);
+        Assert.IsType<NoContentResult>(result);
+        
+        List<ItemResponse> items = await ItemController.All(storeId).ValueAsync<List<ItemResponse>>();
+        Assert.Equal(SeedData.Items.Count, items.Count);
+        Assert.Contains(ItemTemp.Frozen, items.Where(i => i.ItemId == itemId).Select(i => i.ItemTemp));
+    }
+
+    [Fact]
+    public async Task TestEditItemAddLocation()
+    {
+        Ulid itemId = SeedData.Items[54].ItemId;
+        Ulid aisleId = SeedData.Aisles[23].AisleId;
+        JsonPatchDocument<ItemEditRequest> jsonPatch = new()
+        {
+            Operations =
+            {
+                new Operation<ItemEditRequest>
+                {
+                    op = "replace",
+                    path = "/AisleId",
+                    value = $"{aisleId}"
+                }
+            }
+        };
+        
+        IActionResult result = await ItemController.Edit(itemId, jsonPatch, SeedData.Stores[1].StoreId);
+        Assert.IsType<NoContentResult>(result);
+        
+        ItemResponse item = await ItemController.Details(itemId).ValueAsync<ItemResponse>();
+
+        IEnumerable<Ulid> expected = [ SeedData.Aisles[4].AisleId, SeedData.Aisles[23].AisleId ];
+        IEnumerable<Ulid> actual = item.Locations.OrderBy(i => i.AisleId).Select(i => i.AisleId);
+        
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public async Task TestEditItemUpdateLocation()
+    {
+        Ulid itemId = SeedData.Items[54].ItemId;
+        Ulid aisleId = SeedData.Aisles[17].AisleId;
+        JsonPatchDocument<ItemEditRequest> jsonPatch = new()
+        {
+            Operations =
+            {
+                new Operation<ItemEditRequest>
+                {
+                    op = "replace",
+                    path = "/AisleId",
+                    value = $"{aisleId}"
+                }
+            }
+        };
+        
+        IActionResult result = await ItemController.Edit(itemId, jsonPatch, SeedData.Stores[0].StoreId);
+        Assert.IsType<NoContentResult>(result);
+        
+        ItemResponse item = await ItemController.Details(itemId).ValueAsync<ItemResponse>();
+
+        IEnumerable<Ulid> expected = [ SeedData.Aisles[17].AisleId ];
+        IEnumerable<Ulid> actual = item.Locations.OrderBy(i => i.AisleId).Select(i => i.AisleId);
+        
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public async Task TestEditItemUpdateLocation2()
+    {
+        Ulid itemId = SeedData.Items[0].ItemId;
+        Ulid aisleId = SeedData.Aisles[17].AisleId;
+        JsonPatchDocument<ItemEditRequest> jsonPatch = new()
+        {
+            Operations =
+            {
+                new Operation<ItemEditRequest>
+                {
+                    op = "replace",
+                    path = "/AisleId",
+                    value = $"{aisleId}"
+                }
+            }
+        };
+        
+        IActionResult result = await ItemController.Edit(itemId, jsonPatch, SeedData.Stores[0].StoreId);
+        Assert.IsType<NoContentResult>(result);
+        
+        ItemResponse item = await ItemController.Details(itemId).ValueAsync<ItemResponse>();
+
+        IEnumerable<Ulid> expected = [ SeedData.Aisles[23].AisleId, SeedData.Aisles[17].AisleId ];
+        IEnumerable<Ulid> actual = item.Locations.OrderBy(i => i.AisleId).Select(i => i.AisleId);
+        
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public async Task TestEditItemAddInvalidLocation()
+    {
+        Ulid itemId = SeedData.Items[54].ItemId;
+        Ulid aisleId = Ulid.NotFound;
+        JsonPatchDocument<ItemEditRequest> jsonPatch = new()
+        {
+            Operations =
+            {
+                new Operation<ItemEditRequest>
+                {
+                    op = "replace",
+                    path = "/AisleId",
+                    value = $"{aisleId}"
+                }
+            }
+        };
+        
+        Error error = await ItemController.Edit(itemId, jsonPatch, SeedData.Stores[0].StoreId).ErrorAsync();
+        Assert.Equal((int)HttpStatusCode.NotFound, error.StatusCode);
+        
+        ItemResponse item = await ItemController.Details(itemId).ValueAsync<ItemResponse>();
+
+        IEnumerable<Ulid> expected = [ SeedData.Aisles[4].AisleId ];
+        IEnumerable<Ulid> actual = item.Locations.OrderBy(i => i.AisleId).Select(i => i.AisleId);
+        
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public async Task TestEditItemAddLocationWithStoreNotFound()
+    {
+        Ulid itemId = SeedData.Items[54].ItemId;
+        Ulid aisleId = SeedData.Aisles[4].AisleId;
+        Ulid storeId = Ulid.NotFound;
+        JsonPatchDocument<ItemEditRequest> jsonPatch = new()
+        {
+            Operations =
+            {
+                new Operation<ItemEditRequest>
+                {
+                    op = "replace",
+                    path = "/AisleId",
+                    value = $"{aisleId}"
+                }
+            }
+        };
+        
+        Error error = await ItemController.Edit(itemId, jsonPatch, storeId).ErrorAsync();
+        Assert.Equal((int)HttpStatusCode.NotFound, error.StatusCode);
+        
+        ItemResponse item = await ItemController.Details(itemId).ValueAsync<ItemResponse>();
+
+        IEnumerable<Ulid> expected = [ SeedData.Aisles[4].AisleId ];
+        IEnumerable<Ulid> actual = item.Locations.OrderBy(i => i.AisleId).Select(i => i.AisleId);
+        
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public async Task TestEditItemAddLocationWithWrongStore()
+    {
+        Ulid itemId = SeedData.Items[54].ItemId;
+        Ulid aisleId = SeedData.Aisles[4].AisleId;
+        Ulid storeId = SeedData.Stores[1].StoreId;
+        JsonPatchDocument<ItemEditRequest> jsonPatch = new()
+        {
+            Operations =
+            {
+                new Operation<ItemEditRequest>
+                {
+                    op = "replace",
+                    path = "/AisleId",
+                    value = $"{aisleId}"
+                }
+            }
+        };
+        
+        Error error = await ItemController.Edit(itemId, jsonPatch, storeId).ErrorAsync();
+        Assert.Equal((int)HttpStatusCode.NotFound, error.StatusCode);
+        
+        ItemResponse item = await ItemController.Details(itemId).ValueAsync<ItemResponse>();
+
+        IEnumerable<Ulid> expected = [ SeedData.Aisles[4].AisleId ];
+        IEnumerable<Ulid> actual = item.Locations.OrderBy(i => i.AisleId).Select(i => i.AisleId);
+        
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public async Task TestEditItemRemoveLocation()
+    {
+        Ulid itemId = SeedData.Items[54].ItemId;
+        JsonPatchDocument<ItemEditRequest> jsonPatch = new()
+        {
+            Operations =
+            {
+                new Operation<ItemEditRequest>
+                {
+                    op = "replace",
+                    path = "/AisleId",
+                    value = null
+                }
+            }
+        };
+        
+        IActionResult result = await ItemController.Edit(itemId, jsonPatch, SeedData.Stores[0].StoreId);
+        Assert.IsType<NoContentResult>(result);
+        
+        ItemResponse item = await ItemController.Details(itemId).ValueAsync<ItemResponse>();
+
+        IEnumerable<Ulid> expected = [ ];
+        IEnumerable<Ulid> actual = item.Locations.OrderBy(i => i.AisleId).Select(i => i.AisleId);
+        
+        Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [InlineData(0, 23)]
+    [InlineData(1, 0)]
+    public async Task TestEditItemRemoveLocation2(int storeIndex, int aisleIndex)
+    {
+        Ulid itemId = SeedData.Items[0].ItemId;
+        JsonPatchDocument<ItemEditRequest> jsonPatch = new()
+        {
+            Operations =
+            {
+                new Operation<ItemEditRequest>
+                {
+                    op = "replace",
+                    path = "/AisleId",
+                    value = null
+                }
+            }
+        };
+        
+        IActionResult result = await ItemController.Edit(itemId, jsonPatch, SeedData.Stores[storeIndex].StoreId);
+        Assert.IsType<NoContentResult>(result);
+        
+        ItemResponse item = await ItemController.Details(itemId).ValueAsync<ItemResponse>();
+
+        IEnumerable<Ulid> expected = [ SeedData.Aisles[aisleIndex].AisleId ];
+        IEnumerable<Ulid> actual = item.Locations.OrderBy(i => i.AisleId).Select(i => i.AisleId);
+        
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public async Task TestEditItemAddPrep()
+    {
+        Ulid itemId = SeedData.Items[54].ItemId;
+        Ulid prepId = SeedData.Preps[3].PrepId;
+        JsonPatchDocument<ItemEditRequest> jsonPatch = new()
+        {
+            Operations =
+            {
+                new Operation<ItemEditRequest>
+                {
+                    op = "add",
+                    path = "/PrepIds/-",
+                    value = $"{prepId}"
+                }
+            }
+        };
+        
+        IActionResult result = await ItemController.Edit(itemId, jsonPatch);
+        Assert.IsType<NoContentResult>(result);
+        
+        ItemResponse item = await ItemController.Details(itemId).ValueAsync<ItemResponse>();
+
+        IEnumerable<Ulid> expected = [ prepId ];
+        IEnumerable<Ulid> actual = item.Preps.OrderBy(i => i.PrepName).ThenBy(i => i.PrepId).Select(i => i.PrepId);
+        
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public async Task TestEditItemAddSecondPrep()
+    {
+        Ulid itemId = SeedData.Items[180].ItemId;
+        Ulid prepId = SeedData.Preps[1].PrepId;
+        JsonPatchDocument<ItemEditRequest> jsonPatch = new()
+        {
+            Operations =
+            {
+                new Operation<ItemEditRequest>
+                {
+                    op = "add",
+                    path = "/PrepIds/-",
+                    value = $"{prepId}"
+                }
+            }
+        };
+        
+        IActionResult result = await ItemController.Edit(itemId, jsonPatch);
+        Assert.IsType<NoContentResult>(result);
+        
+        ItemResponse item = await ItemController.Details(itemId).ValueAsync<ItemResponse>();
+
+        IEnumerable<Ulid> expected = [ prepId, SeedData.Preps[3].PrepId, SeedData.Preps[4].PrepId ];
+        IEnumerable<Ulid> actual = item.Preps.OrderBy(i => i.PrepName).ThenBy(i => i.PrepId).Select(i => i.PrepId);
+        
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public async Task TestEditItemAddInvalidPrepId()
+    {
+        Ulid itemId = SeedData.Items[180].ItemId;
+        Ulid prepId = Ulid.NotFound;
+        JsonPatchDocument<ItemEditRequest> jsonPatch = new()
+        {
+            Operations =
+            {
+                new Operation<ItemEditRequest>
+                {
+                    op = "add",
+                    path = "/PrepIds/-",
+                    value = $"{prepId}"
+                }
+            }
+        };
+        
+        Error error = await ItemController.Edit(itemId, jsonPatch).ErrorAsync();
+        Assert.Equal((int)HttpStatusCode.NotFound, error.StatusCode);
+        
+        ItemResponse item = await ItemController.Details(itemId).ValueAsync<ItemResponse>();
+
+        IEnumerable<Ulid> expected = [ SeedData.Preps[3].PrepId, SeedData.Preps[4].PrepId ];
+        IEnumerable<Ulid> actual = item.Preps.OrderBy(i => i.PrepName).ThenBy(i => i.PrepId).Select(i => i.PrepId);
+        
+        Assert.Equal(expected, actual);
+    }
+    
+    [Theory]
+    [InlineData(0, 4)]
+    [InlineData(1, 3)]
+    public async Task TestEditItemRemovePrep(int index, int prepIndex)
+    {
+        Ulid itemId = SeedData.Items[180].ItemId;
+        JsonPatchDocument<ItemEditRequest> jsonPatch = new()
+        {
+            Operations =
+            {
+                new Operation<ItemEditRequest>
+                {
+                    op = "remove",
+                    path = $"/PrepIds/{index}"
+                }
+            }
+        };
+        
+        IActionResult result = await ItemController.Edit(itemId, jsonPatch);
+        Assert.IsType<NoContentResult>(result);
+        
+        ItemResponse item = await ItemController.Details(itemId).ValueAsync<ItemResponse>();
+
+        IEnumerable<Ulid> expected = [ SeedData.Preps[prepIndex].PrepId ];
+        IEnumerable<Ulid> actual = item.Preps.OrderBy(i => i.PrepName).ThenBy(i => i.PrepId).Select(i => i.PrepId);
+        
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public async Task TestEditItemRemoveFromEmptyPrepList()
+    {
+        Ulid itemId = SeedData.Items[30].ItemId;
+        JsonPatchDocument<ItemEditRequest> jsonPatch = new()
+        {
+            Operations =
+            {
+                new Operation<ItemEditRequest>
+                {
+                    op = "remove",
+                    path = $"/PrepIds/0"
+                }
+            }
+        };
+        
+        Error error = await ItemController.Edit(itemId, jsonPatch).ErrorAsync();
+        Assert.Equal((int)HttpStatusCode.BadRequest, error.StatusCode);
+        
+        ItemResponse item = await ItemController.Details(itemId).ValueAsync<ItemResponse>();
+
+        IEnumerable<Ulid> expected = [ ];
+        IEnumerable<Ulid> actual = item.Preps.OrderBy(i => i.PrepName).ThenBy(i => i.PrepId).Select(i => i.PrepId);
+        
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public async Task TestEditItemBadPatch()
+    {
+        Ulid itemId = SeedData.Items[0].ItemId;
+        JsonPatchDocument<ItemEditRequest> jsonPatch = new()
+        {
+            Operations =
+            {
+                new Operation<ItemEditRequest>
+                {
+                    op = "replace",
+                    path = "/ItemName",
+                    value = null
+                }
+            }
+        };
+        
+        Error error = await ItemController.Edit(itemId, jsonPatch, SeedData.Stores[0].StoreId).ErrorAsync();
+        Assert.Equal((int)HttpStatusCode.BadRequest, error.StatusCode);
+        
+        ItemResponse item = await ItemController.Details(itemId).ValueAsync<ItemResponse>();
+
+        IEnumerable<Ulid> expected = [ SeedData.Aisles[0].AisleId, SeedData.Aisles[23].AisleId ];
+        IEnumerable<Ulid> actual = item.Locations.OrderBy(i => i.AisleId).Select(i => i.AisleId);
+        
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public async Task TestEditItemInvalidItemId()
+    {
+        Ulid storeId = SeedData.Stores[0].StoreId;
+        
+        JsonPatchDocument<AisleEditRequest> jsonPatch = new();
+        Error error = await AisleController.Edit(storeId, Ulid.NotFound, jsonPatch).ErrorAsync();
+        Assert.Equal((int)HttpStatusCode.NotFound, error.StatusCode);
+        
+        List<ItemResponse> items = await ItemController.All(storeId).ValueAsync<List<ItemResponse>>();
+        Assert.Equal(SeedData.Items.Count, items.Count);
+    }
+
+    [Fact]
+    public async Task TestEditItemNotFound()
+    {
+        JsonPatchDocument<ItemEditRequest> jsonPatch = new();
+        Error result = await ItemController.Edit(Ulid.NotFound, jsonPatch).ErrorAsync();
+        Assert.Equal((int)HttpStatusCode.NotFound, result.StatusCode);
+    }
+
+    [Fact]
+    public async Task TestEditItemNotFoundWithStoreId()
+    {
+        JsonPatchDocument<ItemEditRequest> jsonPatch = new();
+        Error result = await ItemController.Edit(Ulid.NotFound, jsonPatch, SeedData.Stores[0].StoreId).ErrorAsync();
+        Assert.Equal((int)HttpStatusCode.NotFound, result.StatusCode);
+    }
+
+    [Fact]
+    public async Task TestDeleteItem()
+    {
+        Ulid storeId = SeedData.Stores[0].StoreId;
+        Ulid itemId = SeedData.Items[66].ItemId;
+        IActionResult result = await ItemController.Delete(itemId);
+        Assert.IsType<NoContentResult>(result);
+        
+        List<ItemResponse> items = await ItemController.All(storeId).ValueAsync<List<ItemResponse>>();
+        Assert.Equal(SeedData.Items.Count - 1, items.Count);
+        Assert.DoesNotContain(items, r => r.ItemId == itemId);
+    }
+
+    [Fact]
+    public async Task TestDeleteItemNotFound()
+    {
+        Error result = await ItemController.Delete(Ulid.NotFound).ErrorAsync();
+        Assert.Equal((int)HttpStatusCode.NotFound, result.StatusCode);
     }
 }

@@ -179,7 +179,8 @@ public class ItemController(CartSyncContext db) : ControllerCore
                     db.ItemAisles.Add(new ItemAisle
                     {
                         ItemId = itemId,
-                        StoreId = storeId.Value
+                        StoreId = storeId.Value,
+                        AisleId = aisleId.Value,
                     });
                 }
             }

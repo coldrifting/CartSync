@@ -12,24 +12,11 @@ public class ControllerCore : ControllerBase
     {
         editRequest = source.ToEditRequest();
 
-        try
+        patch.ApplyTo(editRequest, jsonPatchError =>
         {
-            patch.ApplyTo(editRequest, jsonPatchError =>
-            {
-                string key = jsonPatchError.AffectedObject.GetType().Name;
-                ModelState.AddModelError(key, jsonPatchError.ErrorMessage);
-            });
-        }
-        catch (ArgumentOutOfRangeException)
-        {
-            ModelState.AddModelError("error", "Index out of range");
-            return false;
-        }
-        catch (Exception ex)
-        {
-            ModelState.AddModelError("error", ex.Message);
-            return false;
-        }
+            string key = jsonPatchError.AffectedObject.GetType().Name;
+            ModelState.AddModelError(key, jsonPatchError.ErrorMessage);
+        });
 
         bool isModelValid = TryValidateModel(editRequest);
         

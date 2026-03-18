@@ -98,7 +98,11 @@ public class Item : IEditable<ItemEditRequest>
             ItemName = ItemName,
             ItemTemp = ItemTemp,
             DefaultUnitType = DefaultUnitType,
-            PrepIds = Preps.Select(p => p.PrepId).ToList(),
+            PrepIds = Preps
+                .OrderBy(p => p.PrepName)
+                .ThenBy(p => p.PrepId)
+                .Select(p => p.PrepId)
+                .ToList(),
             CartAmount = CartAmount
         };
     }
@@ -171,6 +175,5 @@ public class ItemEditRequest
     [Required]
     public required List<Ulid> PrepIds { get; init; }
     
-    [Required]
     public Ulid? AisleId { get; init; }
 }
