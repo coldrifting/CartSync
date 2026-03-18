@@ -373,7 +373,7 @@ namespace CartSyncBackend.Migrations
             modelBuilder.Entity("CartSyncBackend.Database.Models.RecipeSectionEntry", b =>
                 {
                     b.HasOne("CartSyncBackend.Database.Models.Item", "Item")
-                        .WithMany()
+                        .WithMany("RecipeSectionEntries")
                         .HasForeignKey("ItemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -399,6 +399,8 @@ namespace CartSyncBackend.Migrations
             modelBuilder.Entity("CartSyncBackend.Database.Models.Item", b =>
                 {
                     b.Navigation("ItemPreps");
+
+                    b.Navigation("RecipeSectionEntries");
                 });
 
             modelBuilder.Entity("CartSyncBackend.Database.Models.Prep", b =>

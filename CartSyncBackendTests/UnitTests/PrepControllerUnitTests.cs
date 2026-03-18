@@ -56,7 +56,7 @@ public class PrepControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fi
         IActionResult result = await PrepController.Usages(SeedData.Preps[3].PrepId);
         Assert.IsType<OkObjectResult>(result, exactMatch: false);
 
-        if (result is not OkObjectResult { } resultData)
+        if (result is not OkObjectResult resultData)
         {
             Assert.Fail();
             return;
@@ -81,7 +81,7 @@ public class PrepControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fi
         IActionResult result = await PrepController.Usages(SeedData.Preps[6].PrepId);
         Assert.IsType<OkObjectResult>(result, exactMatch: false);
 
-        if (result is not OkObjectResult { } resultData)
+        if (result is not OkObjectResult resultData)
         {
             Assert.Fail();
             return;

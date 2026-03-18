@@ -23,6 +23,7 @@ public class Item : IEditable<ItemEditRequest>
     // Navigation
     public List<Prep> Preps { get; set; } = [];
     public List<ItemPrep> ItemPreps { get; set; } = [];
+    public List<RecipeSectionEntry> RecipeSectionEntries { get; set; } = [];
     
     // Enforce max of 1 linked aisle per store
     public List<Aisle> Aisles { get; set; } = [];

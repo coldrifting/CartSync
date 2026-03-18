@@ -2,6 +2,7 @@ using CartSyncBackend.Controllers.Core;
 using CartSyncBackend.Database;
 using CartSyncBackend.Database.Models;
 using CartSyncBackend.Database.Objects;
+using CartSyncBackend.Utils;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -31,6 +32,36 @@ public class ItemController(CartSyncContext db) : ControllerCore
                 .ToListAsync();
 
         return Ok(allItems);
+    }
+    
+    [HttpGet]
+    [Route("/api/items/{itemId}/usages")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UsageResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
+    public async Task<IActionResult> Usages(Ulid itemId)
+    {
+        Item? item = await db.Items
+            .Include(i => i.RecipeSectionEntries)
+            .ThenInclude(r => r.RecipeSection)
+            .ThenInclude(r => r.Recipe)
+            .FirstOrDefaultAsync(i => i.ItemId == itemId);
+        if (item == null)
+        {
+            return Aisle.NotFound(itemId);
+        }
+        
+        IEnumerable<Recipe> recipes = item.RecipeSectionEntries
+            .Select(r => r.RecipeSection)
+            .Select(r => r.Recipe)
+            .Distinct()
+            .OrderBy(r => r.RecipeName)
+            .ThenBy(r => r.RecipeId);
+        
+        UsageResponse result = new();
+        result.Update(recipes, r => r.RecipeId, r => r.RecipeName);
+        
+        return Ok(result);
     }
     
     [HttpPost]

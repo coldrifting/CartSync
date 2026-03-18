@@ -37,6 +37,36 @@ public class AisleController(CartSyncContext db) : ControllerCore
         
         return Ok(aisles);
     }
+    
+    [HttpGet]
+    [Route("/api/stores/{storeId}/aisles/{aisleId}/usages")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UsageResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
+    public async Task<IActionResult> Usages(Ulid storeId, Ulid aisleId)
+    {
+        Aisle? aisle = await db.Aisles
+            .Include(a => a.Items)
+            .FirstOrDefaultAsync(a => a.AisleId == aisleId);
+        if (aisle == null)
+        {
+            return Aisle.NotFound(aisleId);
+        }
+
+        if (aisle.StoreId != storeId)
+        {
+            return Aisle.NotFoundUnderStore(aisleId, storeId);
+        }
+
+        IOrderedEnumerable<Item> items = aisle.Items
+            .OrderBy(i => i.ItemName)
+            .ThenBy(i => i.ItemId);
+        
+        UsageResponse result = new();
+        result.Update(items, i => i.ItemId, i => i.ItemName);
+        
+        return Ok(result);
+    }
 
     [HttpPost]
     [Route("/api/stores/{storeId}/aisles/add")]

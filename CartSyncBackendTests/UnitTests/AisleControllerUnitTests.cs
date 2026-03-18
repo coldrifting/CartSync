@@ -35,6 +35,81 @@ public class AisleControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(f
         
         await TestGetAisles();
     }
+    
+    [Fact]
+    public async Task TestGetAisleUsage()
+    {
+        UsageResponse expected = new()
+        {
+            {
+                "Items", 
+                [
+                    (SeedData.Items[116].ItemId,  SeedData.Items[116].ItemName),
+                    (SeedData.Items[117].ItemId,  SeedData.Items[117].ItemName),
+                    (SeedData.Items[118].ItemId,  SeedData.Items[118].ItemName),
+                    (SeedData.Items[119].ItemId,  SeedData.Items[119].ItemName),
+                    (SeedData.Items[120].ItemId,  SeedData.Items[120].ItemName)
+                ]
+            },
+        };
+        
+        IActionResult result = await AisleController.Usages(SeedData.Stores[0].StoreId, SeedData.Aisles[2].AisleId);
+        Assert.IsType<OkObjectResult>(result, exactMatch: false);
+
+        if (result is not OkObjectResult resultData)
+        {
+            Assert.Fail();
+            return;
+        }
+
+        Assert.Equal(expected, resultData.Value, Extensions.UsageResponseComparer);
+    }
+    
+    [Fact]
+    public async Task TestGetAisleUsage2()
+    {
+        UsageResponse expected = new()
+        {
+            {
+                "Items", 
+                [
+                    (SeedData.Items[0].ItemId,  SeedData.Items[0].ItemName),
+                ]
+            },
+        };
+        
+        IActionResult result = await AisleController.Usages(SeedData.Stores[1].StoreId, SeedData.Aisles[23].AisleId);
+        Assert.IsType<OkObjectResult>(result, exactMatch: false);
+
+        if (result is not OkObjectResult resultData)
+        {
+            Assert.Fail();
+            return;
+        }
+
+        Assert.Equal(expected, resultData.Value, Extensions.UsageResponseComparer);
+    }
+
+    [Fact]
+    public async Task TestGetAisleUsageBadAisleId()
+    {
+        Error result = await AisleController.Usages(SeedData.Stores[0].StoreId, Ulid.NotFound).ErrorAsync();
+        Assert.Equal((int)HttpStatusCode.NotFound, result.StatusCode);
+    }
+
+    [Fact]
+    public async Task TestGetAisleUsageBadStoreId()
+    {
+        Error result = await AisleController.Usages(Ulid.NotFound, SeedData.Aisles[0].AisleId).ErrorAsync();
+        Assert.Equal((int)HttpStatusCode.NotFound, result.StatusCode);
+    }
+    
+    [Fact]
+    public async Task TestGetAisleUsageWrongStoreId()
+    {
+        Error result = await AisleController.Usages(SeedData.Stores[1].StoreId, SeedData.Aisles[5].AisleId).ErrorAsync();
+        Assert.Equal((int)HttpStatusCode.NotFound, result.StatusCode);
+    }
 
     [Fact]
     public async Task TestAddAisle()

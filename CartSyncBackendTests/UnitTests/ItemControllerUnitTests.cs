@@ -3,6 +3,7 @@ using CartSyncBackend.Database.Models;
 using CartSyncBackend.Database.Objects;
 using CartSyncBackend.Database.Seeding;
 using CartSyncBackendTests.Core;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CartSyncBackendTests.UnitTests;
 
@@ -100,5 +101,55 @@ public class ItemControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fi
 
             Assert.Equal(expectedAisles, itemResponse.Locations);
         }
+    }
+
+    [Fact]
+    public async Task TestGetItemUsage()
+    {
+        UsageResponse expected = new()
+        {
+            {
+                "Recipes", 
+                [
+                    (SeedData.Recipes[2].RecipeId,  SeedData.Recipes[2].RecipeName),
+                    (SeedData.Recipes[0].RecipeId,  SeedData.Recipes[0].RecipeName)
+                ]
+            },
+        };
+        
+        IActionResult result = await ItemController.Usages(SeedData.Items[88].ItemId);
+        Assert.IsType<OkObjectResult>(result, exactMatch: false);
+
+        if (result is not OkObjectResult resultData)
+        {
+            Assert.Fail();
+            return;
+        }
+
+        Assert.Equal(expected, resultData.Value, Extensions.UsageResponseComparer);
+    }
+
+    [Fact]
+    public async Task TestGetItemUsageNoUses()
+    {
+        UsageResponse expected = new();
+        
+        IActionResult result = await ItemController.Usages(SeedData.Items[22].ItemId);
+        Assert.IsType<OkObjectResult>(result, exactMatch: false);
+
+        if (result is not OkObjectResult resultData)
+        {
+            Assert.Fail();
+            return;
+        }
+
+        Assert.Equal(expected, resultData.Value, Extensions.UsageResponseComparer);
+    }
+
+    [Fact]
+    public async Task TestGetItemUsageBadItemId()
+    {
+        Error result = await ItemController.Usages(Ulid.NotFound).ErrorAsync();
+        Assert.Equal((int)HttpStatusCode.NotFound, result.StatusCode);
     }
 }
