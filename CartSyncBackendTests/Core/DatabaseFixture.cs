@@ -24,14 +24,12 @@ public class DatabaseFixture(DatabaseSetup fixture) : IClassFixture<DatabaseSetu
         ItemController = new ItemController(_context) { ObjectValidator = new ModelValidator() };
         PrepController = new PrepController(_context) { ObjectValidator = new ModelValidator() };
         
-        Console.WriteLine("Start");
         await _context.Database.BeginTransactionAsync();
     }
 
     /// End
     public async Task DisposeAsync()
     {
-        Console.WriteLine("End");
         await _context.Database.RollbackTransactionAsync();
     }
 }
