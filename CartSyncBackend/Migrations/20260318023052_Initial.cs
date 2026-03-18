@@ -95,8 +95,8 @@ namespace CartSyncBackend.Migrations
                     RecipeInstructionId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
                     RecipeId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
                     RecipeInstructionContent = table.Column<string>(type: "character varying(2048)", maxLength: 2048, nullable: false),
-                    SortOrder = table.Column<int>(type: "integer", nullable: false),
-                    IsImage = table.Column<bool>(type: "boolean", nullable: false)
+                    IsImage = table.Column<bool>(type: "boolean", nullable: false),
+                    SortOrder = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -173,7 +173,8 @@ namespace CartSyncBackend.Migrations
                         name: "FK_RecipeSectionEntries_Preps_PrepId",
                         column: x => x.PrepId,
                         principalTable: "Preps",
-                        principalColumn: "PrepId");
+                        principalColumn: "PrepId",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_RecipeSectionEntries_RecipeSections_RecipeSectionId",
                         column: x => x.RecipeSectionId,

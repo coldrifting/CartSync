@@ -2,6 +2,7 @@ using CartSyncBackend.Database.Models;
 using CartSyncBackend.Database.Objects;
 using CartSyncBackend.Database.Seeding;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace CartSyncBackend.Database;
 
@@ -32,6 +33,11 @@ public class CartSyncContext(DbContextOptions options) : DbContext(options)
             .HasMany<Item>(a => a.Items)
             .WithMany(i => i.Aisles)
             .UsingEntity<ItemAisle>();
+        
+        foreach (IMutableForeignKey relationship in modelBuilder.Model.GetEntityTypes().SelectMany(mutableEntryType => mutableEntryType.GetForeignKeys()))
+        {
+            relationship.DeleteBehavior = DeleteBehavior.Cascade;
+        }
     }
     
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)

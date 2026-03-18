@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CartSyncBackend.Migrations
 {
     [DbContext(typeof(CartSyncContext))]
-    [Migration("20260316203541_Initial")]
+    [Migration("20260318023052_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -382,8 +382,9 @@ namespace CartSyncBackend.Migrations
                         .IsRequired();
 
                     b.HasOne("CartSyncBackend.Database.Models.Prep", "Prep")
-                        .WithMany()
-                        .HasForeignKey("PrepId");
+                        .WithMany("RecipeSectionEntries")
+                        .HasForeignKey("PrepId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("CartSyncBackend.Database.Models.RecipeSection", "RecipeSection")
                         .WithMany("RecipeSectionEntries")
@@ -406,6 +407,8 @@ namespace CartSyncBackend.Migrations
             modelBuilder.Entity("CartSyncBackend.Database.Models.Prep", b =>
                 {
                     b.Navigation("ItemPreps");
+
+                    b.Navigation("RecipeSectionEntries");
                 });
 
             modelBuilder.Entity("CartSyncBackend.Database.Models.Recipe", b =>
