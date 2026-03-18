@@ -31,7 +31,7 @@ public class StoreControllerIntegrationTests(AppSetupFactory<Program> setupFacto
     [Fact]
     public async Task TestHttpAddStore()
     {
-        string url = $"/api/stores/add";
+        const string url = "/api/stores/add";
         HttpResponseMessage response = await PostAsync(url, new StoreAddRequest { StoreName = "New Store Name" });
         
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);

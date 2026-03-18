@@ -36,8 +36,8 @@ public class AppFixture(AppSetupFactory<Program> setupFactory) : IClassFixture<A
     }
 
     // Workaround for custom URL lowercase rewriter
-    protected async Task<HttpResponseMessage> GetAsync(string url) => 
-        await _client.GetAsync(url.ToLower());
+    protected async Task<HttpResponseMessage> GetAsync(string url, bool lowercase = true) => 
+        await _client.GetAsync(lowercase ? url.ToLower() : url);
 
     protected async Task<HttpResponseMessage> PostAsync(string url, object? obj = null) => 
         await _client.PostAsync(url.ToLower(), ToJsonString(obj));

@@ -18,6 +18,7 @@ public class Prep : IEditable<PrepEditRequest>
     // Navigation
     public List<Item> Items { get; set; } = null!;
     public List<ItemPrep> ItemPreps { get; set; } = null!;
+    public List<RecipeSectionEntry> RecipeSectionEntries { get; set; } = null!;
     
     // Projections
     public static Expression<Func<Prep, PrepResponse>> ToResponse =>
@@ -79,12 +80,12 @@ public class PrepResponse
 
 public class PrepAddRequest
 {
-    [StringLength(256, MinimumLength = 1)] 
-    public required string PrepName { get; set; }
+    [Required, StringLength(256, MinimumLength = 1)] 
+    public required string PrepName { get; init; }
 }
 
 public class PrepEditRequest
 {
-    [StringLength(256, MinimumLength = 1)] 
-    public required string PrepName { get; set; }
+    [Required, StringLength(256, MinimumLength = 1)] 
+    public required string PrepName { get; init; }
 }

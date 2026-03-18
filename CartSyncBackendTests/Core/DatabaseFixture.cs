@@ -11,8 +11,9 @@ public class DatabaseFixture(DatabaseSetup fixture) : IClassFixture<DatabaseSetu
     
     private CartSyncContext _context = null!;
     protected StoreController StoreController = null!;
-    protected ItemController ItemController = null!;
     protected AisleController AisleController = null!;
+    protected ItemController ItemController = null!;
+    protected PrepController PrepController = null!;
     
     /// Start
     public async Task InitializeAsync()
@@ -21,6 +22,7 @@ public class DatabaseFixture(DatabaseSetup fixture) : IClassFixture<DatabaseSetu
         StoreController = new StoreController(_context) { ObjectValidator = new ModelValidator() };
         AisleController = new AisleController(_context) { ObjectValidator = new ModelValidator() };
         ItemController = new ItemController(_context) { ObjectValidator = new ModelValidator() };
+        PrepController = new PrepController(_context) { ObjectValidator = new ModelValidator() };
         
         Console.WriteLine("Start");
         await _context.Database.BeginTransactionAsync();

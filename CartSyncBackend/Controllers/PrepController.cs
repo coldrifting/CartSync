@@ -2,6 +2,7 @@ using CartSyncBackend.Controllers.Core;
 using CartSyncBackend.Database;
 using CartSyncBackend.Database.Models;
 using CartSyncBackend.Database.Objects;
+using CartSyncBackend.Utils;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +20,8 @@ public class PrepController(CartSyncContext db) : ControllerCore
     {
         List<PrepResponse> preps = await db.Preps
             .Select(Prep.ToResponse)
+            .OrderBy(p => p.PrepName)
+            .ThenBy(p => p.PrepId)
             .ToListAsync();
         
         return Ok(preps);
@@ -34,6 +37,43 @@ public class PrepController(CartSyncContext db) : ControllerCore
         await db.SaveChangesAsync();
         
         return NoContent();
+    }
+    
+    [HttpGet]
+    [Route("/api/preps/{prepId}/usages")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UsageResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
+    public async Task<IActionResult> Usages(Ulid prepId)
+    {
+        Prep? prep = await db.Preps
+            .Include(p => p.Items)
+            .Include(p => p.ItemPreps)
+            .Include(p => p.RecipeSectionEntries)
+            .ThenInclude(r => r.RecipeSection)
+            .ThenInclude(r => r.Recipe)
+            .FirstOrDefaultAsync(p => p.PrepId == prepId);
+        if (prep == null)
+        {
+            return Prep.NotFound(prepId);
+        }
+
+        IOrderedEnumerable<Item> items = prep.Items
+            .OrderBy(i => i.ItemName)
+            .ThenBy(i => i.ItemId);
+        
+        IEnumerable<Recipe> recipes = prep.RecipeSectionEntries
+            .Select(r => r.RecipeSection)
+            .Select(r => r.Recipe)
+            .Distinct()
+            .OrderBy(r => r.RecipeName)
+            .ThenBy(r => r.RecipeId);
+        
+        UsageResponse result = new();
+        result.Update(items, i => i.ItemId, i => i.ItemName);
+        result.Update(recipes, r => r.RecipeId, r => r.RecipeName);
+        
+        return Ok(result);
     }
 
     [HttpPatch]

@@ -38,23 +38,6 @@ public class Aisle : ISortable, IEditable<AisleEditRequest>
             AisleName = aisle.AisleName,
             SortOrder = aisle.SortOrder
         };
-
-    public static Expression<Func<Aisle, ItemAisleResponse>> ToItemAisleResponse =>
-        aisle => new ItemAisleResponse
-        {
-            Aisle = new AisleResponse
-            {
-                AisleId = aisle.AisleId,
-                AisleName = aisle.AisleName,
-                SortOrder = aisle.SortOrder
-            },
-            Items = aisle.Items
-                .AsQueryable()
-                .OrderBy(i => i.ItemName)
-                .ThenBy(i => i.ItemId)
-                .Select(Item.ToResponse)
-                .ToList()
-        };
     
     // Conversion and Validation
     public AisleEditRequest ToEditRequest()

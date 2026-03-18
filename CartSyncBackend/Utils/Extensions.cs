@@ -1,9 +1,43 @@
+global using UsageResponse = System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<(System.Ulid, string)>>;
+
 using CartSyncBackend.Database.Interfaces;
 
 namespace CartSyncBackend.Utils;
 
 public static class Extensions
 {
+    extension(string str)
+    {
+        private string Pluralize()
+        {
+            return str.EndsWith('y') ? string.Concat(str.AsSpan(0, str.Length - 1), "ies") : str + "s";
+        }
+    }
+    
+    extension(UsageResponse usages)
+    {
+        public void Update<T>(IEnumerable<T> items, Func<T, Ulid> getId, Func<T, string> getName)
+        {
+            string keyName = typeof(T).Name.Pluralize();
+            foreach (T item in items)
+            {
+                if (usages.TryGetValue(keyName, out List<(Ulid, string)>? usage))
+                {
+                    (Ulid, string) candidate = (getId.Invoke(item), getName.Invoke(item));
+
+                    if (!usage.Contains(candidate))
+                    {
+                        usage.Add(candidate);
+                    }
+                }
+                else
+                {
+                    usages[keyName] = [ (getId.Invoke(item), getName.Invoke(item)) ];
+                }
+            }
+        }
+    }
+    
     extension(IEnumerable<ISortable> list)
     {
         public void RefreshOrder()
