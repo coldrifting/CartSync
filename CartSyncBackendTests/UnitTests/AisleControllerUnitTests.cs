@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace CartSyncBackendTests.UnitTests;
 
 [Collection("DatabaseTests")]
-public class AisleControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixture)
+public class AisleControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fixture)
 {
     [Fact]
     public async Task TestGetAisles()
