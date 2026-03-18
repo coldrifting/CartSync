@@ -29,14 +29,19 @@ public class PrepController(CartSyncContext db) : ControllerCore
 
     [HttpPost]
     [Route("/api/preps/add")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(PrepResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     public async Task<IActionResult> Add([FromBody] PrepAddRequest prepAddRequest)
     {
-        db.Preps.Add(new Prep { PrepName = prepAddRequest.PrepName });
+        Prep prep = new()
+        {
+            PrepName = prepAddRequest.PrepName
+        };
+        
+        await db.Preps.AddAsync(prep);
         await db.SaveChangesAsync();
         
-        return NoContent();
+        return Created($"/api/preps/{prep.PrepId}", prep.ToNewResponse);
     }
     
     [HttpGet]

@@ -54,17 +54,19 @@ public class RecipeController(CartSyncContext db) : ControllerCore
 
     [HttpPost]
     [Route("/api/recipes/add")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(RecipeResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     public async Task<IActionResult> Add([Required] string recipeName)
     {
-        db.Recipes.Add(new Recipe
+        Recipe recipe = new()
         {
             RecipeName = recipeName
-        });
+        };
         
+        await db.Recipes.AddAsync(recipe);
         await db.SaveChangesAsync();
-        return NoContent();
+        
+        return Created($"/api/recipes/{recipe.RecipeId}", recipe.ToNewResponse);
     }
 
     [HttpPatch]

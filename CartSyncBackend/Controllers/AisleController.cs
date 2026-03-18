@@ -70,7 +70,7 @@ public class AisleController(CartSyncContext db) : ControllerCore
 
     [HttpPost]
     [Route("/api/stores/{storeId}/aisles/add")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(AisleResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
     public async Task<IActionResult> Add(Ulid storeId, AisleAddRequest aisleAddRequest)
@@ -83,15 +83,17 @@ public class AisleController(CartSyncContext db) : ControllerCore
             return Store.NotFound(storeId);
         }
 
-        db.Add(new Aisle
+        Aisle aisle = new()
         {
             StoreId = s.StoreId,
             AisleName = aisleAddRequest.AisleName,
             SortOrder = s.Aisles.Count
-        });
+        };
+        
+        await db.AddAsync(aisle);
         await db.SaveChangesAsync();
 
-        return NoContent();
+        return Created($"/api/stores/{storeId}/aisles/{aisle.AisleId}", aisle.ToNewResponse);
     }
 
     [HttpPatch]

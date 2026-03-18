@@ -69,6 +69,26 @@ public static class Extensions
         
             return value;
         }
+        
+        public async Task<T> CreatedAsync<T>(Func<T, Ulid> idSelector) where T : class
+        {
+            IActionResult result = await actionResult;
+            
+            CreatedResult? createdAtActionResult = result as CreatedResult;
+            Assert.NotNull(createdAtActionResult);
+            Assert.NotNull(createdAtActionResult.Location);
+
+            Ulid locationId = Ulid.Parse(createdAtActionResult.Location.Split('/').Last());
+
+            T? value = createdAtActionResult.Value as T;
+            Assert.NotNull(value);
+            
+            Ulid valueId = idSelector(value);
+            
+            Assert.Equal(valueId, locationId);
+        
+            return value;
+        }
 
         public async Task<Error> ErrorAsync()
         {

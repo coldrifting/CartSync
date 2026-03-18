@@ -21,6 +21,13 @@ public class Prep : IEditable<PrepEditRequest>
     public List<RecipeSectionEntry> RecipeSectionEntries { get; set; } = null!;
     
     // Projections
+    public PrepResponse ToNewResponse =>
+        new()
+        {
+            PrepId = PrepId,
+            PrepName = PrepName
+        };
+    
     public static Expression<Func<Prep, PrepResponse>> ToResponse =>
         prep => new PrepResponse
         {

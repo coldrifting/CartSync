@@ -152,4 +152,29 @@ public class ItemControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fi
         Error result = await ItemController.Usages(Ulid.NotFound).ErrorAsync();
         Assert.Equal((int)HttpStatusCode.NotFound, result.StatusCode);
     }
+    
+    [Fact]
+    public async Task TestAddItem()
+    {
+        ItemAddRequest newItem = new()
+        {
+            ItemName = "New Item Name",
+            DefaultUnitType = UnitType.WeightOunces,
+            ItemTemp = ItemTemp.Frozen
+        };
+        
+        ItemResponse result = await ItemController.Add(newItem).CreatedAsync<ItemResponse>(i => i.ItemId);
+        Assert.Equal(newItem.ItemName, result.ItemName);
+        Assert.Equal(newItem.DefaultUnitType, result.DefaultUnitType);
+        Assert.Equal(newItem.ItemTemp, result.ItemTemp);
+
+        List<ItemResponse> results = await ItemController.All(SeedData.Stores[0].StoreId).ValueAsync<List<ItemResponse>>();
+        Assert.Equal(SeedData.Items.Count + 1, results.Count);
+        Assert.Contains(results, r => r.ItemId == result.ItemId);
+        
+        ItemResponse item = results.First(r => r.ItemId == result.ItemId);
+        Assert.Equal(newItem.ItemName, item.ItemName);
+        Assert.Equal(newItem.DefaultUnitType, item.DefaultUnitType);
+        Assert.Equal(newItem.ItemTemp, item.ItemTemp);
+    }
 }

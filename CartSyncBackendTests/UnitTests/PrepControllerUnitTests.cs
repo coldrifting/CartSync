@@ -111,8 +111,8 @@ public class PrepControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fi
         {
             PrepName = "New Prep Name"
         };
-        IActionResult result = await PrepController.Add(addRequest);
-        Assert.IsType<NoContentResult>(result, exactMatch: false);
+        PrepResponse result = await PrepController.Add(addRequest).CreatedAsync<PrepResponse>(p => p.PrepId);
+        Assert.Equal(addRequest.PrepName, result.PrepName);
         
         List<PrepResponse> preps = await PrepController.All()
             .ValueAsync<List<PrepResponse>>();
@@ -327,8 +327,8 @@ public class PrepControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fi
         {
             PrepName = "New Prep Name"
         };
-        IActionResult addResult = await PrepController.Add(addRequest);
-        Assert.IsType<NoContentResult>(addResult, exactMatch: false);
+        PrepResponse addResult = await PrepController.Add(addRequest).CreatedAsync<PrepResponse>(p => p.PrepId);
+        Assert.Equal(addRequest.PrepName, addResult.PrepName);
         
         List<PrepResponse> prepsAfterAdd = await PrepController.All()
             .ValueAsync<List<PrepResponse>>();

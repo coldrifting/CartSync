@@ -16,7 +16,7 @@ public class RecipeSectionEntryController(CartSyncContext db) : ControllerCore
 {
     [HttpPost]
     [Route("/api/recipes/{recipeId}/sections/{recipeSectionId}/entries/add")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(RecipeSectionEntryResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
     public async Task<IActionResult> Add(Ulid recipeId, Ulid recipeSectionId, [Required] RecipeSectionEntryAddRequest recipeSectionEntryAddRequest)
@@ -55,7 +55,7 @@ public class RecipeSectionEntryController(CartSyncContext db) : ControllerCore
             prep = null;
         }
 
-        RecipeSectionEntry entry = new()
+        RecipeSectionEntry recipeSectionEntry = new()
         {
             RecipeSectionId = recipeSection.RecipeSectionId,
             SortOrder = recipeSection.RecipeSectionEntries.Count,
@@ -64,10 +64,10 @@ public class RecipeSectionEntryController(CartSyncContext db) : ControllerCore
             Amount = recipeSectionEntryAddRequest.Amount
         };
 
-        recipeSection.RecipeSectionEntries.Add(entry);
+        await db.RecipeSectionEntries.AddAsync(recipeSectionEntry);
         await db.SaveChangesAsync();
         
-        return NoContent();
+        return Created($"/api/recipes/{recipeId}/sections/{recipeSectionId}/entries/{recipeSectionEntry.RecipeSectionEntryId}", recipeSectionEntry.ToNewResponse);
     }
     
     [HttpPatch]

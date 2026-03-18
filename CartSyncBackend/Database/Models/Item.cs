@@ -29,6 +29,15 @@ public class Item : IEditable<ItemEditRequest>
     public List<Aisle> Aisles { get; set; } = [];
     
     // Projections
+    public ItemResponse ToNewResponse =>
+        new()
+        {
+            ItemId = ItemId,
+            ItemName = ItemName,
+            ItemTemp = ItemTemp,
+            DefaultUnitType = DefaultUnitType
+        };
+
     public static Expression<Func<Item, ItemResponse>> ToResponse =>
         item => new ItemResponse
         {

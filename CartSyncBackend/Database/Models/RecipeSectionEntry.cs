@@ -42,10 +42,22 @@ public class RecipeSectionEntry : ISortable, IEditable<RecipeSectionEntryEditReq
     public Prep? Prep { get; set; }
     
     // Projections
+    public RecipeSectionEntryResponse ToNewResponse =>
+        new()
+        {
+            RecipeSectionEntryId = RecipeSectionEntryId,
+            RecipeSectionId = RecipeSectionId,
+            SortOrder = SortOrder,
+            Amount = Amount,
+            Item = Item.ToMinimalResponse.Compile()(Item),
+            Prep = Prep != null ? Prep.ToResponse.Compile()(Prep) : null
+        };
+    
     public static Expression<Func<RecipeSectionEntry, RecipeSectionEntryResponse>> ToResponse =>
         recipeSectionEntry => new RecipeSectionEntryResponse
         {
             RecipeSectionEntryId = recipeSectionEntry.RecipeSectionEntryId,
+            RecipeSectionId = recipeSectionEntry.RecipeSectionId,
             SortOrder = recipeSectionEntry.SortOrder,
             Item = Item.ToMinimalResponse.Compile()(recipeSectionEntry.Item),
             Prep = recipeSectionEntry.Prep != null 
@@ -92,6 +104,7 @@ public class RecipeSectionEntry : ISortable, IEditable<RecipeSectionEntryEditReq
 public class RecipeSectionEntryResponse
 {
     public Ulid RecipeSectionEntryId { get; init; }
+    public Ulid RecipeSectionId { get; init; }
     public int SortOrder { get; set; }
     public ItemMinimalResponse? Item { get; set; }
     public PrepResponse? Prep { get; set; }

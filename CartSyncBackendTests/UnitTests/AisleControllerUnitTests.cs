@@ -114,19 +114,20 @@ public class AisleControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(f
     [Fact]
     public async Task TestAddAisle()
     {
-        IActionResult result = await AisleController.Add(SeedData.Stores[0].StoreId, new AisleAddRequest
+        AisleAddRequest aisleNewRequest = new()
         {
             AisleName = "New Aisle"
-        });
-        Assert.IsType<NoContentResult>(result);
+        };
+        AisleResponse result = await AisleController.Add(SeedData.Stores[0].StoreId, aisleNewRequest).CreatedAsync<AisleResponse>(a => a.AisleId);
+        Assert.Equal(aisleNewRequest.AisleName, result.AisleName);
         
         List<AisleResponse> aisles = await AisleController.All(SeedData.Stores[0].StoreId).ValueAsync<List<AisleResponse>>();
         Assert.Equal(24, aisles.Count);
-        Assert.Contains("New Aisle", aisles.Select(a => a.AisleName));
+        Assert.Contains(aisleNewRequest.AisleName, aisles.Select(a => a.AisleName));
         
         List<AisleResponse> aisles2 = await AisleController.All(SeedData.Stores[1].StoreId).ValueAsync<List<AisleResponse>>();
         Assert.Single(aisles2);
-        Assert.DoesNotContain("New Aisle", aisles2.Select(a => a.AisleName));
+        Assert.DoesNotContain(aisleNewRequest.AisleName, aisles2.Select(a => a.AisleName));
     }
 
     [Fact]

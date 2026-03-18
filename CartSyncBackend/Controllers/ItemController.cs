@@ -66,19 +66,21 @@ public class ItemController(CartSyncContext db) : ControllerCore
     
     [HttpPost]
     [Route("/api/items/add")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ItemResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     public async Task<IActionResult> Add([FromBody] ItemAddRequest itemAddRequest)
     {
-        db.Add(new Item
+        Item item = new()
         {
             ItemName = itemAddRequest.ItemName,
             ItemTemp = itemAddRequest.ItemTemp ?? ItemTemp.Ambient,
             DefaultUnitType = itemAddRequest.DefaultUnitType ?? UnitType.Count
-        });
-        await db.SaveChangesAsync();
+        };
         
-        return NoContent();
+        await db.AddAsync(item);
+        await db.SaveChangesAsync();
+
+        return Created($"/api/items/{item.ItemId}", item.ToNewResponse);
     }
     
     [HttpGet]

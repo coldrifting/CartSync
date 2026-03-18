@@ -30,6 +30,15 @@ public class Aisle : ISortable, IEditable<AisleEditRequest>
     public List<Item> Items { get; set; } = [];
     
     // Projections
+    public AisleResponse ToNewResponse =>
+        new()
+        {
+            AisleId = AisleId,
+            StoreId = StoreId,
+            AisleName = AisleName,
+            SortOrder = SortOrder
+        };
+    
     public static Expression<Func<Aisle, AisleResponse>> ToResponse =>
         aisle => new AisleResponse
         {

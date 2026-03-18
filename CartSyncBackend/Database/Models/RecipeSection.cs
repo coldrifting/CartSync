@@ -33,6 +33,13 @@ public class RecipeSection : ISortable, IEditable<RecipeSectionEditRequest>
     public List<RecipeSectionEntry> RecipeSectionEntries { get; set; } = [];
     
     // Projections
+    public RecipeSectionResponse ToNewResponse =>
+        new()
+        {
+            RecipeSectionId = RecipeSectionId,
+            RecipeSectionName = RecipeSectionName
+        };
+    
     public static Expression<Func<RecipeSection, RecipeSectionResponse>> ToResponse =>
         recipeSection => new RecipeSectionResponse
         {

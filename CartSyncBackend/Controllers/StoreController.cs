@@ -27,17 +27,19 @@ public class StoreController(CartSyncContext db) : ControllerCore
     
     [HttpPost]
     [Route("/api/stores/add")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(StoreResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     public async Task<IActionResult> Add([FromBody] StoreAddRequest storeAddRequest)
     {
-        await db.AddAsync(new Store
+        Store store = new()
         {
             StoreName = storeAddRequest.StoreName,
-        });
+        };
+        
+        await db.AddAsync(store);
         await db.SaveChangesAsync();
         
-        return NoContent();
+        return Created($"/api/stores/{store.StoreId}", store.ToNewResponse);
     }
 
     [HttpPatch]

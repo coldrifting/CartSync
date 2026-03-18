@@ -22,7 +22,13 @@ public class StoreControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(f
     [Fact]
     public async Task TestAddStore()
     {
-        await StoreController.Add(new StoreAddRequest { StoreName = "new store" });
+        StoreAddRequest newStore = new()
+        {
+            StoreName = "new store"
+        };
+        
+        StoreResponse storeResponse = await StoreController.Add(newStore).CreatedAsync<StoreResponse>(s => s.StoreId);
+        Assert.Equal(storeResponse.StoreName, newStore.StoreName);
 
         List<StoreResponse> stores = await StoreController.All().ValueAsync<List<StoreResponse>>();
 

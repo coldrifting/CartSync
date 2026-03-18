@@ -15,7 +15,7 @@ public class RecipeInstructionController(CartSyncContext db) : ControllerCore
 {
     [HttpPost]
     [Route("/api/recipes/{recipeId}/instructions/add")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(RecipeInstructionResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
     public async Task<IActionResult> Add(Ulid recipeId, [FromBody] RecipeInstructionAddRequest recipeInstructionAddRequest)
@@ -27,17 +27,19 @@ public class RecipeInstructionController(CartSyncContext db) : ControllerCore
         {
             return Recipe.NotFound(recipeId);
         }
-        
-        recipe.RecipeInstructions.Add(new RecipeInstruction
+
+        RecipeInstruction recipeInstruction = new()
         {
             RecipeId = recipeId,
             RecipeInstructionContent = recipeInstructionAddRequest.RecipeInstructionContent,
             IsImage = recipeInstructionAddRequest.IsImage,
             SortOrder = recipe.RecipeInstructions.Count
-        });
+        };
         
+        await db.RecipeInstructions.AddAsync(recipeInstruction);
         await db.SaveChangesAsync();
-        return NoContent();
+        
+        return Created($"/api/recipes/{recipe.RecipeId}/instructions/{recipeInstruction.RecipeInstructionId}", recipeInstruction.ToNewResponse);
     }
     
     [HttpPut]

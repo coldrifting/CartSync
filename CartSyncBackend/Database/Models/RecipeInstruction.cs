@@ -32,6 +32,15 @@ public class RecipeInstruction : ISortable, IEditable<RecipeInstructionEditReque
     }
     
     // Projections
+    public RecipeInstructionResponse ToNewResponse =>
+        new()
+        {
+            RecipeInstructionId = RecipeInstructionId,
+            RecipeInstructionContent = RecipeInstructionContent,
+            IsImage = IsImage,
+            SortOrder = SortOrder
+        };
+    
     public static Expression<Func<RecipeInstruction, RecipeInstructionResponse>> ToResponse =>
         recipeInstruction => new RecipeInstructionResponse
         {

@@ -19,6 +19,13 @@ public class Store : IEditable<StoreEditRequest>
     public List<Aisle> Aisles { get; init; } = [];
 
     // Projections
+    public StoreResponse ToNewResponse =>
+        new()
+        {
+            StoreId = StoreId,
+            StoreName = StoreName
+        };
+    
     public static Expression<Func<Store, StoreResponse>> ToStoreResponse =>
         store => new StoreResponse
         {

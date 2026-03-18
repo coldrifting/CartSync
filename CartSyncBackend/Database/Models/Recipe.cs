@@ -30,6 +30,16 @@ public class Recipe : IEditable<RecipeEditRequest>
     public List<RecipeSection> RecipeSections  { get; set; } = [];
         
     // Projections
+    public RecipeResponse ToNewResponse =>
+        new()
+        {
+            RecipeId = RecipeId,
+            RecipeName = RecipeName,
+            Url = Url,
+            IsPinned = IsPinned,
+            CartAmount = CartAmount
+        };
+    
     public static Expression<Func<Recipe, RecipeResponse>> ToResponse =>
         recipe => new RecipeResponse
         {
