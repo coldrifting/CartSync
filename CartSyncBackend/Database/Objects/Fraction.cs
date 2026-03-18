@@ -6,8 +6,8 @@ namespace CartSyncBackend.Database.Objects;
 
 public class Fraction
 {
-    public int Num { get; set; }
-    public int Dem { get; set; } = 1;
+    public int Num { get; }
+    public int Dem { get; } = 1;
 
     [JsonIgnore]
     public int AsInt => Num / Dem;
@@ -19,7 +19,7 @@ public class Fraction
     public string DecimalString => ((int)(Num * 1000.0) / (double)(Dem) / 1000.0).ToString(CultureInfo.InvariantCulture);
     
     [JsonIgnore]
-    public bool IsPlural => (Num / (float)Dem) > 1.0 || this.ToString().Contains('.');
+    public bool IsPlural => (Num / (float)Dem) > 1.0 || ToString().Contains('.');
 
     public Fraction(FixedPoint input)
     {
@@ -97,6 +97,21 @@ public class Fraction
         Dem = 1;
     }
 
+    public override bool Equals(object? obj)
+    {
+        if (obj is Fraction other)
+        {
+            return Num == other.Num && Dem == other.Dem;
+        }
+
+        return false;
+    }
+
+    public override int GetHashCode()
+    {
+        return Num.GetHashCode() ^ Dem.GetHashCode();
+    }
+
     public override string ToString()
     {
         if (Num > Dem)
@@ -111,7 +126,7 @@ public class Fraction
 
             string output = whole + " " + new Fraction(partial, Dem);
 
-            return output.Replace("0.", ".");
+            return output.Replace(" 0.", ".").Replace("0.", ".");
         }
 
         switch ($"{Num}/{Dem}")
@@ -159,7 +174,7 @@ public class Fraction
         int leftMult = lcd / left.Dem;
         int rightMult = lcd / right.Dem;
 
-        return new Fraction(left.Num * leftMult + right.Num * rightMult, lcd);
+        return new Fraction(left.Num * leftMult + right.Num * rightMult, lcd).Simplify();
     }
 
     public static Fraction operator *(Fraction left, Fraction right)
