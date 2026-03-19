@@ -98,7 +98,7 @@ public record RecipeSectionEntryResponse
     public required Ulid RecipeSectionEntryId { get; init; }
     public required Ulid RecipeSectionId { get; init; }
     public required int SortOrder { get; set; }
-    public required ItemMinimalResponse? Item { get; init; }
+    public required ItemMinimalResponse Item { get; init; }
     public required PrepResponse? Prep { get; init; }
     public required Amount Amount { get; init; }
 }

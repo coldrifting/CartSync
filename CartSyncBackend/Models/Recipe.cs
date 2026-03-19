@@ -121,6 +121,12 @@ public record RecipeMinimalResponse
     public required bool IsPinned { get; init; }
 }
 
+public class RecipeAddRequest
+{
+    [Required, StringLength(255, MinimumLength = 1)]
+    public required string RecipeName  { get; init; }
+}
+
 public class RecipeEditRequest
 {
     [Required, StringLength(255, MinimumLength = 1)]

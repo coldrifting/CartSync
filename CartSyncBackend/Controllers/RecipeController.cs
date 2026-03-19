@@ -49,11 +49,11 @@ public class RecipeController(CartSyncContext db) : ControllerCore
 
     [HttpPost]
     [Route("/api/recipes/add")]
-    public async Task<Results<Created<RecipeResponse>, BadRequest<Error>>> Add([Required] string recipeName)
+    public async Task<Results<Created<RecipeResponse>, BadRequest<Error>>> Add(RecipeAddRequest recipeAddRequest)
     {
         Recipe recipe = new()
         {
-            RecipeName = recipeName
+            RecipeName = recipeAddRequest.RecipeName
         };
         
         await db.Recipes.AddAsync(recipe);
