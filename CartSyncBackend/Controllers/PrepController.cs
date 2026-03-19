@@ -1,8 +1,7 @@
 using CartSyncBackend.Controllers.Core;
-using CartSyncBackend.Database;
-using CartSyncBackend.Database.Models;
-using CartSyncBackend.Database.Objects;
+using CartSyncBackend.Models;
 using CartSyncBackend.Utils;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -15,8 +14,7 @@ public class PrepController(CartSyncContext db) : ControllerCore
 {
     [HttpGet]
     [Route("/api/preps")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<PrepResponse>))]
-    public async Task<IActionResult> All()
+    public async Task<Ok<List<PrepResponse>>> All()
     {
         List<PrepResponse> preps = await db.Preps
             .Select(Prep.ToResponse)
@@ -24,14 +22,12 @@ public class PrepController(CartSyncContext db) : ControllerCore
             .ThenBy(p => p.PrepId)
             .ToListAsync();
         
-        return Ok(preps);
+        return TypedResults.Ok(preps);
     }
 
     [HttpPost]
     [Route("/api/preps/add")]
-    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(PrepResponse))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
-    public async Task<IActionResult> Add([FromBody] PrepAddRequest prepAddRequest)
+    public async Task<Results<Created<PrepResponse>, BadRequest<Error>>> Add([FromBody] PrepAddRequest prepAddRequest)
     {
         Prep prep = new()
         {
@@ -41,15 +37,12 @@ public class PrepController(CartSyncContext db) : ControllerCore
         await db.Preps.AddAsync(prep);
         await db.SaveChangesAsync();
         
-        return Created($"/api/preps/{prep.PrepId}", prep.ToNewResponse);
+        return TypedResults.Created($"/api/preps/{prep.PrepId}", prep.ToNewResponse);
     }
     
     [HttpGet]
     [Route("/api/preps/{prepId}/usages")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UsageResponse))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Usages(Ulid prepId)
+    public async Task<Results<Ok<UsageResponse>, BadRequest<Error>, NotFound<Error>>> Usages(Ulid prepId)
     {
         Prep? prep = await db.Preps
             .Include(p => p.Items)
@@ -78,16 +71,13 @@ public class PrepController(CartSyncContext db) : ControllerCore
         result.Update(items, i => i.ItemId, i => i.ItemName);
         result.Update(recipes, r => r.RecipeId, r => r.RecipeName);
         
-        return Ok(result);
+        return TypedResults.Ok(result);
     }
 
     [HttpPatch]
     [Route("/api/preps/{prepId}/edit")]
     [Consumes("application/json-patch+json")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Edit(Ulid prepId, [FromBody] JsonPatchDocument<PrepEditRequest> prepPatch)
+    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Edit(Ulid prepId, [FromBody] JsonPatchDocument<PrepEditRequest> prepPatch)
     {
         Prep? prep = await db.Preps.FindAsync(prepId);
         if (prep == null)
@@ -103,15 +93,12 @@ public class PrepController(CartSyncContext db) : ControllerCore
         prep.UpdateFromEditRequest(prepEdit);
         await db.SaveChangesAsync();
         
-        return NoContent();
+        return TypedResults.NoContent();
     }
     
     [HttpDelete]
     [Route("/api/preps/{prepId}/delete")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Delete(Ulid prepId)
+    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Delete(Ulid prepId)
     {
         Prep? prep = await db.Preps.FindAsync(prepId);
         if (prep == null)
@@ -122,6 +109,6 @@ public class PrepController(CartSyncContext db) : ControllerCore
         db.Remove(prep);
         await db.SaveChangesAsync();
         
-        return NoContent();
+        return TypedResults.NoContent();
     }
 }

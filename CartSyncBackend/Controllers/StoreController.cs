@@ -1,7 +1,6 @@
 using CartSyncBackend.Controllers.Core;
-using CartSyncBackend.Database;
-using CartSyncBackend.Database.Models;
-using CartSyncBackend.Database.Objects;
+using CartSyncBackend.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,22 +13,19 @@ public class StoreController(CartSyncContext db) : ControllerCore
 {
     [HttpGet]
     [Route("/api/stores")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<StoreResponse>))]
-    public async Task<IActionResult> All()
+    public async Task<Ok<List<StoreResponse>>> All()
     {
         List<StoreResponse> stores = await db.Stores
             .OrderBy(s => s.StoreName)
-            .Select(Store.ToStoreResponse)
+            .Select(Store.ToResponse)
             .ToListAsync();
 
-        return Ok(stores);
+        return TypedResults.Ok(stores);
     }
     
     [HttpPost]
     [Route("/api/stores/add")]
-    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(StoreResponse))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
-    public async Task<IActionResult> Add([FromBody] StoreAddRequest storeAddRequest)
+    public async Task<Results<Created<StoreResponse>, BadRequest<Error>>> Add([FromBody] StoreAddRequest storeAddRequest)
     {
         Store store = new()
         {
@@ -39,16 +35,13 @@ public class StoreController(CartSyncContext db) : ControllerCore
         await db.AddAsync(store);
         await db.SaveChangesAsync();
         
-        return Created($"/api/stores/{store.StoreId}", store.ToNewResponse);
+        return TypedResults.Created($"/api/stores/{store.StoreId}", store.ToNewResponse);
     }
 
     [HttpPatch]
     [Route("/api/stores/{storeId}/edit")]
     [Consumes("application/json-patch+json")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Edit(Ulid storeId, [FromBody] JsonPatchDocument<StoreEditRequest> storePatch)
+    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Edit(Ulid storeId, [FromBody] JsonPatchDocument<StoreEditRequest> storePatch)
     {
         Store? store = await db.Stores.FindAsync(storeId);
         if (store == null)
@@ -64,15 +57,12 @@ public class StoreController(CartSyncContext db) : ControllerCore
         store.UpdateFromEditRequest(storeEdit);
         await db.SaveChangesAsync();
 
-        return NoContent();
+        return TypedResults.NoContent();
     }
     
     [HttpDelete]
     [Route("/api/stores/{storeId}/delete")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Delete(Ulid storeId)
+    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Delete(Ulid storeId)
     {
         Store? store = await db.Stores.FindAsync(storeId);
         if (store == null)
@@ -83,6 +73,6 @@ public class StoreController(CartSyncContext db) : ControllerCore
         db.Stores.Remove(store);
         await db.SaveChangesAsync();
         
-        return NoContent();
+        return TypedResults.NoContent();
     }
 }

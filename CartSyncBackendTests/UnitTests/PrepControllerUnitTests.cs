@@ -1,11 +1,10 @@
 using System.Net;
-using CartSyncBackend.Database.Models;
-using CartSyncBackend.Database.Objects;
-using CartSyncBackend.Database.Seeding;
+using CartSyncBackend.Controllers.Core;
+using CartSyncBackend.Models;
 using CartSyncBackendTests.Core;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson.Operations;
-using Microsoft.AspNetCore.Mvc;
+using SeedData = CartSyncBackend.Models.Seeding.SeedData;
 
 namespace CartSyncBackendTests.UnitTests;
 
@@ -13,7 +12,7 @@ namespace CartSyncBackendTests.UnitTests;
 public class PrepControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fixture)
 {
     [Fact]
-    public async Task TestGetPreps()
+    public async Task TestPrepAll()
     {
         List<PrepResponse> expectedPreps = SeedData.Preps
             .AsQueryable()
@@ -23,13 +22,13 @@ public class PrepControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fi
             .ToList();
 
         List<PrepResponse> preps = await PrepController.All()
-            .ValueAsync<List<PrepResponse>>();
+            .ValueAsync();
         
         Assert.Equal(expectedPreps, preps);
     }
     
     [Fact]
-    public async Task TestGetPrepUsages()
+    public async Task TestPrepUsages_ItemAndRecipeUsagesFound()
     {
         UsageResponse expected = new()
         {
@@ -53,20 +52,12 @@ public class PrepControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fi
             },
         };
         
-        IActionResult result = await PrepController.Usages(SeedData.Preps[3].PrepId);
-        Assert.IsType<OkObjectResult>(result, exactMatch: false);
-
-        if (result is not OkObjectResult resultData)
-        {
-            Assert.Fail();
-            return;
-        }
-
-        Assert.Equal(expected, resultData.Value, Extensions.UsageResponseComparer);
+        UsageResponse result = await PrepController.Usages(SeedData.Preps[3].PrepId).ValueAsync();
+        Assert.Equal(expected, result, Extensions.UsageResponseComparer);
     }
     
     [Fact]
-    public async Task TestGetPrepUsagesOnlyItemUses()
+    public async Task TestPrepUsages_OnlyItemUsagesFound()
     {
         UsageResponse expected = new()
         {
@@ -78,27 +69,19 @@ public class PrepControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fi
             }
         };
         
-        IActionResult result = await PrepController.Usages(SeedData.Preps[6].PrepId);
-        Assert.IsType<OkObjectResult>(result, exactMatch: false);
-
-        if (result is not OkObjectResult resultData)
-        {
-            Assert.Fail();
-            return;
-        }
-
-        Assert.Equal(expected, resultData.Value, Extensions.UsageResponseComparer);
+        UsageResponse result = await PrepController.Usages(SeedData.Preps[6].PrepId).ValueAsync();
+        Assert.Equal(expected, result, Extensions.UsageResponseComparer);
     }
     
     [Fact]
-    public async Task TestGetPrepUsagesPrepNotFound()
+    public async Task TestPrepUsages_PrepNotFound()
     {
-        Error result = await PrepController.Usages(Ulid.NotFound).ErrorAsync();
-        Assert.Equal((int)HttpStatusCode.NotFound, result.StatusCode);
+        Error error = await PrepController.Usages(Ulid.NotFound).ErrorAsync();
+        error.AssertStatus(HttpStatusCode.NotFound);
     }
     
     [Fact]
-    public async Task TestAddPrep()
+    public async Task TestPrepAdd()
     {
         List<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
@@ -111,18 +94,18 @@ public class PrepControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fi
         {
             PrepName = "New Prep Name"
         };
-        PrepResponse result = await PrepController.Add(addRequest).CreatedAsync<PrepResponse>(p => p.PrepId);
-        Assert.Equal(addRequest.PrepName, result.PrepName);
+        (PrepResponse prep, string location) result = await PrepController.Add(addRequest).ValueAsync();
+        Assert.Equal(addRequest.PrepName, result.prep.PrepName);
+        Assert.Equal(result.location.Split('/').Last().ToLower(), result.prep.PrepId.ToString().ToLower());
         
-        List<PrepResponse> preps = await PrepController.All()
-            .ValueAsync<List<PrepResponse>>();
+        List<PrepResponse> preps = await PrepController.All().ValueAsync();
         
         Assert.Equal(previousPreps.Count + 1, preps.Count);
         Assert.Contains(preps, p => p.PrepName == addRequest.PrepName);
     }
 
     [Fact]
-    public async Task TestPatchPrepRename()
+    public async Task TestPrepEdit_Rename()
     {
         List<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
@@ -145,18 +128,17 @@ public class PrepControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fi
         };
         
         Ulid prepId = SeedData.Preps[3].PrepId;
-        IActionResult result = await PrepController.Edit(prepId, jsonPatch);
-        Assert.IsType<NoContentResult>(result, exactMatch: false);
+        await PrepController.Edit(prepId, jsonPatch).AssertIsSuccessful();
         
         List<PrepResponse> preps = await PrepController.All()
-            .ValueAsync<List<PrepResponse>>();
+            .ValueAsync();
         
         Assert.Equal(previousPreps.Count, preps.Count);
         Assert.Contains(preps, p => p.PrepId == prepId && p.PrepName == "New Prep Name");
     }
 
     [Fact]
-    public async Task TestPatchPrepRenameBadPrepId()
+    public async Task TestPrepEdit_BadPrepId()
     {
         List<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
@@ -180,17 +162,17 @@ public class PrepControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fi
         
         Ulid prepId = SeedData.Preps[3].PrepId;
         Error error = await PrepController.Edit(Ulid.NotFound, jsonPatch).ErrorAsync();
-        Assert.Equal((int)HttpStatusCode.NotFound, error.StatusCode);
+        error.AssertStatus(HttpStatusCode.NotFound);
         
         List<PrepResponse> preps = await PrepController.All()
-            .ValueAsync<List<PrepResponse>>();
+            .ValueAsync();
         
         Assert.Equal(previousPreps.Count, preps.Count);
         Assert.Contains(preps, p => p.PrepId == prepId && p.PrepName != "New Prep Name");
     }
 
     [Fact]
-    public async Task TestPatchPrepEditIdExistingPrepIdShouldError()
+    public async Task TestPrepEdit_ReplacePrepIdWithBadIdShouldError()
     {
         List<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
@@ -215,10 +197,10 @@ public class PrepControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fi
         
         Ulid prepId = SeedData.Preps[3].PrepId;
         Error error = await PrepController.Edit(prepId, jsonPatch).ErrorAsync();
-        Assert.Equal((int)HttpStatusCode.BadRequest, error.StatusCode);
+        error.AssertStatus(HttpStatusCode.BadRequest);
         
         List<PrepResponse> preps = await PrepController.All()
-            .ValueAsync<List<PrepResponse>>();
+            .ValueAsync();
         
         Assert.Equal(previousPreps.Count, preps.Count);
         Assert.Contains(preps, p => p.PrepId == prepId);
@@ -226,7 +208,7 @@ public class PrepControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fi
     }
 
     [Fact]
-    public async Task TestPatchPrepEditIdShouldError()
+    public async Task TestPrepEdit_ReplacePrepIdWithNotFoundIdShouldError()
     {
         List<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
@@ -249,11 +231,11 @@ public class PrepControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fi
         };
         
         Ulid prepId = SeedData.Preps[3].PrepId;
-        Error result = await PrepController.Edit(prepId, jsonPatch).ErrorAsync();
-        Assert.Equal((int)HttpStatusCode.BadRequest, result.StatusCode);
+        Error error = await PrepController.Edit(prepId, jsonPatch).ErrorAsync();
+        error.AssertStatus(HttpStatusCode.BadRequest);
         
         List<PrepResponse> preps = await PrepController.All()
-            .ValueAsync<List<PrepResponse>>();
+            .ValueAsync();
         
         Assert.Equal(previousPreps.Count, preps.Count);
         Assert.Contains(preps, p => p.PrepId == prepId);
@@ -261,7 +243,7 @@ public class PrepControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fi
     }
 
     [Fact]
-    public async Task TestPatchPrepRemoveNameShouldError()
+    public async Task TestPrepEdit_RemoveNameShouldError()
     {
         List<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
@@ -283,18 +265,18 @@ public class PrepControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fi
         };
         
         Ulid prepId = SeedData.Preps[3].PrepId;
-        Error result = await PrepController.Edit(prepId, jsonPatch).ErrorAsync();
-        Assert.Equal((int)HttpStatusCode.BadRequest, result.StatusCode);
+        Error error = await PrepController.Edit(prepId, jsonPatch).ErrorAsync();
+        error.AssertStatus(HttpStatusCode.BadRequest);
         
         List<PrepResponse> preps = await PrepController.All()
-            .ValueAsync<List<PrepResponse>>();
+            .ValueAsync();
         
         Assert.Equal(previousPreps.Count, preps.Count);
         Assert.Contains(preps, p => p.PrepId == prepId && p.PrepName != "New Prep Name");
     }
 
     [Fact]
-    public async Task TestDeletePrepInUse()
+    public async Task TestPrepDelete_Cascade()
     {
         List<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
@@ -303,18 +285,17 @@ public class PrepControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fi
             .ThenBy(p => p.PrepId)
             .ToList();
 
-        IActionResult result = await PrepController.Delete(SeedData.Preps[3].PrepId);
-        Assert.IsType<NoContentResult>(result, exactMatch: false);
+        await PrepController.Delete(SeedData.Preps[3].PrepId).AssertIsSuccessful();
         
         List<PrepResponse> preps = await PrepController.All()
-            .ValueAsync<List<PrepResponse>>();
+            .ValueAsync();
         
         Assert.Equal(previousPreps.Count - 1, preps.Count);
         Assert.DoesNotContain(preps, p => Equals(p, Prep.ToResponse.Compile()(SeedData.Preps[3])));
     }
     
     [Fact]
-    public async Task TestDeletePrepNotInUse()
+    public async Task TestPrepDelete_NoForeignKeys()
     {
         List<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
@@ -327,34 +308,34 @@ public class PrepControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fi
         {
             PrepName = "New Prep Name"
         };
-        PrepResponse addResult = await PrepController.Add(addRequest).CreatedAsync<PrepResponse>(p => p.PrepId);
-        Assert.Equal(addRequest.PrepName, addResult.PrepName);
+        (PrepResponse prep, string location) result = await PrepController.Add(addRequest).ValueAsync();
+        Assert.Equal(addRequest.PrepName, result.prep.PrepName);
+        Assert.Equal(result.location.Split('/').Last().ToLower(), result.prep.PrepId.ToString().ToLower());
         
         List<PrepResponse> prepsAfterAdd = await PrepController.All()
-            .ValueAsync<List<PrepResponse>>();
+            .ValueAsync();
         
         Assert.Equal(previousPreps.Count + 1, prepsAfterAdd.Count);
         Assert.Contains(prepsAfterAdd, p => p.PrepName == addRequest.PrepName);
         
         Ulid prepId = prepsAfterAdd.Single(p => p.PrepName == addRequest.PrepName).PrepId;
 
-        IActionResult result = await PrepController.Delete(prepId);
-        Assert.IsType<NoContentResult>(result, exactMatch: false);
+        await PrepController.Delete(prepId).AssertIsSuccessful();
         
-        Error errorResult = await PrepController.Delete(prepId).ErrorAsync();
-        Assert.Equal((int)HttpStatusCode.NotFound, errorResult.StatusCode);
+        Error error = await PrepController.Delete(prepId).ErrorAsync();
+        error.AssertStatus(HttpStatusCode.NotFound);
         
         List<PrepResponse> preps = await PrepController.All()
-            .ValueAsync<List<PrepResponse>>();
+            .ValueAsync();
         
         Assert.Equal(previousPreps.Count, preps.Count);
         Assert.DoesNotContain(preps, p => p.PrepName == addRequest.PrepName);
     }
     
     [Fact]
-    public async Task TestDeletePrepNotFound()
+    public async Task TestPrepDelete_PrepNotFound()
     {
-        Error result = await PrepController.Delete(Ulid.NotFound).ErrorAsync();
-        Assert.Equal((int)HttpStatusCode.NotFound, result.StatusCode);
+        Error error = await PrepController.Delete(Ulid.NotFound).ErrorAsync();
+        error.AssertStatus(HttpStatusCode.NotFound);
     }
 }

@@ -1,4 +1,5 @@
-using CartSyncBackend.Database.Objects;
+using CartSyncBackend.Objects;
+using CartSyncBackend.Objects.Enums;
 
 namespace CartSyncBackendTests.MiscTests;
 

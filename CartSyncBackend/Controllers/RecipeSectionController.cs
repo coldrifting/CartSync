@@ -1,9 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using CartSyncBackend.Controllers.Core;
-using CartSyncBackend.Database;
-using CartSyncBackend.Database.Models;
-using CartSyncBackend.Database.Objects;
+using CartSyncBackend.Models;
 using CartSyncBackend.Utils;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,10 +15,7 @@ public class RecipeSectionController(CartSyncContext db) : ControllerCore
 {
     [HttpPost]
     [Route("/api/recipes/{recipeId}/sections/add")]
-    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(RecipeSectionResponse))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Add(Ulid recipeId, [Required] string recipeSectionName)
+    public async Task<Results<Created<RecipeSectionResponse>, BadRequest<Error>, NotFound<Error>>> Add(Ulid recipeId, [Required] string recipeSectionName)
     {
         Recipe? recipe = await db.Recipes
             .Include(r => r.RecipeSections)
@@ -39,16 +35,13 @@ public class RecipeSectionController(CartSyncContext db) : ControllerCore
         await db.RecipeSections.AddAsync(recipeSection);
         await db.SaveChangesAsync();
         
-        return Created($"/api/recipes/{recipeId}/sections/{recipeSection.RecipeSectionId}", recipeSection.ToNewResponse);
+        return TypedResults.Created($"/api/recipes/{recipeId}/sections/{recipeSection.RecipeSectionId}", recipeSection.ToNewResponse);
     }
     
     [HttpPatch]
     [Route("/api/recipes/{recipeId}/sections/{recipeSectionId}/edit")]
     [Consumes("application/json-patch+json")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Edit(Ulid recipeId, Ulid recipeSectionId, [FromBody] JsonPatchDocument<RecipeSectionEditRequest> recipeSectionEditPatch)
+    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Edit(Ulid recipeId, Ulid recipeSectionId, [FromBody] JsonPatchDocument<RecipeSectionEditRequest> recipeSectionEditPatch)
     {
         RecipeSection? recipeSection = await db.RecipeSections
             .Include(recipeSection => recipeSection.Recipe)
@@ -71,15 +64,12 @@ public class RecipeSectionController(CartSyncContext db) : ControllerCore
 
         recipeSection.UpdateFromEditRequest(recipeSectionEdit);
         await db.SaveChangesAsync();
-        return NoContent();
+        return TypedResults.NoContent();
     }
     
     [HttpDelete]
     [Route("/api/recipes/{recipeId}/sections/{recipeSectionId}/delete")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Delete(Ulid recipeId, Ulid recipeSectionId)
+    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Delete(Ulid recipeId, Ulid recipeSectionId)
     {
         RecipeSection? recipeSection = await db.RecipeSections
             .Include(recipeSection => recipeSection.Recipe)
@@ -102,6 +92,6 @@ public class RecipeSectionController(CartSyncContext db) : ControllerCore
 
         await db.SaveChangesAsync();
         
-        return NoContent();
+        return TypedResults.NoContent();
     }
 }

@@ -1,8 +1,8 @@
 using CartSyncBackend.Controllers.Core;
-using CartSyncBackend.Database;
-using CartSyncBackend.Database.Models;
-using CartSyncBackend.Database.Objects;
+using CartSyncBackend.Models;
+using CartSyncBackend.Models.Joins;
 using CartSyncBackend.Utils;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -15,8 +15,7 @@ public class ItemController(CartSyncContext db) : ControllerCore
 {
     [HttpGet]
     [Route("/api/items")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<ItemResponse>))]
-    public async Task<IActionResult> All(Ulid storeId)
+    public async Task<Results<Ok<List<ItemResponse>>, BadRequest<Error>, NotFound<Error>>> All(Ulid storeId)
     {
         Store? store = await db.Stores.FindAsync(storeId);
         if (store is null)
@@ -31,15 +30,12 @@ public class ItemController(CartSyncContext db) : ControllerCore
                 .OrderBy(i => i.ItemName)
                 .ToListAsync();
 
-        return Ok(allItems);
+        return TypedResults.Ok(allItems);
     }
     
     [HttpGet]
     [Route("/api/items/{itemId}/usages")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UsageResponse))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Usages(Ulid itemId)
+    public async Task<Results<Ok<UsageResponse>, BadRequest<Error>, NotFound<Error>>> Usages(Ulid itemId)
     {
         Item? item = await db.Items
             .Include(i => i.RecipeSectionEntries)
@@ -61,33 +57,27 @@ public class ItemController(CartSyncContext db) : ControllerCore
         UsageResponse result = new();
         result.Update(recipes, r => r.RecipeId, r => r.RecipeName);
         
-        return Ok(result);
+        return TypedResults.Ok(result);
     }
     
     [HttpPost]
     [Route("/api/items/add")]
-    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(ItemResponse))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
-    public async Task<IActionResult> Add([FromBody] ItemAddRequest itemAddRequest)
+    public async Task<Results<Created<ItemResponse>, BadRequest<Error>>> Add([FromBody] ItemAddRequest itemAddRequest)
     {
         Item item = new()
         {
-            ItemName = itemAddRequest.ItemName,
-            ItemTemp = itemAddRequest.ItemTemp ?? ItemTemp.Ambient,
-            DefaultUnitType = itemAddRequest.DefaultUnitType ?? UnitType.Count
+            ItemName = itemAddRequest.ItemName
         };
         
         await db.AddAsync(item);
         await db.SaveChangesAsync();
 
-        return Created($"/api/items/{item.ItemId}", item.ToNewResponse);
+        return TypedResults.Created($"/api/items/{item.ItemId}", item.ToNewResponse);
     }
     
     [HttpGet]
     [Route("/api/items/{itemId}")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ItemResponse))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Details(Ulid itemId)
+    public async Task<Results<Ok<ItemResponse>, BadRequest<Error>, NotFound<Error>>> Details(Ulid itemId)
     {
         ItemResponse? itemResponse = await db.Items
             .Include(i => i.Preps)
@@ -100,16 +90,13 @@ public class ItemController(CartSyncContext db) : ControllerCore
             return Item.NotFound(itemId);
         }
 
-        return Ok(itemResponse);
+        return TypedResults.Ok(itemResponse);
     }
     
     [HttpPatch]
     [Route("/api/items/{itemId}/edit")]
     [Consumes("application/json-patch+json")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Edit(Ulid itemId, [FromBody] JsonPatchDocument<ItemEditRequest> itemPatch, Ulid? storeId = null)
+    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Edit(Ulid itemId, [FromBody] JsonPatchDocument<ItemEditRequest> itemPatch, Ulid? storeId = null)
     {
         Item? item = await db.Items
             .Include(i => i.Preps)
@@ -120,7 +107,7 @@ public class ItemController(CartSyncContext db) : ControllerCore
             return Item.NotFound(itemId);
         }
         
-        if (!TryGetEditObject(item, itemPatch, out ItemEditRequest? itemEdit))
+        if (!TryGetEditObject(item, itemPatch, out ItemEditRequest? itemEdit, storeId))
         {
             return Error.BadRequestPatchInvalid(ModelState);
         }
@@ -189,15 +176,12 @@ public class ItemController(CartSyncContext db) : ControllerCore
         item.UpdateFromEditRequest(itemEdit);
         await db.SaveChangesAsync();
         
-        return NoContent();
+        return TypedResults.NoContent();
     }
     
     [HttpDelete]
     [Route("/api/items/{itemId}/delete")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Delete(Ulid itemId)
+    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Delete(Ulid itemId)
     {
         Item? i = await db.Items.FindAsync(itemId);
         if (i == null)
@@ -208,6 +192,6 @@ public class ItemController(CartSyncContext db) : ControllerCore
         db.Items.Remove(i);
         await db.SaveChangesAsync();
         
-        return NoContent();
+        return TypedResults.NoContent();
     }
 }

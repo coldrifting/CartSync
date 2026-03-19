@@ -1,5 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using CartSyncBackend.Database.Interfaces;
+using CartSyncBackend.Models.Interfaces;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,10 +7,10 @@ namespace CartSyncBackend.Controllers.Core;
 
 public class ControllerCore : ControllerBase
 {
-    protected bool TryGetEditObject<TSource, TEdit>(TSource source, JsonPatchDocument<TEdit> patch, [NotNullWhen(true)] out TEdit? editRequest)
-        where TSource : IEditable<TEdit> where TEdit : class
+    protected bool TryGetEditObject<TEdit>(IEditable<TEdit> source, JsonPatchDocument<TEdit> patch, [NotNullWhen(true)] out TEdit? editRequest, Ulid? storeId = null)
+        where TEdit : class
     {
-        editRequest = source.ToEditRequest();
+        editRequest = source.ToEditRequest(storeId);
 
         patch.ApplyTo(editRequest, jsonPatchError =>
         {

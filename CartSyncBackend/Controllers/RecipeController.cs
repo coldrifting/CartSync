@@ -1,8 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using CartSyncBackend.Controllers.Core;
-using CartSyncBackend.Database;
-using CartSyncBackend.Database.Models;
-using CartSyncBackend.Database.Objects;
+using CartSyncBackend.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -15,8 +14,7 @@ public class RecipeController(CartSyncContext db) : ControllerCore
 {
     [HttpGet]
     [Route("/api/recipes")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<RecipeResponse>))]
-    public async Task<IActionResult> All()
+    public async Task<Ok<List<RecipeResponse>>> All()
     {
         List<RecipeResponse> recipes = await db.Recipes
             .Include(r => r.RecipeInstructions)
@@ -27,15 +25,12 @@ public class RecipeController(CartSyncContext db) : ControllerCore
             .OrderBy(r => r.RecipeName)
             .ToListAsync();
         
-        return Ok(recipes);
+        return TypedResults.Ok(recipes);
     }
 
     [HttpGet]
     [Route("/api/recipes/{recipeId}")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RecipeResponse))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Details(Ulid recipeId)
+    public async Task<Results<Ok<RecipeResponse>, BadRequest<Error>, NotFound<Error>>> Details(Ulid recipeId)
     {
         RecipeResponse? recipe = await db.Recipes
             .Include(r => r.RecipeInstructions)
@@ -49,14 +44,12 @@ public class RecipeController(CartSyncContext db) : ControllerCore
             return Recipe.NotFound(recipeId);
         }
 
-        return Ok(recipe);
+        return TypedResults.Ok(recipe);
     }
 
     [HttpPost]
     [Route("/api/recipes/add")]
-    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(RecipeResponse))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
-    public async Task<IActionResult> Add([Required] string recipeName)
+    public async Task<Results<Created<RecipeResponse>, BadRequest<Error>>> Add([Required] string recipeName)
     {
         Recipe recipe = new()
         {
@@ -66,16 +59,13 @@ public class RecipeController(CartSyncContext db) : ControllerCore
         await db.Recipes.AddAsync(recipe);
         await db.SaveChangesAsync();
         
-        return Created($"/api/recipes/{recipe.RecipeId}", recipe.ToNewResponse);
+        return TypedResults.Created($"/api/recipes/{recipe.RecipeId}", recipe.ToNewResponse);
     }
 
     [HttpPatch]
     [Route("/api/recipes/{recipeId}/edit")]
     [Consumes("application/json-patch+json")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Edit(Ulid recipeId, [Required] JsonPatchDocument<RecipeEditRequest> recipeEditPatch)
+    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Edit(Ulid recipeId, [Required] JsonPatchDocument<RecipeEditRequest> recipeEditPatch)
     {
         Recipe? recipe = await db.Recipes.FindAsync(recipeId);
         if (recipe == null)
@@ -90,15 +80,12 @@ public class RecipeController(CartSyncContext db) : ControllerCore
 
         recipe.UpdateFromEditRequest(recipeEdit);
         await db.SaveChangesAsync();
-        return NoContent();
+        return TypedResults.NoContent();
     }
 
     [HttpDelete]
     [Route("/api/recipes/{recipeId}/delete")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Delete(Ulid recipeId)
+    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Delete(Ulid recipeId)
     {
         Recipe? recipe = await db.Recipes.FindAsync(recipeId);
         if (recipe == null)
@@ -109,7 +96,7 @@ public class RecipeController(CartSyncContext db) : ControllerCore
         db.Recipes.Remove(recipe);
         await db.SaveChangesAsync();
         
-        return NoContent();
+        return TypedResults.NoContent();
     }
     
 }

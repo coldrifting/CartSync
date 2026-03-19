@@ -1,6 +1,7 @@
 global using UsageResponse = System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<(System.Ulid, string)>>;
-
-using CartSyncBackend.Database.Interfaces;
+using CartSyncBackend.Models.Interfaces;
+using JetBrains.Annotations;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace CartSyncBackend.Utils;
 
@@ -87,4 +88,10 @@ public static class Extensions
             }
         }
     }
+
+    [UsedImplicitly]
+    public class UlidValueConverter() : ValueConverter<Ulid, string>(
+        v => v.ToString(),
+        v => Ulid.Parse(v)
+    );
 }

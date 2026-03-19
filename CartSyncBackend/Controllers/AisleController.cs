@@ -1,8 +1,7 @@
 using CartSyncBackend.Controllers.Core;
-using CartSyncBackend.Database;
-using CartSyncBackend.Database.Models;
-using CartSyncBackend.Database.Objects;
+using CartSyncBackend.Models;
 using CartSyncBackend.Utils;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -15,10 +14,7 @@ public class AisleController(CartSyncContext db) : ControllerCore
 {
     [HttpGet]
     [Route("/api/stores/{storeId}/aisles")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<AisleResponse>))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> All(Ulid storeId)
+    public async Task<Results<Ok<List<AisleResponse>>, BadRequest<Error>, NotFound<Error>>> All(Ulid storeId)
     {
         Store? s = await db.Stores
             .Include(s => s.Aisles)
@@ -35,15 +31,12 @@ public class AisleController(CartSyncContext db) : ControllerCore
             .Select(Aisle.ToResponse)
             .ToList();
         
-        return Ok(aisles);
+        return TypedResults.Ok(aisles);
     }
     
     [HttpGet]
     [Route("/api/stores/{storeId}/aisles/{aisleId}/usages")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UsageResponse))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Usages(Ulid storeId, Ulid aisleId)
+    public async Task<Results<Ok<UsageResponse>, BadRequest<Error>, NotFound<Error>>> Usages(Ulid storeId, Ulid aisleId)
     {
         Aisle? aisle = await db.Aisles
             .Include(a => a.Items)
@@ -65,15 +58,12 @@ public class AisleController(CartSyncContext db) : ControllerCore
         UsageResponse result = new();
         result.Update(items, i => i.ItemId, i => i.ItemName);
         
-        return Ok(result);
+        return TypedResults.Ok(result);
     }
 
     [HttpPost]
     [Route("/api/stores/{storeId}/aisles/add")]
-    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(AisleResponse))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Add(Ulid storeId, AisleAddRequest aisleAddRequest)
+    public async Task<Results<Created<AisleResponse>, BadRequest<Error>, NotFound<Error>>> Add(Ulid storeId, AisleAddRequest aisleAddRequest)
     {
         Store? s = await db.Stores
             .Include(store => store.Aisles)
@@ -93,16 +83,13 @@ public class AisleController(CartSyncContext db) : ControllerCore
         await db.AddAsync(aisle);
         await db.SaveChangesAsync();
 
-        return Created($"/api/stores/{storeId}/aisles/{aisle.AisleId}", aisle.ToNewResponse);
+        return TypedResults.Created($"/api/stores/{storeId}/aisles/{aisle.AisleId}", aisle.ToNewResponse);
     }
 
     [HttpPatch]
     [Route("/api/stores/{storeId}/aisles/{aisleId}/edit")]
     [Consumes("application/json-patch+json")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Edit(Ulid storeId, Ulid aisleId, JsonPatchDocument<AisleEditRequest> aislePatch)
+    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Edit(Ulid storeId, Ulid aisleId, JsonPatchDocument<AisleEditRequest> aislePatch)
     {
         Aisle? aisle = await db.Aisles
             .Include(aisle => aisle.Store)
@@ -121,15 +108,12 @@ public class AisleController(CartSyncContext db) : ControllerCore
         aisle.UpdateFromEditRequest(aisleEdit);
         await db.SaveChangesAsync();
         
-        return NoContent();
+        return TypedResults.NoContent();
     }
     
     [HttpDelete]
     [Route("/api/stores/{storeId}/aisles/{aisleId}/delete")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Delete(Ulid storeId, Ulid aisleId)
+    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Delete(Ulid storeId, Ulid aisleId)
     {
         Aisle? aisle = await db.Aisles
             .Include(aisle => aisle.Store)
@@ -152,6 +136,6 @@ public class AisleController(CartSyncContext db) : ControllerCore
         
         await db.SaveChangesAsync();
         
-        return NoContent();
+        return TypedResults.NoContent();
     }
 }

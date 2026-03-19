@@ -1,6 +1,6 @@
 using System.Text;
 using System.Text.Json;
-using CartSyncBackend.Database;
+using CartSyncBackend.Models;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore.Storage;

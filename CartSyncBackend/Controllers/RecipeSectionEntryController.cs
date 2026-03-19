@@ -1,9 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using CartSyncBackend.Controllers.Core;
-using CartSyncBackend.Database;
-using CartSyncBackend.Database.Models;
-using CartSyncBackend.Database.Objects;
+using CartSyncBackend.Models;
 using CartSyncBackend.Utils;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,10 +15,7 @@ public class RecipeSectionEntryController(CartSyncContext db) : ControllerCore
 {
     [HttpPost]
     [Route("/api/recipes/{recipeId}/sections/{recipeSectionId}/entries/add")]
-    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(RecipeSectionEntryResponse))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Add(Ulid recipeId, Ulid recipeSectionId, [Required] RecipeSectionEntryAddRequest recipeSectionEntryAddRequest)
+    public async Task<Results<Created<RecipeSectionEntryResponse>, BadRequest<Error>, NotFound<Error>>> Add(Ulid recipeId, Ulid recipeSectionId, [Required] RecipeSectionEntryAddRequest recipeSectionEntryAddRequest)
     {
         RecipeSection? recipeSection = await db.RecipeSections
             .Include(rs => rs.RecipeSectionEntries)
@@ -67,16 +63,13 @@ public class RecipeSectionEntryController(CartSyncContext db) : ControllerCore
         await db.RecipeSectionEntries.AddAsync(recipeSectionEntry);
         await db.SaveChangesAsync();
         
-        return Created($"/api/recipes/{recipeId}/sections/{recipeSectionId}/entries/{recipeSectionEntry.RecipeSectionEntryId}", recipeSectionEntry.ToNewResponse);
+        return TypedResults.Created($"/api/recipes/{recipeId}/sections/{recipeSectionId}/entries/{recipeSectionEntry.RecipeSectionEntryId}", recipeSectionEntry.ToNewResponse);
     }
     
     [HttpPatch]
     [Route("/api/recipes/{recipeId}/sections/{recipeSectionId}/entries/{recipeSectionEntryId}/edit")]
     [Consumes("application/json-patch+json")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Edit(Ulid recipeId, Ulid recipeSectionId, Ulid recipeSectionEntryId, [FromBody] JsonPatchDocument<RecipeSectionEntryEditRequest> recipeSectionEntryPatch)
+    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Edit(Ulid recipeId, Ulid recipeSectionId, Ulid recipeSectionEntryId, [FromBody] JsonPatchDocument<RecipeSectionEntryEditRequest> recipeSectionEntryPatch)
     {
         RecipeSectionEntry? recipeSectionEntry = await db.RecipeSectionEntries
             .Include(recipeSectionEntry => recipeSectionEntry.RecipeSection)
@@ -118,15 +111,12 @@ public class RecipeSectionEntryController(CartSyncContext db) : ControllerCore
         recipeSectionEntry.UpdateFromEditRequest(recipeSectionEntryEdit);
         await db.SaveChangesAsync();
         
-        return NoContent();
+        return TypedResults.NoContent();
     }
     
     [HttpDelete]
     [Route("/api/recipes/{recipeId}/sections/{recipeSectionId}/entries/{recipeSectionEntryId}/delete")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(Error))]
-    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(Error))]
-    public async Task<IActionResult> Delete(Ulid recipeId, Ulid recipeSectionId, Ulid recipeSectionEntryId)
+    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Delete(Ulid recipeId, Ulid recipeSectionId, Ulid recipeSectionEntryId)
     {
         RecipeSectionEntry? recipeSectionEntry = await db.RecipeSectionEntries
             .Include(recipeSectionEntry => recipeSectionEntry.RecipeSection)
@@ -154,6 +144,6 @@ public class RecipeSectionEntryController(CartSyncContext db) : ControllerCore
 
         await db.SaveChangesAsync();
         
-        return NoContent();
+        return TypedResults.NoContent();
     }
 }

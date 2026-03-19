@@ -1,11 +1,10 @@
 using System.Net;
-using CartSyncBackend.Database.Models;
-using CartSyncBackend.Database.Objects;
-using CartSyncBackend.Database.Seeding;
+using CartSyncBackend.Controllers.Core;
+using CartSyncBackend.Models;
 using CartSyncBackendTests.Core;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson.Operations;
-using Microsoft.AspNetCore.Mvc;
+using SeedData = CartSyncBackend.Models.Seeding.SeedData;
 
 namespace CartSyncBackendTests.UnitTests;
 
@@ -13,31 +12,29 @@ namespace CartSyncBackendTests.UnitTests;
 public class AisleControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fixture)
 {
     [Fact]
-    public async Task TestGetAisles()
+    public async Task TestAisleAll()
     {
-        List<AisleResponse> aisles = await AisleController.All(SeedData.Stores[0].StoreId).ValueAsync<List<AisleResponse>>();
+        List<AisleResponse> aisles = await AisleController.All(SeedData.Stores[0].StoreId).ValueAsync();
         Assert.Equal(23, aisles.Count);
         Assert.Contains((SeedData.Aisles[0].AisleId, SeedData.Aisles[0].AisleName), aisles.Select(a => (a.AisleId, a.AisleName)));
         Assert.Contains((SeedData.Aisles[5].AisleId, SeedData.Aisles[5].AisleName), aisles.Select(a => (a.AisleId, a.AisleName)));
         Assert.Contains((SeedData.Aisles[13].AisleId, SeedData.Aisles[13].AisleName), aisles.Select(a => (a.AisleId, a.AisleName)));
         Assert.Contains((SeedData.Aisles[22].AisleId, SeedData.Aisles[22].AisleName), aisles.Select(a => (a.AisleId, a.AisleName)));
         
-        List<AisleResponse> aisles2 = await AisleController.All(SeedData.Stores[1].StoreId).ValueAsync<List<AisleResponse>>();
+        List<AisleResponse> aisles2 = await AisleController.All(SeedData.Stores[1].StoreId).ValueAsync();
         Assert.Single(aisles2);
         Assert.Contains((SeedData.Aisles[23].AisleId, SeedData.Aisles[23].AisleName), aisles2.Select(a => (a.AisleId, a.AisleName)));
     }
 
     [Fact]
-    public async Task TestGetAislesStoreIdNotFound()
+    public async Task TestAisleAll_StoreIdNotFound()
     {
         Error error = await AisleController.All(Ulid.NotFound).ErrorAsync();
-        Assert.Equal((int)HttpStatusCode.NotFound, error.StatusCode);
-        
-        await TestGetAisles();
+        error.AssertStatus(HttpStatusCode.NotFound);
     }
     
     [Fact]
-    public async Task TestGetAisleUsage()
+    public async Task TestAisleUsage()
     {
         UsageResponse expected = new()
         {
@@ -52,21 +49,13 @@ public class AisleControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(f
                 ]
             },
         };
-        
-        IActionResult result = await AisleController.Usages(SeedData.Stores[0].StoreId, SeedData.Aisles[2].AisleId);
-        Assert.IsType<OkObjectResult>(result, exactMatch: false);
 
-        if (result is not OkObjectResult resultData)
-        {
-            Assert.Fail();
-            return;
-        }
-
-        Assert.Equal(expected, resultData.Value, Extensions.UsageResponseComparer);
+        UsageResponse result = await AisleController.Usages(SeedData.Stores[0].StoreId, SeedData.Aisles[2].AisleId).ValueAsync();
+        Assert.Equal(expected, result, Extensions.UsageResponseComparer);
     }
     
     [Fact]
-    public async Task TestGetAisleUsage2()
+    public async Task TestAisleUsage_2()
     {
         UsageResponse expected = new()
         {
@@ -78,72 +67,62 @@ public class AisleControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(f
             },
         };
         
-        IActionResult result = await AisleController.Usages(SeedData.Stores[1].StoreId, SeedData.Aisles[23].AisleId);
-        Assert.IsType<OkObjectResult>(result, exactMatch: false);
-
-        if (result is not OkObjectResult resultData)
-        {
-            Assert.Fail();
-            return;
-        }
-
-        Assert.Equal(expected, resultData.Value, Extensions.UsageResponseComparer);
+        UsageResponse result = await AisleController.Usages(SeedData.Stores[1].StoreId, SeedData.Aisles[23].AisleId).ValueAsync();
+        Assert.Equal(expected, result, Extensions.UsageResponseComparer);
     }
 
     [Fact]
-    public async Task TestGetAisleUsageBadAisleId()
+    public async Task TestAisleUsage_AisleNotFound()
     {
-        Error result = await AisleController.Usages(SeedData.Stores[0].StoreId, Ulid.NotFound).ErrorAsync();
-        Assert.Equal((int)HttpStatusCode.NotFound, result.StatusCode);
+        Error error = await AisleController.Usages(SeedData.Stores[0].StoreId, Ulid.NotFound).ErrorAsync();
+        error.AssertStatus(HttpStatusCode.NotFound);
     }
 
     [Fact]
-    public async Task TestGetAisleUsageBadStoreId()
+    public async Task TestAisleUsage_StoreNotFound()
     {
-        Error result = await AisleController.Usages(Ulid.NotFound, SeedData.Aisles[0].AisleId).ErrorAsync();
-        Assert.Equal((int)HttpStatusCode.NotFound, result.StatusCode);
+        Error error = await AisleController.Usages(Ulid.NotFound, SeedData.Aisles[0].AisleId).ErrorAsync();
+        error.AssertStatus(HttpStatusCode.NotFound);
     }
     
     [Fact]
-    public async Task TestGetAisleUsageWrongStoreId()
+    public async Task TestAisleUsage_AisleNotUnderStore()
     {
-        Error result = await AisleController.Usages(SeedData.Stores[1].StoreId, SeedData.Aisles[5].AisleId).ErrorAsync();
-        Assert.Equal((int)HttpStatusCode.NotFound, result.StatusCode);
+        Error error = await AisleController.Usages(SeedData.Stores[1].StoreId, SeedData.Aisles[5].AisleId).ErrorAsync();
+        error.AssertStatus(HttpStatusCode.NotFound);
     }
 
     [Fact]
-    public async Task TestAddAisle()
+    public async Task TestAisleAdd()
     {
         AisleAddRequest aisleNewRequest = new()
         {
             AisleName = "New Aisle"
         };
-        AisleResponse result = await AisleController.Add(SeedData.Stores[0].StoreId, aisleNewRequest).CreatedAsync<AisleResponse>(a => a.AisleId);
-        Assert.Equal(aisleNewRequest.AisleName, result.AisleName);
+        (AisleResponse aisle, string location) result = await AisleController.Add(SeedData.Stores[0].StoreId, aisleNewRequest).ValueAsync();
+        Assert.Equal(aisleNewRequest.AisleName, result.aisle.AisleName);
         
-        List<AisleResponse> aisles = await AisleController.All(SeedData.Stores[0].StoreId).ValueAsync<List<AisleResponse>>();
+        List<AisleResponse> aisles = await AisleController.All(SeedData.Stores[0].StoreId).ValueAsync();
         Assert.Equal(24, aisles.Count);
         Assert.Contains(aisleNewRequest.AisleName, aisles.Select(a => a.AisleName));
         
-        List<AisleResponse> aisles2 = await AisleController.All(SeedData.Stores[1].StoreId).ValueAsync<List<AisleResponse>>();
+        List<AisleResponse> aisles2 = await AisleController.All(SeedData.Stores[1].StoreId).ValueAsync();
         Assert.Single(aisles2);
         Assert.DoesNotContain(aisleNewRequest.AisleName, aisles2.Select(a => a.AisleName));
     }
 
     [Fact]
-    public async Task TestAddAisleInvalidStoreId()
+    public async Task TestAisleAdd_StoreNotFound()
     {
         Error error = await AisleController.Add(Ulid.NotFound, new AisleAddRequest
         {
             AisleName = "New Aisle"
         }).ErrorAsync();
-        Assert.Equal((int)HttpStatusCode.NotFound, error.StatusCode);
-        
-        await TestGetAisles();
+        error.AssertStatus(HttpStatusCode.NotFound);
     }
 
     [Fact]
-    public async Task TestEditAisleRename()
+    public async Task TestAisleEdit_Rename()
     {
         JsonPatchDocument<AisleEditRequest> jsonPatch = new()
         {
@@ -157,21 +136,20 @@ public class AisleControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(f
                 }
             }
         };
+
+        await AisleController.Edit(SeedData.Stores[0].StoreId, SeedData.Aisles[4].AisleId, jsonPatch).AssertIsSuccessful();
         
-        IActionResult result = await AisleController.Edit(SeedData.Stores[0].StoreId, SeedData.Aisles[4].AisleId, jsonPatch);
-        Assert.IsType<NoContentResult>(result);
-        
-        List<AisleResponse> aisles = await AisleController.All(SeedData.Stores[0].StoreId).ValueAsync<List<AisleResponse>>();
+        List<AisleResponse> aisles = await AisleController.All(SeedData.Stores[0].StoreId).ValueAsync();
         Assert.Equal(23, aisles.Count);
         Assert.Contains("New Aisle", aisles.Select(a => a.AisleName));
         
-        List<AisleResponse> aisles2 = await AisleController.All(SeedData.Stores[1].StoreId).ValueAsync<List<AisleResponse>>();
+        List<AisleResponse> aisles2 = await AisleController.All(SeedData.Stores[1].StoreId).ValueAsync();
         Assert.Single(aisles2);
         Assert.DoesNotContain("New Aisle", aisles2.Select(a => a.AisleName));
     }
 
     [Fact]
-    public async Task TestEditAisleReorderFirst()
+    public async Task TestAisleEdit_ReorderToFirst()
     {
         JsonPatchDocument<AisleEditRequest> jsonPatch = new()
         {
@@ -186,20 +164,19 @@ public class AisleControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(f
             }
         };
         
-        IActionResult result = await AisleController.Edit(SeedData.Stores[0].StoreId, SeedData.Aisles[4].AisleId, jsonPatch);
-        Assert.IsType<NoContentResult>(result);
+        await AisleController.Edit(SeedData.Stores[0].StoreId, SeedData.Aisles[4].AisleId, jsonPatch).AssertIsSuccessful();
         
-        List<AisleResponse> aisles = await AisleController.All(SeedData.Stores[0].StoreId).ValueAsync<List<AisleResponse>>();
+        List<AisleResponse> aisles = await AisleController.All(SeedData.Stores[0].StoreId).ValueAsync();
         Assert.Equal(23, aisles.Count);
         Assert.Equal(SeedData.Aisles[4].AisleName, aisles.OrderBy(a => a.SortOrder).Select(a => a.AisleName).FirstOrDefault());
         
-        List<AisleResponse> aisles2 = await AisleController.All(SeedData.Stores[1].StoreId).ValueAsync<List<AisleResponse>>();
+        List<AisleResponse> aisles2 = await AisleController.All(SeedData.Stores[1].StoreId).ValueAsync();
         Assert.Single(aisles2);
         Assert.DoesNotContain(SeedData.Aisles[4].AisleName, aisles2.Select(a => a.AisleName));
     }
 
     [Fact]
-    public async Task TestEditAisleInvalidAisleId()
+    public async Task TestAisleEdit_AisleNotFound()
     {
         JsonPatchDocument<AisleEditRequest> jsonPatch = new()
         {
@@ -215,61 +192,59 @@ public class AisleControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(f
         };
         
         Error error = await AisleController.Edit(SeedData.Stores[0].StoreId, Ulid.NotFound, jsonPatch).ErrorAsync();
-        Assert.Equal((int)HttpStatusCode.NotFound, error.StatusCode);
+        error.AssertStatus(HttpStatusCode.NotFound);
         
-        await TestGetAisles();
+        await TestAisleAll();
     }
 
     [Fact]
-    public async Task TestDeleteAisle()
+    public async Task TestAisleDelete()
     {
-        IActionResult result = await AisleController.Delete(SeedData.Stores[0].StoreId, SeedData.Aisles[2].AisleId);
-        Assert.IsType<NoContentResult>(result);
-        
-        List<AisleResponse> aisles = await AisleController.All(SeedData.Stores[0].StoreId).ValueAsync<List<AisleResponse>>();
+        await AisleController.Delete(SeedData.Stores[0].StoreId, SeedData.Aisles[2].AisleId).AssertIsSuccessful();
+
+        List<AisleResponse> aisles = await AisleController.All(SeedData.Stores[0].StoreId).ValueAsync();
         Assert.Equal(22, aisles.Count);
         Assert.DoesNotContain(SeedData.Aisles[2].AisleId, aisles.Select(a => a.AisleId));
         
-        List<AisleResponse> aisles2 = await AisleController.All(SeedData.Stores[1].StoreId).ValueAsync<List<AisleResponse>>();
+        List<AisleResponse> aisles2 = await AisleController.All(SeedData.Stores[1].StoreId).ValueAsync();
         Assert.Single(aisles2);
         Assert.DoesNotContain(SeedData.Aisles[2].AisleId, aisles2.Select(a => a.AisleId));
         
         
-        IActionResult result2 = await AisleController.Delete(SeedData.Stores[1].StoreId, SeedData.Aisles[23].AisleId);
-        Assert.IsType<NoContentResult>(result2);
+        await AisleController.Delete(SeedData.Stores[1].StoreId, SeedData.Aisles[23].AisleId).AssertIsSuccessful();
         
-        List<AisleResponse> aisles3 = await AisleController.All(SeedData.Stores[0].StoreId).ValueAsync<List<AisleResponse>>();
+        List<AisleResponse> aisles3 = await AisleController.All(SeedData.Stores[0].StoreId).ValueAsync();
         Assert.Equal(22, aisles3.Count);
         Assert.DoesNotContain(SeedData.Aisles[23].AisleId, aisles3.Select(a => a.AisleId));
         
-        List<AisleResponse> aisles4 = await AisleController.All(SeedData.Stores[1].StoreId).ValueAsync<List<AisleResponse>>();
+        List<AisleResponse> aisles4 = await AisleController.All(SeedData.Stores[1].StoreId).ValueAsync();
         Assert.Empty(aisles4);
     }
 
     [Fact]
-    public async Task TestDeleteAisleInvalidAisleId()
+    public async Task TestAisleDelete_AisleNotFound()
     {
         Error error = await AisleController.Delete(SeedData.Stores[0].StoreId, Ulid.NotFound).ErrorAsync();
-        Assert.Equal((int)HttpStatusCode.NotFound, error.StatusCode);
+        error.AssertStatus(HttpStatusCode.NotFound);
         
-        await TestGetAisles();
+        await TestAisleAll();
     }
 
     [Fact]
-    public async Task TestDeleteAisleUnderWrongStore()
+    public async Task TestAisleDelete_AisleNotUnderStore()
     {
         Error error = await AisleController.Delete(SeedData.Stores[1].StoreId, SeedData.Aisles[0].AisleId).ErrorAsync();
-        Assert.Equal((int)HttpStatusCode.NotFound, error.StatusCode);
+        error.AssertStatus(HttpStatusCode.NotFound);
         
-        await TestGetAisles();
+        await TestAisleAll();
     }
 
     [Fact]
-    public async Task TestDeleteAisleStoreIdInsteadOfAisleId()
+    public async Task TestAisleDelete_InvalidAisleId()
     {
         Error error = await AisleController.Delete(SeedData.Stores[0].StoreId, SeedData.Stores[0].StoreId).ErrorAsync();
-        Assert.Equal((int)HttpStatusCode.NotFound, error.StatusCode);
+        error.AssertStatus(HttpStatusCode.NotFound);
 
-        await TestGetAisles();
+        await TestAisleAll();
     }
 }

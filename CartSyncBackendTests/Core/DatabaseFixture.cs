@@ -1,5 +1,5 @@
 using CartSyncBackend.Controllers;
-using CartSyncBackend.Database;
+using CartSyncBackend.Models;
 
 namespace CartSyncBackendTests.Core;
 
@@ -9,27 +9,27 @@ public class DatabaseFixture(DatabaseSetup fixture) : IClassFixture<DatabaseSetu
     // ReSharper disable once UnusedMember.Global
     protected DatabaseSetup Fixture = fixture;
     
-    private CartSyncContext _context = null!;
-    protected StoreController StoreController = null!;
-    protected AisleController AisleController = null!;
-    protected ItemController ItemController = null!;
-    protected PrepController PrepController = null!;
+    public required CartSyncContext Context;
+    public required StoreController StoreController;
+    public required AisleController AisleController;
+    public required ItemController ItemController;
+    public required PrepController PrepController;
     
     /// Start
     public async Task InitializeAsync()
     {
-        _context = DatabaseSetup.CreateContext();
-        StoreController = new StoreController(_context) { ObjectValidator = new ModelValidator() };
-        AisleController = new AisleController(_context) { ObjectValidator = new ModelValidator() };
-        ItemController = new ItemController(_context) { ObjectValidator = new ModelValidator() };
-        PrepController = new PrepController(_context) { ObjectValidator = new ModelValidator() };
+        Context = DatabaseSetup.CreateContext();
+        StoreController = new StoreController(Context) { ObjectValidator = new ModelValidator() };
+        AisleController = new AisleController(Context) { ObjectValidator = new ModelValidator() };
+        ItemController = new ItemController(Context) { ObjectValidator = new ModelValidator() };
+        PrepController = new PrepController(Context) { ObjectValidator = new ModelValidator() };
         
-        await _context.Database.BeginTransactionAsync();
+        await Context.Database.BeginTransactionAsync();
     }
 
     /// End
     public async Task DisposeAsync()
     {
-        await _context.Database.RollbackTransactionAsync();
+        await Context.Database.RollbackTransactionAsync();
     }
 }
