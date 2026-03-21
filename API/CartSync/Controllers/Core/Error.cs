@@ -15,6 +15,15 @@ public record Error
     [UsedImplicitly]
     public Dictionary<string, string?>? Errors { get; init; }
 
+    public static BadRequest<Error> BadRequestInvalidLogin()
+    {
+        return TypedResults.BadRequest(new Error
+        {
+            StatusCode = StatusCodes.Status400BadRequest,
+            Message = "BadRequest: Invalid username or password"
+        });
+    }
+
     public static BadRequest<Error> BadRequestModelInvalid(Dictionary<string, string?>? errors)
     {
         return TypedResults.BadRequest(new Error
@@ -43,6 +52,13 @@ public record Error
             Errors = errors
         });
     }
+    
+    public static Error Unauthorized =>
+        new()
+        {
+            StatusCode = StatusCodes.Status401Unauthorized,
+            Message = "Unauthorized: Invalid token"
+        };
 
     public static NotFound<Error> NotFound(Ulid id, string itemName)
     {

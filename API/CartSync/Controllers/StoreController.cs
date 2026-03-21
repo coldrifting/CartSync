@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CartSync.Controllers;
 
-[ApiController]
 [Tags("Locations")]
 public class StoreController(CartSyncContext db) : ControllerCore
 {

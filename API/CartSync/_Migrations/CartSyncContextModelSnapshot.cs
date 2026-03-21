@@ -287,6 +287,34 @@ namespace CartSync._Migrations
                     b.ToTable("Stores");
                 });
 
+            modelBuilder.Entity("CartSync.Models.User", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasMaxLength(26)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(26)");
+
+                    b.Property<byte[]>("Hash")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<byte[]>("Salt")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.HasKey("UserId");
+
+                    b.HasIndex("Username")
+                        .IsUnique();
+
+                    b.ToTable("Users");
+                });
+
             modelBuilder.Entity("CartSync.Models.Aisle", b =>
                 {
                     b.HasOne("CartSync.Models.Store", "Store")

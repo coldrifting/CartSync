@@ -1,9 +1,9 @@
 using System.Net;
 using CartSync.Models;
+using CartSync.Models.Seeding;
 using CartSyncTests.Core;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson.Operations;
-using SeedData = CartSync.Models.Seeding.SeedData;
 
 namespace CartSyncTests.IntegrationTests;
 

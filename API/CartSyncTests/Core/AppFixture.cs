@@ -1,6 +1,10 @@
+using System.Net;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using CartSync.Models;
+using CartSync.Models.Seeding;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -15,8 +19,9 @@ public class AppFixture(AppSetupFactory<Program> setupFactory) : IClassFixture<A
     
     private IDbContextTransaction _transaction = null!;
     private HttpClient _client = null!;
+    private HttpClient _clientAnonymous = null!;
 
-    public virtual Task InitializeAsync()
+    public async Task InitializeAsync()
     {
         Context = setupFactory.GetDbContext();
         _client = setupFactory.CreateClient(
@@ -24,17 +29,28 @@ public class AppFixture(AppSetupFactory<Program> setupFactory) : IClassFixture<A
             {
                 AllowAutoRedirect = false
             });
+        _clientAnonymous = setupFactory.CreateClient(
+            new WebApplicationFactoryClientOptions
+            {
+                AllowAutoRedirect = false
+            });
+
+        string testUser = SeedData.Users[0].Username;
+        HttpResponseMessage result = await _client.PostAsJsonAsync("/api/user/login", new UserLoginRequest(testUser, testUser));
+        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+
+        UserLoginSuccessResponse? resultContent = await result.Content.ReadFromJsonAsync<UserLoginSuccessResponse>();
+        Assert.NotNull(resultContent);
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", resultContent.Token);
         
-        _transaction = Context.Database.BeginTransaction();
-        return Task.CompletedTask;
+        _transaction = await Context.Database.BeginTransactionAsync();
     }
 
-    public Task DisposeAsync()
+    public async Task DisposeAsync()
     {
-        _transaction.Rollback();
-        return Task.CompletedTask;
+        await _transaction.RollbackAsync();
     }
-
+    
     // Workaround for custom URL lowercase rewriter
     protected async Task<HttpResponseMessage> GetAsync(string url, bool lowercase = true) => 
         await _client.GetAsync(lowercase ? url.ToLower() : url);
@@ -42,14 +58,23 @@ public class AppFixture(AppSetupFactory<Program> setupFactory) : IClassFixture<A
     protected async Task<HttpResponseMessage> PostAsync(string url, object? obj = null) => 
         await _client.PostAsync(url.ToLower(), ToJsonString(obj));
 
-    protected async Task<HttpResponseMessage> PutAsync(string url, object? obj = null) => 
-        await _client.PutAsync(url.ToLower(), ToJsonString(obj));
-
     protected async Task<HttpResponseMessage> PatchAsync<T>(string url, JsonPatchDocument<T> patchDocument) where T : class =>
         await _client.PatchAsync(url.ToLower(), ToJsonString(patchDocument));
 
     protected async Task<HttpResponseMessage> DeleteAsync(string url) => 
         await _client.DeleteAsync(url.ToLower());
+    
+    protected async Task<HttpResponseMessage> GetAsyncAnonymous(string url, bool lowercase = true) => 
+        await _clientAnonymous.GetAsync(lowercase ? url.ToLower() : url);
+
+    protected async Task<HttpResponseMessage> PostAsyncAnonymous(string url, object? obj = null) => 
+        await _clientAnonymous.PostAsync(url.ToLower(), ToJsonString(obj));
+
+    protected async Task<HttpResponseMessage> PatchAsyncAnonymous<T>(string url, JsonPatchDocument<T> patchDocument) where T : class =>
+        await _clientAnonymous.PatchAsync(url.ToLower(), ToJsonString(patchDocument));
+
+    protected async Task<HttpResponseMessage> DeleteAsyncAnonymous(string url) => 
+        await _clientAnonymous.DeleteAsync(url.ToLower());
 
     private static StringContent ToJsonString(object? obj, bool isJsonPatch = false) => 
         new(JsonSerializer.Serialize(obj),

@@ -8,7 +8,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CartSync.Controllers;
 
-[ApiController]
 [Tags("Recipes")]
 public class RecipeController(CartSyncContext db) : ControllerCore
 {

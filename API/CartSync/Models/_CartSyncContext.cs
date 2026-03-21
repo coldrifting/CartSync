@@ -10,6 +10,8 @@ namespace CartSync.Models;
 
 public class CartSyncContext(DbContextOptions options) : DbContext(options)
 {
+    public DbSet<User> Users { get; set; }
+    
     public DbSet<Store> Stores { get; set; }
     public DbSet<Aisle> Aisles { get; set; }
     public DbSet<Item> Items { get; set; }
@@ -26,6 +28,10 @@ public class CartSyncContext(DbContextOptions options) : DbContext(options)
     {
         base.OnModelCreating(modelBuilder);
 
+        modelBuilder.Entity<User>()
+            .HasIndex(u => u.Username)
+            .IsUnique();
+            
         modelBuilder.Entity<Item>()
             .HasMany<Prep>(i => i.Preps)
             .WithMany(p => p.Items)
@@ -69,6 +75,8 @@ public class CartSyncContext(DbContextOptions options) : DbContext(options)
     
     public void Seed()
     {
+        AddRange(SeedData.Users);
+        
         AddRange(SeedData.Stores);
         AddRange(SeedData.Aisles);
         AddRange(SeedData.Items);

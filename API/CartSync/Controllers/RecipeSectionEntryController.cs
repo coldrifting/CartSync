@@ -9,7 +9,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CartSync.Controllers;
 
-[ApiController]
 [Tags("Recipes")]
 public class RecipeSectionEntryController(CartSyncContext db) : ControllerCore
 {

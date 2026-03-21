@@ -1,8 +1,10 @@
 using System.Net;
 using System.Net.Http.Json;
 using CartSync.Models;
+using CartSync.Models.Seeding;
 using CartSyncTests.Core;
-using SeedData = CartSync.Models.Seeding.SeedData;
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson.Operations;
 
 namespace CartSyncTests.IntegrationTests;
 
@@ -31,5 +33,42 @@ public class PrepControllerIntegrationTests(AppSetupFactory<Program> setupFactor
 
         List<PrepResponse>? results = await redirectedResponse.Content.ReadFromJsonAsync<List<PrepResponse>>();
         Assert.Equal(expectedPreps, results);
+    }
+    
+    [Fact]
+    public async Task TestPrepRoutes_RequireAuthorization()
+    {
+        HttpResponseMessage allPrepsResult = await GetAsyncAnonymous("/api/preps");
+        Assert.Equal(HttpStatusCode.Unauthorized, allPrepsResult.StatusCode);
+
+        PrepAddRequest prepAddRequest = new() { PrepName = "New Prep Name" };
+        HttpResponseMessage addPrepResult = await PostAsyncAnonymous("/api/preps/add", prepAddRequest);
+        Assert.Equal(HttpStatusCode.Unauthorized, addPrepResult.StatusCode);
+        Assert.DoesNotContain(prepAddRequest.PrepName, Context.Preps.Select(p => p.PrepName));
+
+        Ulid prepId = SeedData.Preps[4].PrepId;
+        HttpResponseMessage prepUsagesResult = await GetAsyncAnonymous($"/api/preps/{prepId}/usages");
+        Assert.Equal(HttpStatusCode.Unauthorized, prepUsagesResult.StatusCode);
+        
+        JsonPatchDocument<PrepEditRequest> prepEditRequest = new()
+        {
+            Operations =
+            {
+                new Operation<PrepEditRequest>
+                {
+                    op = "replace",
+                    path = "/PrepName",
+                    value = prepAddRequest.PrepName
+                }
+            }
+        };
+        HttpResponseMessage prepEditResult = await PatchAsyncAnonymous($"/api/preps/{prepId}/edit", prepEditRequest);
+        Assert.Equal(HttpStatusCode.Unauthorized, prepEditResult.StatusCode);
+        Assert.DoesNotContain(prepAddRequest.PrepName, Context.Preps.Select(p => p.PrepName));
+        
+        HttpResponseMessage prepDeleteRequest = await DeleteAsyncAnonymous($"/api/preps/{prepId}/delete");
+        Assert.Equal(HttpStatusCode.Unauthorized, prepDeleteRequest.StatusCode);
+        Assert.Contains(SeedData.Preps[4].PrepName, Context.Preps.Select(p => p.PrepName));
+        Assert.Equal(7, Context.Preps.Count());
     }
 }

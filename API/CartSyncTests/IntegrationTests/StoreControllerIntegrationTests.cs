@@ -1,8 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
 using CartSync.Models;
+using CartSync.Models.Seeding;
 using CartSyncTests.Core;
-using SeedData = CartSync.Models.Seeding.SeedData;
 
 namespace CartSyncTests.IntegrationTests;
 

@@ -1,10 +1,13 @@
 using System.Diagnostics.CodeAnalysis;
 using CartSync.Models.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CartSync.Controllers.Core;
 
+[ApiController]
+[Authorize]
 public class ControllerCore : ControllerBase
 {
     protected bool TryGetEditObject<TEdit>(IEditable<TEdit> source, JsonPatchDocument<TEdit> patch, [NotNullWhen(true)] out TEdit? editRequest, Ulid? storeId = null)

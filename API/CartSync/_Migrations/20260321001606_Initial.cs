@@ -64,6 +64,20 @@ namespace CartSync._Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Users",
+                columns: table => new
+                {
+                    UserId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
+                    Username = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    Hash = table.Column<byte[]>(type: "bytea", nullable: false),
+                    Salt = table.Column<byte[]>(type: "bytea", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Users", x => x.UserId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ItemPreps",
                 columns: table => new
                 {
@@ -258,6 +272,12 @@ namespace CartSync._Migrations
                 name: "IX_RecipeSections_RecipeId",
                 table: "RecipeSections",
                 column: "RecipeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_Username",
+                table: "Users",
+                column: "Username",
+                unique: true);
         }
 
         /// <inheritdoc />
@@ -274,6 +294,9 @@ namespace CartSync._Migrations
 
             migrationBuilder.DropTable(
                 name: "RecipeSectionEntries");
+
+            migrationBuilder.DropTable(
+                name: "Users");
 
             migrationBuilder.DropTable(
                 name: "Aisles");
