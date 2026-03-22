@@ -22,4 +22,18 @@ public static class Hash
             .Replace('/', '_')
             .Replace("=", "");
     }
+
+    public const int KeySize = 64;
+    public const int Iterations = 350000;
+    public static byte[] HashPassword(string password, out byte[] salt)
+    {
+        salt = RandomNumberGenerator.GetBytes(KeySize);
+        byte[] hash = Rfc2898DeriveBytes.Pbkdf2(
+            Encoding.UTF8.GetBytes(password),
+            salt,
+            Iterations,
+            HashAlgorithmName.SHA512,
+            KeySize);
+         return hash;
+    }
 }

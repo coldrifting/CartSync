@@ -1,11 +1,12 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-    </PropertyGroup>
+      <UserSecretsId>8d8db8cb-80e2-41c0-b045-a101413957fd</UserSecretsId>
+  </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="coverlet.collector" Version="8.0.0">

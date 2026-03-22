@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json.Serialization;
 using CartSync.Controllers.Core;
 using CartSync.Models;
@@ -37,25 +38,22 @@ builder.Services.AddDbContext<CartSyncContext>((_, options) =>
     }
 });
 
-string jwtIssuer = builder.Configuration["Jwt:Issuer"] 
-                     ?? throw new InvalidOperationException("Jwt Issuer string not found.");
+string key = builder.Configuration["Authentication:Secret"] 
+             ?? throw new InvalidOperationException("Authentication:Secret not found");
+SymmetricSecurityKey jwtSigningKey = new(Encoding.UTF8.GetBytes(key));
 
-string jwtAudience = builder.Configuration["Jwt:Audience"] 
-                     ?? throw new InvalidOperationException("Jwt Audience string not found.");
+builder.Services.AddSingleton(new JwtAuthentication(key));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(jwtOptions =>
     {
         jwtOptions.TokenValidationParameters = new TokenValidationParameters
         {
-            // TODO - Make this more secure
             ValidateIssuer = false,
             ValidateAudience = false,
-            //ValidIssuer = jwtIssuer,
-            //ValidAudience = jwtAudience,
-            IssuerSigningKey = new SymmetricSecurityKey(Authorization.SecretBytes)
+            IssuerSigningKey = jwtSigningKey
         };
-        jwtOptions.Events = Authorization.BearerEvents();
+        jwtOptions.Events = JwtEvents.BearerEvents();
         
         // Production server sits behind reverse proxy that terminates HTTPS
         jwtOptions.RequireHttpsMetadata = false;
