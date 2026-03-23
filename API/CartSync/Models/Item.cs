@@ -29,6 +29,7 @@ public class Item : IEditable<ItemEditRequest>, IResponse<Item, ItemResponse>
     
     // Enforce max of 1 linked aisle per store
     public List<Aisle> Aisles { get; init; } = [];
+    public List<ItemAisle> ItemAisles { get; init; } = [];
     
     // Projections
     public static Expression<Func<Item, ItemResponse>> ToResponse =>
@@ -44,11 +45,11 @@ public class Item : IEditable<ItemEditRequest>, IResponse<Item, ItemResponse>
                 .Select(Prep.ToResponse)
                 .ToImmutableList()
                 .WithValueSemantics(),
-            Locations = item.Aisles
+            Locations = item.ItemAisles
                 .AsQueryable()
                 .OrderBy(a => a.Store.StoreName)
-                .ThenBy(a => a.AisleName)
-                .Select(Aisle.ToResponse)
+                .ThenBy(a => a.Aisle.AisleName)
+                .Select(ItemAisle.ToResponse)
                 .ToImmutableList()
                 .WithValueSemantics()
         };
@@ -67,12 +68,12 @@ public class Item : IEditable<ItemEditRequest>, IResponse<Item, ItemResponse>
                 .Select(Prep.ToResponse)
                 .ToImmutableList()
                 .WithValueSemantics(),
-            Locations = item.Aisles
+            Locations = item.ItemAisles
                 .AsQueryable()
                 .OrderBy(a => a.Store.StoreName)
-                .ThenBy(a => a.AisleName)
+                .ThenBy(a => a.Aisle.AisleName)
                 .Where(a => a.StoreId == storeId)
-                .Select(Aisle.ToResponse)
+                .Select(ItemAisle.ToResponse)
                 .ToImmutableList()
                 .WithValueSemantics()
         };
@@ -147,7 +148,7 @@ public record ItemResponse
     public required ItemTemp ItemTemp { get; init; }
     public required UnitType DefaultUnitType { get; init; }
     public required ReadOnlyList<PrepResponse> Preps { get; init; }
-    public required ReadOnlyList<AisleResponse> Locations { get; init; }
+    public required ReadOnlyList<ItemAisleResponse> Locations { get; init; }
 }
 
 public record ItemMinimalResponse

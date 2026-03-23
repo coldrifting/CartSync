@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq.Expressions;
 using CartSync.Objects.Enums;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,4 +24,24 @@ public class ItemAisle
 
     [ForeignKey(nameof(AisleId))]
     public Aisle Aisle { set; get => field ?? throw Aisle.NotLoaded; }
+    
+    // Projections
+    public static Expression<Func<ItemAisle, ItemAisleResponse>> ToResponse =>
+        itemAisle => new ItemAisleResponse
+        {
+            AisleId = itemAisle.AisleId,
+            StoreId = itemAisle.StoreId,
+            AisleName = itemAisle.Aisle.AisleName,
+            SortOrder = itemAisle.Aisle.SortOrder,
+            Bay = itemAisle.Bay
+        };
+}
+
+public record ItemAisleResponse
+{
+    public required Ulid AisleId { get; init; }
+    public required Ulid StoreId { get; init; }
+    public required string AisleName { get; init; }
+    public required BayType Bay { get; init; }
+    public required int SortOrder { get; init; }
 }
