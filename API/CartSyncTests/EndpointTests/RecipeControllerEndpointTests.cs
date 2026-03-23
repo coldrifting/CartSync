@@ -1,11 +1,11 @@
 using System.Net;
 using CartSync.Models;
-using CartSyncTests.Core;
+using CartSyncTests.Base;
 
-namespace CartSyncTests.IntegrationTests;
+namespace CartSyncTests.EndpointTests;
 
 [Collection("DatabaseTests")]
-public class RecipeControllerIntegrationTests(AppSetupFactory<Program> setupFactory) : AppFixture(setupFactory)
+public class RecipeControllerEndpointTests(AppSetupFactory<Program> setupFactory) : AppFixture(setupFactory)
 {
     [Fact]
     public async Task TestRecipeAdd_EmptyStringShouldError()

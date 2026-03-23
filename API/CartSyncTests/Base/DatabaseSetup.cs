@@ -2,7 +2,7 @@ using CartSync.Models;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 
-namespace CartSyncTests.Core;
+namespace CartSyncTests.Base;
 
 [UsedImplicitly]
 public class DatabaseSetup : IDisposable

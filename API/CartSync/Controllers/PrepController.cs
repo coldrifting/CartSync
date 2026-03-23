@@ -9,13 +9,13 @@ using Microsoft.EntityFrameworkCore;
 namespace CartSync.Controllers;
 
 [Tags("Items")]
-public class PrepController(CartSyncContext db) : ControllerCore
+public class PrepController(CartSyncContext context) : ControllerCore(context)
 {
     [HttpGet]
     [Route("/api/preps")]
     public async Task<Ok<List<PrepResponse>>> All()
     {
-        List<PrepResponse> preps = await db.Preps
+        List<PrepResponse> preps = await Db.Preps
             .Select(Prep.ToResponse)
             .OrderBy(p => p.PrepName)
             .ThenBy(p => p.PrepId)
@@ -33,8 +33,8 @@ public class PrepController(CartSyncContext db) : ControllerCore
             PrepName = prepAddRequest.PrepName
         };
         
-        await db.Preps.AddAsync(prep);
-        await db.SaveChangesAsync();
+        Db.Add(prep);
+        await Db.SaveChangesAsync();
         
         return TypedResults.Created($"/api/preps/{prep.PrepId}", prep.ToNewResponse);
     }
@@ -43,7 +43,7 @@ public class PrepController(CartSyncContext db) : ControllerCore
     [Route("/api/preps/{prepId}/usages")]
     public async Task<Results<Ok<UsageResponse>, BadRequest<Error>, NotFound<Error>>> Usages(Ulid prepId)
     {
-        Prep? prep = await db.Preps
+        Prep? prep = await Db.Preps
             .Include(p => p.Items)
             .Include(p => p.ItemPreps)
             .Include(p => p.RecipeSectionEntries)
@@ -78,7 +78,7 @@ public class PrepController(CartSyncContext db) : ControllerCore
     [Consumes("application/json-patch+json")]
     public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Edit(Ulid prepId, [FromBody] JsonPatchDocument<PrepEditRequest> prepPatch)
     {
-        Prep? prep = await db.Preps.FindAsync(prepId);
+        Prep? prep = await Db.Preps.FindAsync(prepId);
         if (prep == null)
         {
             return Prep.NotFound(prepId);
@@ -90,7 +90,7 @@ public class PrepController(CartSyncContext db) : ControllerCore
         }
         
         prep.UpdateFromEditRequest(prepEdit);
-        await db.SaveChangesAsync();
+        await Db.SaveChangesAsync();
         
         return TypedResults.NoContent();
     }
@@ -99,14 +99,14 @@ public class PrepController(CartSyncContext db) : ControllerCore
     [Route("/api/preps/{prepId}/delete")]
     public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Delete(Ulid prepId)
     {
-        Prep? prep = await db.Preps.FindAsync(prepId);
+        Prep? prep = await Db.Preps.FindAsync(prepId);
         if (prep == null)
         {
             return Prep.NotFound(prepId);
         }
         
-        db.Remove(prep);
-        await db.SaveChangesAsync();
+        Db.Remove(prep);
+        await Db.SaveChangesAsync();
         
         return TypedResults.NoContent();
     }

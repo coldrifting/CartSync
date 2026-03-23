@@ -13,6 +13,8 @@ public record User
 
     public required byte[] Hash { get; init; }
     public required byte[] Salt { get; init; }
+
+    public static InvalidOperationException NotLoaded => new("User Navigation Property was not loaded");
 }
 
 public record UserLoginRequest(string Username, string Password);

@@ -8,18 +8,26 @@ using Microsoft.EntityFrameworkCore;
 namespace CartSync.Controllers;
 
 [Tags("Locations")]
-public class StoreController(CartSyncContext db) : ControllerCore
+public class StoreController(CartSyncContext context) : ControllerCore(context)
 {
     [HttpGet]
     [Route("/api/stores")]
     public async Task<Ok<List<StoreResponse>>> All()
     {
-        List<StoreResponse> stores = await db.Stores
+        List<StoreResponse> stores = await Db.Stores
             .OrderBy(s => s.StoreName)
             .Select(Store.ToResponse)
             .ToListAsync();
 
         return TypedResults.Ok(stores);
+    }
+    
+    [HttpGet]
+    [Route("/api/stores/selected")]
+    public async Task<Ok<StoreResponse>> Selected()
+    {
+        Store store = await GetSelectedStore();
+        return TypedResults.Ok(Store.ToResponse.Compile()(store));
     }
     
     [HttpPost]
@@ -31,10 +39,24 @@ public class StoreController(CartSyncContext db) : ControllerCore
             StoreName = storeAddRequest.StoreName,
         };
         
-        await db.AddAsync(store);
-        await db.SaveChangesAsync();
+        Db.Add(store);
+        await Db.SaveChangesAsync();
         
         return TypedResults.Created($"/api/stores/{store.StoreId}", store.ToNewResponse);
+    }
+
+    [HttpPost]
+    [Route("/api/stores/{storeId}/select")]
+    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Select(Ulid storeId)
+    {
+        Store? store = await Db.Stores.FindAsync(storeId);
+        if (store == null)
+        {
+            return Store.NotFound(storeId);
+        }
+        
+        await SetSelectedStore(storeId);
+        return TypedResults.NoContent();
     }
 
     [HttpPatch]
@@ -42,7 +64,7 @@ public class StoreController(CartSyncContext db) : ControllerCore
     [Consumes("application/json-patch+json")]
     public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Edit(Ulid storeId, [FromBody] JsonPatchDocument<StoreEditRequest> storePatch)
     {
-        Store? store = await db.Stores.FindAsync(storeId);
+        Store? store = await Db.Stores.FindAsync(storeId);
         if (store == null)
         {
             return Store.NotFound(storeId);
@@ -54,23 +76,29 @@ public class StoreController(CartSyncContext db) : ControllerCore
         }
 
         store.UpdateFromEditRequest(storeEdit);
-        await db.SaveChangesAsync();
+        await Db.SaveChangesAsync();
 
         return TypedResults.NoContent();
     }
     
     [HttpDelete]
     [Route("/api/stores/{storeId}/delete")]
-    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Delete(Ulid storeId)
+    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>, Conflict<Error>>> Delete(Ulid storeId)
     {
-        Store? store = await db.Stores.FindAsync(storeId);
+        Store? store = await Db.Stores.FindAsync(storeId);
         if (store == null)
         {
             return Store.NotFound(storeId);
         }
 
-        db.Stores.Remove(store);
-        await db.SaveChangesAsync();
+        Store selectedStore = await GetSelectedStore();
+        if (selectedStore == store)
+        {
+            return Store.ConflictSelected(storeId);
+        }
+
+        Db.Stores.Remove(store);
+        await Db.SaveChangesAsync();
         
         return TypedResults.NoContent();
     }

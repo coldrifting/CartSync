@@ -1,11 +1,11 @@
 using System.Net;
 using CartSync.Models;
-using CartSyncTests.Core;
+using CartSyncTests.Base;
 
-namespace CartSyncTests.IntegrationTests;
+namespace CartSyncTests.EndpointTests;
 
 [Collection("DatabaseTests")]
-public class UserControllerIntegrationTests(AppSetupFactory<Program> setupFactory) : AppFixture(setupFactory)
+public class UserControllerEndpointTests(AppSetupFactory<Program> setupFactory) : AppFixture(setupFactory)
 {
     [Theory]
     [InlineData("test", "test")]

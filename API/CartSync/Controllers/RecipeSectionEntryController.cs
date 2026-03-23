@@ -10,13 +10,13 @@ using Microsoft.EntityFrameworkCore;
 namespace CartSync.Controllers;
 
 [Tags("Recipes")]
-public class RecipeSectionEntryController(CartSyncContext db) : ControllerCore
+public class RecipeSectionEntryController(CartSyncContext context) : ControllerCore(context)
 {
     [HttpPost]
     [Route("/api/recipes/{recipeId}/sections/{recipeSectionId}/entries/add")]
     public async Task<Results<Created<RecipeSectionEntryResponse>, BadRequest<Error>, NotFound<Error>>> Add(Ulid recipeId, Ulid recipeSectionId, [Required] RecipeSectionEntryAddRequest recipeSectionEntryAddRequest)
     {
-        RecipeSection? recipeSection = await db.RecipeSections
+        RecipeSection? recipeSection = await Db.RecipeSections
             .Include(rs => rs.RecipeSectionEntries)
             .FirstOrDefaultAsync(recipeSection => recipeSection.RecipeSectionId == recipeSectionId);
         if (recipeSection == null)
@@ -30,7 +30,7 @@ public class RecipeSectionEntryController(CartSyncContext db) : ControllerCore
         }
 
         Ulid itemId = recipeSectionEntryAddRequest.ItemId;
-        Item? item = await db.Items.FindAsync(itemId);
+        Item? item = await Db.Items.FindAsync(itemId);
         if (item == null)
         {
             return Item.NotFound(itemId);
@@ -39,7 +39,7 @@ public class RecipeSectionEntryController(CartSyncContext db) : ControllerCore
         Prep? prep;
         if (recipeSectionEntryAddRequest.PrepId is { } prepId)
         {
-            prep = await db.Preps.FindAsync(prepId);
+            prep = await Db.Preps.FindAsync(prepId);
             if (prep == null)
             {
                 return Prep.NotFound(prepId);
@@ -59,8 +59,8 @@ public class RecipeSectionEntryController(CartSyncContext db) : ControllerCore
             Amount = recipeSectionEntryAddRequest.Amount
         };
 
-        await db.RecipeSectionEntries.AddAsync(recipeSectionEntry);
-        await db.SaveChangesAsync();
+        Db.Add(recipeSectionEntry);
+        await Db.SaveChangesAsync();
         
         return TypedResults.Created($"/api/recipes/{recipeId}/sections/{recipeSectionId}/entries/{recipeSectionEntry.RecipeSectionEntryId}", recipeSectionEntry.ToNewResponse);
     }
@@ -70,7 +70,7 @@ public class RecipeSectionEntryController(CartSyncContext db) : ControllerCore
     [Consumes("application/json-patch+json")]
     public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Edit(Ulid recipeId, Ulid recipeSectionId, Ulid recipeSectionEntryId, [FromBody] JsonPatchDocument<RecipeSectionEntryEditRequest> recipeSectionEntryPatch)
     {
-        RecipeSectionEntry? recipeSectionEntry = await db.RecipeSectionEntries
+        RecipeSectionEntry? recipeSectionEntry = await Db.RecipeSectionEntries
             .Include(recipeSectionEntry => recipeSectionEntry.RecipeSection)
             .ThenInclude(recipeSection => recipeSection.RecipeSectionEntries)
             .FirstOrDefaultAsync(rse => rse.RecipeSectionEntryId == recipeSectionEntryId);
@@ -94,21 +94,21 @@ public class RecipeSectionEntryController(CartSyncContext db) : ControllerCore
             return Error.BadRequestPatchInvalid(ModelState);
         }
 
-        if (await db.Items.FindAsync(recipeSectionEntry.ItemId) == null)
+        if (await Db.Items.FindAsync(recipeSectionEntry.ItemId) == null)
         {
             return Item.NotFound(recipeSectionEntry.ItemId);
         }
 
         if (recipeSectionEntryEdit.PrepId is { } prepId)
         {
-            if (await db.Preps.FindAsync(prepId) == null)
+            if (await Db.Preps.FindAsync(prepId) == null)
             {
                 return Prep.NotFound(prepId);
             }
         }
         
         recipeSectionEntry.UpdateFromEditRequest(recipeSectionEntryEdit);
-        await db.SaveChangesAsync();
+        await Db.SaveChangesAsync();
         
         return TypedResults.NoContent();
     }
@@ -117,7 +117,7 @@ public class RecipeSectionEntryController(CartSyncContext db) : ControllerCore
     [Route("/api/recipes/{recipeId}/sections/{recipeSectionId}/entries/{recipeSectionEntryId}/delete")]
     public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Delete(Ulid recipeId, Ulid recipeSectionId, Ulid recipeSectionEntryId)
     {
-        RecipeSectionEntry? recipeSectionEntry = await db.RecipeSectionEntries
+        RecipeSectionEntry? recipeSectionEntry = await Db.RecipeSectionEntries
             .Include(recipeSectionEntry => recipeSectionEntry.RecipeSection)
             .ThenInclude(recipeSection => recipeSection.RecipeSectionEntries)
             .FirstOrDefaultAsync(recipeSectionEntry => recipeSectionEntry.RecipeSectionEntryId == recipeSectionEntryId);
@@ -136,12 +136,12 @@ public class RecipeSectionEntryController(CartSyncContext db) : ControllerCore
             return RecipeSectionEntry.NotFoundUnderRecipe(recipeSectionEntryId, recipeId);
         }
         
-        db.RecipeSectionEntries.Remove(recipeSectionEntry);
+        Db.RecipeSectionEntries.Remove(recipeSectionEntry);
         
         // Refresh Sort Order
         recipeSectionEntry.RecipeSection.RecipeSectionEntries.RefreshOrder();
 
-        await db.SaveChangesAsync();
+        await Db.SaveChangesAsync();
         
         return TypedResults.NoContent();
     }

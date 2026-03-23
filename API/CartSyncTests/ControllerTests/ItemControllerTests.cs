@@ -3,22 +3,26 @@ using CartSync.Controllers.Core;
 using CartSync.Models;
 using CartSync.Models.Joins;
 using CartSync.Objects.Enums;
-using CartSyncTests.Core;
+using CartSyncTests.Base;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson.Operations;
 using SeedData = CartSync.Models.Seeding.SeedData;
 
-namespace CartSyncTests.UnitTests;
+namespace CartSyncTests.ControllerTests;
 
 [Collection("DatabaseTests")]
-public class ItemControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fixture)
+public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixture)
 {
     [Theory]
     [InlineData(0, 0, 20, 21)]
     [InlineData(1, 23, -1, -1)]
     public async Task TestItemAll(int storeIndex, int aisleIndex1, int aisleIndex2, int aisleIndex3)
     {
-        List<ItemResponse> items = await ItemController.All(SeedData.Stores[storeIndex].StoreId).ValueAsync();
+        Ulid storeId = SeedData.Stores[storeIndex].StoreId;
+        
+        await StoreController.Select(storeId);
+        
+        List<ItemResponse> items = await ItemController.All().ValueAsync();
         Assert.Equal(SeedData.Items.Count, items.Count);
         
         Assert.Contains(items, ir => ir.ItemId == SeedData.Items[0].ItemId);
@@ -29,13 +33,6 @@ public class ItemControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fi
         
         Assert.Contains(items, ir => ir.ItemId == SeedData.Items[209].ItemId);
         AssertItemEqual(items.Single(i => i.ItemId == SeedData.Items[209].ItemId), 209, [aisleIndex3], 0);
-    }
-
-    [Fact]
-    public async Task TestItemAll_StoreNotFound()
-    {
-        Error error = await ItemController.All(Ulid.NotFound).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
     }
 
     [Fact]
@@ -104,7 +101,7 @@ public class ItemControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fi
         ItemResponse fetch = await ItemController.Details(result.item.ItemId).ValueAsync();
         Assert.Equal(newItem.ItemName, fetch.ItemName);
 
-        List<ItemResponse> results = await ItemController.All(SeedData.Stores[0].StoreId).ValueAsync();
+        List<ItemResponse> results = await ItemController.All().ValueAsync();
         Assert.Equal(SeedData.Items.Count + 1, results.Count);
         Assert.Contains(results, r => r.ItemId ==  result.item.ItemId);
         
@@ -132,7 +129,7 @@ public class ItemControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fi
         
         await ItemController.Edit(itemId, jsonPatch).AssertIsSuccessful();
         
-        List<ItemResponse> items = await ItemController.All(SeedData.Stores[0].StoreId).ValueAsync();
+        List<ItemResponse> items = await ItemController.All().ValueAsync();
         Assert.Equal(SeedData.Items.Count, items.Count);
         Assert.Contains("New Item", items.Where(i => i.ItemId == itemId).Select(i => i.ItemName));
     }
@@ -153,12 +150,11 @@ public class ItemControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fi
             }
         };
 
-        Ulid storeId = SeedData.Stores[0].StoreId;
         Ulid itemId = SeedData.Items[4].ItemId;
         
         await ItemController.Edit(itemId, jsonPatch).AssertIsSuccessful();
         
-        List<ItemResponse> items = await ItemController.All(storeId).ValueAsync();
+        List<ItemResponse> items = await ItemController.All().ValueAsync();
         Assert.Equal(SeedData.Items.Count, items.Count);
         Assert.Contains(ItemTemp.Frozen, items.Where(i => i.ItemId == itemId).Select(i => i.ItemTemp));
     }
@@ -584,11 +580,10 @@ public class ItemControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fi
     [Fact]
     public async Task TestItemDelete()
     {
-        Ulid storeId = SeedData.Stores[0].StoreId;
         Ulid itemId = SeedData.Items[66].ItemId;
         await ItemController.Delete(itemId).AssertIsSuccessful();
         
-        List<ItemResponse> items = await ItemController.All(storeId).ValueAsync();
+        List<ItemResponse> items = await ItemController.All().ValueAsync();
         Assert.Equal(SeedData.Items.Count - 1, items.Count);
         Assert.DoesNotContain(items, r => r.ItemId == itemId);
     }

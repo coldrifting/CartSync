@@ -7,48 +7,34 @@ using CartSync.Models;
 using CartSync.Models.Seeding;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.EntityFrameworkCore.Storage;
 
-namespace CartSyncTests.Core;
+namespace CartSyncTests.Base;
 
 public class AppFixture(AppSetupFactory<Program> setupFactory) : IClassFixture<AppSetupFactory<Program>>, IAsyncLifetime
 {
     protected const string BadIdString = "BadId";
     
-    protected CartSyncContext Context = null!;
-    
-    private IDbContextTransaction _transaction = null!;
+    public required CartSyncContext Context;
     private HttpClient _client = null!;
     private HttpClient _clientAnonymous = null!;
 
     public async Task InitializeAsync()
     {
+        WebApplicationFactoryClientOptions clientOptions = new()
+        {
+            AllowAutoRedirect = false
+        };
+
         Context = setupFactory.GetDbContext();
-        _client = setupFactory.CreateClient(
-            new WebApplicationFactoryClientOptions
-            {
-                AllowAutoRedirect = false
-            });
-        _clientAnonymous = setupFactory.CreateClient(
-            new WebApplicationFactoryClientOptions
-            {
-                AllowAutoRedirect = false
-            });
-
-        string testUser = SeedData.Users[0].Username;
-        HttpResponseMessage result = await _client.PostAsJsonAsync("/api/user/login", new UserLoginRequest(testUser, testUser));
-        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
-
-        UserLoginSuccessResponse? resultContent = await result.Content.ReadFromJsonAsync<UserLoginSuccessResponse>();
-        Assert.NotNull(resultContent);
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", resultContent.Token);
-        
-        _transaction = await Context.Database.BeginTransactionAsync();
+        _client = setupFactory.CreateClient(clientOptions);
+        _clientAnonymous = setupFactory.CreateClient(clientOptions);
+            
+        await InitializeAuthorizedMethods();
     }
 
-    public async Task DisposeAsync()
+    public Task DisposeAsync()
     {
-        await _transaction.RollbackAsync();
+        return Task.CompletedTask;
     }
     
     // Workaround for custom URL lowercase rewriter
@@ -80,4 +66,16 @@ public class AppFixture(AppSetupFactory<Program> setupFactory) : IClassFixture<A
         new(JsonSerializer.Serialize(obj),
             Encoding.UTF8, 
             isJsonPatch ? "application/json" : "application/json-patch+json");
+
+    private async Task InitializeAuthorizedMethods()
+    {
+        string testUser = SeedData.Users[0].Username;
+        HttpResponseMessage result = await _client.PostAsJsonAsync("/api/user/login", 
+            new UserLoginRequest(testUser, testUser));
+        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+
+        UserLoginSuccessResponse? resultContent = await result.Content.ReadFromJsonAsync<UserLoginSuccessResponse>();
+        Assert.NotNull(resultContent);
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", resultContent.Token);
+    }
 }

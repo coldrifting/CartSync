@@ -10,19 +10,14 @@ using Microsoft.EntityFrameworkCore;
 namespace CartSync.Controllers;
 
 [Tags("Items")]
-public class ItemController(CartSyncContext db) : ControllerCore
+public class ItemController(CartSyncContext context) : ControllerCore(context)
 {
     [HttpGet]
     [Route("/api/items")]
-    public async Task<Results<Ok<List<ItemResponse>>, BadRequest<Error>, NotFound<Error>>> All(Ulid storeId)
+    public async Task<Results<Ok<List<ItemResponse>>, BadRequest<Error>, NotFound<Error>>> All()
     {
-        Store? store = await db.Stores.FindAsync(storeId);
-        if (store is null)
-        {
-            return Store.NotFound(storeId);
-        }
-        
-        List<ItemResponse> allItems = await db.Items
+        Ulid storeId = await GetSelectedStoreId();
+        List<ItemResponse> allItems = await Db.Items
                 .Include(i => i.Preps)
                 .Include(i => i.Aisles)
                 .Select(Item.ToLocatedResponse(storeId))
@@ -36,7 +31,7 @@ public class ItemController(CartSyncContext db) : ControllerCore
     [Route("/api/items/{itemId}/usages")]
     public async Task<Results<Ok<UsageResponse>, BadRequest<Error>, NotFound<Error>>> Usages(Ulid itemId)
     {
-        Item? item = await db.Items
+        Item? item = await Db.Items
             .Include(i => i.RecipeSectionEntries)
             .ThenInclude(r => r.RecipeSection)
             .ThenInclude(r => r.Recipe)
@@ -68,8 +63,8 @@ public class ItemController(CartSyncContext db) : ControllerCore
             ItemName = itemAddRequest.ItemName
         };
         
-        await db.AddAsync(item);
-        await db.SaveChangesAsync();
+        Db.Add(item);
+        await Db.SaveChangesAsync();
 
         return TypedResults.Created($"/api/items/{item.ItemId}", item.ToNewResponse);
     }
@@ -78,7 +73,7 @@ public class ItemController(CartSyncContext db) : ControllerCore
     [Route("/api/items/{itemId}")]
     public async Task<Results<Ok<ItemResponse>, BadRequest<Error>, NotFound<Error>>> Details(Ulid itemId)
     {
-        ItemResponse? itemResponse = await db.Items
+        ItemResponse? itemResponse = await Db.Items
             .Include(i => i.Preps)
             .Include(i => i.Aisles)
             .Select(Item.ToResponse)
@@ -97,7 +92,7 @@ public class ItemController(CartSyncContext db) : ControllerCore
     [Consumes("application/json-patch+json")]
     public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Edit(Ulid itemId, [FromBody] JsonPatchDocument<ItemEditRequest> itemPatch, Ulid? storeId = null)
     {
-        Item? item = await db.Items
+        Item? item = await Db.Items
             .Include(i => i.Preps)
             .Include(i => i.Aisles)
             .FirstOrDefaultAsync(i => i.ItemId == itemId);
@@ -113,7 +108,7 @@ public class ItemController(CartSyncContext db) : ControllerCore
 
         if (itemEdit.PrepIds.Count > 0)
         {
-            List<Ulid> allPrepIds = db.Preps.Select(p => p.PrepId).ToList();
+            List<Ulid> allPrepIds = Db.Preps.Select(p => p.PrepId).ToList();
             foreach (Ulid prepId in itemEdit.PrepIds.Where(prepId => !allPrepIds.Contains(prepId)))
             {
                 return Prep.NotFound(prepId);
@@ -122,7 +117,7 @@ public class ItemController(CartSyncContext db) : ControllerCore
         
         if (storeId is not null)
         {
-            Store? store = await db.Stores
+            Store? store = await Db.Stores
                     .Include(s => s.Aisles)
                     .FirstOrDefaultAsync(s => s.StoreId == storeId);
             if (store == null)
@@ -133,21 +128,21 @@ public class ItemController(CartSyncContext db) : ControllerCore
             Ulid? aisleId = itemEdit.AisleId;
             if (aisleId is null)
             {
-                ItemAisle? itemAisle = await db.ItemAisles.FindAsync(itemId, storeId);
+                ItemAisle? itemAisle = await Db.ItemAisles.FindAsync(itemId, storeId);
                 if (itemAisle != null)
                 {
-                    db.ItemAisles.Remove(itemAisle);
+                    Db.ItemAisles.Remove(itemAisle);
                 }
             }
             else
             {
-                Aisle? aisle = await db.Aisles.FindAsync(aisleId);
+                Aisle? aisle = await Db.Aisles.FindAsync(aisleId);
                 if (aisle is null)
                 {
                     return Aisle.NotFound(aisleId.Value);
                 }
                 
-                Aisle? aisleInStore = await db.Aisles
+                Aisle? aisleInStore = await Db.Aisles
                     .Where(a => a.StoreId == storeId)
                     .FirstOrDefaultAsync(a => a.AisleId == aisleId.Value);
                 if (aisleInStore is null)
@@ -155,14 +150,14 @@ public class ItemController(CartSyncContext db) : ControllerCore
                     return Aisle.NotFoundUnderStore(aisleId.Value, storeId.Value);
                 }
                 
-                ItemAisle? itemAisle = await db.ItemAisles.FindAsync(itemId, storeId);
+                ItemAisle? itemAisle = await Db.ItemAisles.FindAsync(itemId, storeId);
                 if (itemAisle is not null)
                 {
                     itemAisle.AisleId = aisleId.Value;
                 }
                 else
                 {
-                    db.ItemAisles.Add(new ItemAisle
+                    Db.ItemAisles.Add(new ItemAisle
                     {
                         ItemId = itemId,
                         StoreId = storeId.Value,
@@ -173,7 +168,7 @@ public class ItemController(CartSyncContext db) : ControllerCore
         }
 
         item.UpdateFromEditRequest(itemEdit);
-        await db.SaveChangesAsync();
+        await Db.SaveChangesAsync();
         
         return TypedResults.NoContent();
     }
@@ -182,14 +177,14 @@ public class ItemController(CartSyncContext db) : ControllerCore
     [Route("/api/items/{itemId}/delete")]
     public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Delete(Ulid itemId)
     {
-        Item? i = await db.Items.FindAsync(itemId);
+        Item? i = await Db.Items.FindAsync(itemId);
         if (i == null)
         {
             return Item.NotFound(itemId);
         }
 
-        db.Items.Remove(i);
-        await db.SaveChangesAsync();
+        Db.Items.Remove(i);
+        await Db.SaveChangesAsync();
         
         return TypedResults.NoContent();
     }

@@ -163,6 +163,30 @@ namespace CartSync._Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "SelectedStores",
+                columns: table => new
+                {
+                    UserId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
+                    StoreId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SelectedStores", x => x.UserId);
+                    table.ForeignKey(
+                        name: "FK_SelectedStores_Stores_StoreId",
+                        column: x => x.StoreId,
+                        principalTable: "Stores",
+                        principalColumn: "StoreId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_SelectedStores_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "RecipeSectionEntries",
                 columns: table => new
                 {
@@ -274,6 +298,11 @@ namespace CartSync._Migrations
                 column: "RecipeId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_SelectedStores_StoreId",
+                table: "SelectedStores",
+                column: "StoreId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Users_Username",
                 table: "Users",
                 column: "Username",
@@ -296,7 +325,7 @@ namespace CartSync._Migrations
                 name: "RecipeSectionEntries");
 
             migrationBuilder.DropTable(
-                name: "Users");
+                name: "SelectedStores");
 
             migrationBuilder.DropTable(
                 name: "Aisles");
@@ -309,6 +338,9 @@ namespace CartSync._Migrations
 
             migrationBuilder.DropTable(
                 name: "RecipeSections");
+
+            migrationBuilder.DropTable(
+                name: "Users");
 
             migrationBuilder.DropTable(
                 name: "Stores");

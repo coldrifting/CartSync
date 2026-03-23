@@ -69,6 +69,15 @@ public record Error
         });
     }
 
+    public static Conflict<Error> Conflict(string msg)
+    {
+        return TypedResults.Conflict(new Error
+        {
+            StatusCode = StatusCodes.Status409Conflict,
+            Message = $"Conflict: {msg}"
+        });
+    }
+
     public static NotFound<Error> NotFoundUnder(Ulid id1, string itemName1, Ulid id2, string itemName2)
     {
         return TypedResults.NotFound(new Error

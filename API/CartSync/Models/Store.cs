@@ -52,6 +52,11 @@ public class Store : IEditable<StoreEditRequest>, IResponse<Store, StoreResponse
     {
         return Error.NotFound(storeId, "Store");
     }
+    
+    public static Conflict<Error> ConflictSelected(Ulid storeId)
+    {
+        return Error.Conflict($"Unable to delete store with id {storeId} while it is still the selected store");
+    }
 
     public static InvalidOperationException NotLoaded => new("Store Navigation Property was not loaded");
 }

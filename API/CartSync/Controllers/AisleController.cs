@@ -9,13 +9,13 @@ using Microsoft.EntityFrameworkCore;
 namespace CartSync.Controllers;
 
 [Tags("Locations")]
-public class AisleController(CartSyncContext db) : ControllerCore
+public class AisleController(CartSyncContext context) : ControllerCore(context)
 {
     [HttpGet]
     [Route("/api/stores/{storeId}/aisles")]
     public async Task<Results<Ok<List<AisleResponse>>, BadRequest<Error>, NotFound<Error>>> All(Ulid storeId)
     {
-        Store? s = await db.Stores
+        Store? s = await Db.Stores
             .Include(s => s.Aisles)
             .ThenInclude(a => a.Items)
             .FirstOrDefaultAsync(store => store.StoreId == storeId);
@@ -37,7 +37,7 @@ public class AisleController(CartSyncContext db) : ControllerCore
     [Route("/api/stores/{storeId}/aisles/{aisleId}/usages")]
     public async Task<Results<Ok<UsageResponse>, BadRequest<Error>, NotFound<Error>>> Usages(Ulid storeId, Ulid aisleId)
     {
-        Aisle? aisle = await db.Aisles
+        Aisle? aisle = await Db.Aisles
             .Include(a => a.Items)
             .FirstOrDefaultAsync(a => a.AisleId == aisleId);
         if (aisle == null)
@@ -64,7 +64,7 @@ public class AisleController(CartSyncContext db) : ControllerCore
     [Route("/api/stores/{storeId}/aisles/add")]
     public async Task<Results<Created<AisleResponse>, BadRequest<Error>, NotFound<Error>>> Add(Ulid storeId, AisleAddRequest aisleAddRequest)
     {
-        Store? s = await db.Stores
+        Store? s = await Db.Stores
             .Include(store => store.Aisles)
             .FirstOrDefaultAsync(store => store.StoreId == storeId);
         if (s == null)
@@ -79,8 +79,8 @@ public class AisleController(CartSyncContext db) : ControllerCore
             SortOrder = s.Aisles.Count
         };
         
-        await db.AddAsync(aisle);
-        await db.SaveChangesAsync();
+        Db.Add(aisle);
+        await Db.SaveChangesAsync();
 
         return TypedResults.Created($"/api/stores/{storeId}/aisles/{aisle.AisleId}", aisle.ToNewResponse);
     }
@@ -90,7 +90,7 @@ public class AisleController(CartSyncContext db) : ControllerCore
     [Consumes("application/json-patch+json")]
     public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Edit(Ulid storeId, Ulid aisleId, JsonPatchDocument<AisleEditRequest> aislePatch)
     {
-        Aisle? aisle = await db.Aisles
+        Aisle? aisle = await Db.Aisles
             .Include(aisle => aisle.Store)
             .ThenInclude(store => store.Aisles)
             .FirstOrDefaultAsync(aisle => aisle.AisleId == aisleId);
@@ -105,7 +105,7 @@ public class AisleController(CartSyncContext db) : ControllerCore
         }
         
         aisle.UpdateFromEditRequest(aisleEdit);
-        await db.SaveChangesAsync();
+        await Db.SaveChangesAsync();
         
         return TypedResults.NoContent();
     }
@@ -114,7 +114,7 @@ public class AisleController(CartSyncContext db) : ControllerCore
     [Route("/api/stores/{storeId}/aisles/{aisleId}/delete")]
     public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Delete(Ulid storeId, Ulid aisleId)
     {
-        Aisle? aisle = await db.Aisles
+        Aisle? aisle = await Db.Aisles
             .Include(aisle => aisle.Store)
             .ThenInclude(store => store.Aisles)
             .FirstOrDefaultAsync(aisle => aisle.AisleId == aisleId);
@@ -128,12 +128,12 @@ public class AisleController(CartSyncContext db) : ControllerCore
             return Aisle.NotFoundUnderStore(aisleId, storeId);
         }
 
-        db.Aisles.Remove(aisle);
+        Db.Aisles.Remove(aisle);
         
         // Refresh Sort Order
         aisle.Store.Aisles.RefreshOrder();
         
-        await db.SaveChangesAsync();
+        await Db.SaveChangesAsync();
         
         return TypedResults.NoContent();
     }

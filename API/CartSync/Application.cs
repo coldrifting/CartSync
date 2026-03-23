@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using System.Text.Json.Serialization;
 using CartSync.Controllers.Core;
@@ -38,6 +39,18 @@ builder.Services.AddDbContext<CartSyncContext>((_, options) =>
     }
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        policy =>
+        {
+            policy.SetIsOriginAllowed(origin => new Uri(origin).IsLoopback);
+            policy.AllowAnyHeader();
+            policy.AllowAnyMethod();
+        });
+});
+
+
 string key = builder.Configuration["Authentication:Secret"] 
              ?? throw new InvalidOperationException("Authentication:Secret not found");
 SymmetricSecurityKey jwtSigningKey = new(Encoding.UTF8.GetBytes(key));
@@ -54,6 +67,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = jwtSigningKey
         };
         jwtOptions.Events = JwtEvents.BearerEvents();
+        jwtOptions.MapInboundClaims = false;
         
         // Production server sits behind reverse proxy that terminates HTTPS
         jwtOptions.RequireHttpsMetadata = false;
@@ -111,6 +125,7 @@ WebApplication app = builder.Build();
 
 // enforce lowercase URLs
 // by redirecting uppercase urls to lowercase urls
+app.UseCors();
 app.UseRewriter(new RewriteOptions().Add(new RedirectLowerCaseRule()));
 
 // Configure the HTTP request pipeline.
@@ -124,7 +139,8 @@ if (app.Environment.IsDevelopment())
     );
 }
 
-
+//JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+//app.UseAuthentication();
 app.MapControllers();
 
 app.Run();

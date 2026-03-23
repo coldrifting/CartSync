@@ -124,6 +124,26 @@ namespace CartSync._Migrations
                     b.ToTable("ItemPreps");
                 });
 
+            modelBuilder.Entity("CartSync.Models.Joins.SelectedStore", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasMaxLength(26)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(26)");
+
+                    b.Property<string>("StoreId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(26)");
+
+                    b.HasKey("UserId");
+
+                    b.HasIndex("StoreId");
+
+                    b.ToTable("SelectedStores");
+                });
+
             modelBuilder.Entity("CartSync.Models.Prep", b =>
                 {
                     b.Property<string>("PrepId")
@@ -370,6 +390,25 @@ namespace CartSync._Migrations
                     b.Navigation("Item");
 
                     b.Navigation("Prep");
+                });
+
+            modelBuilder.Entity("CartSync.Models.Joins.SelectedStore", b =>
+                {
+                    b.HasOne("CartSync.Models.Store", "Store")
+                        .WithMany()
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CartSync.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Store");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("CartSync.Models.RecipeInstruction", b =>

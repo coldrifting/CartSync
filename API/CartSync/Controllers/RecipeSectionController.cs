@@ -10,13 +10,13 @@ using Microsoft.EntityFrameworkCore;
 namespace CartSync.Controllers;
 
 [Tags("Recipes")]
-public class RecipeSectionController(CartSyncContext db) : ControllerCore
+public class RecipeSectionController(CartSyncContext context) : ControllerCore(context)
 {
     [HttpPost]
     [Route("/api/recipes/{recipeId}/sections/add")]
     public async Task<Results<Created<RecipeSectionResponse>, BadRequest<Error>, NotFound<Error>>> Add(Ulid recipeId, [Required] string recipeSectionName)
     {
-        Recipe? recipe = await db.Recipes
+        Recipe? recipe = await Db.Recipes
             .Include(r => r.RecipeSections)
             .FirstOrDefaultAsync(recipe => recipe.RecipeId == recipeId);
         if (recipe == null)
@@ -31,8 +31,8 @@ public class RecipeSectionController(CartSyncContext db) : ControllerCore
             SortOrder = recipe.RecipeSections.Count
         };
         
-        await db.RecipeSections.AddAsync(recipeSection);
-        await db.SaveChangesAsync();
+        Db.Add(recipeSection);
+        await Db.SaveChangesAsync();
         
         return TypedResults.Created($"/api/recipes/{recipeId}/sections/{recipeSection.RecipeSectionId}", recipeSection.ToNewResponse);
     }
@@ -42,7 +42,7 @@ public class RecipeSectionController(CartSyncContext db) : ControllerCore
     [Consumes("application/json-patch+json")]
     public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Edit(Ulid recipeId, Ulid recipeSectionId, [FromBody] JsonPatchDocument<RecipeSectionEditRequest> recipeSectionEditPatch)
     {
-        RecipeSection? recipeSection = await db.RecipeSections
+        RecipeSection? recipeSection = await Db.RecipeSections
             .Include(recipeSection => recipeSection.Recipe)
             .ThenInclude(recipe => recipe.RecipeSections)
             .FirstOrDefaultAsync(recipeSection => recipeSection.RecipeSectionId == recipeSectionId);
@@ -62,7 +62,7 @@ public class RecipeSectionController(CartSyncContext db) : ControllerCore
         }
 
         recipeSection.UpdateFromEditRequest(recipeSectionEdit);
-        await db.SaveChangesAsync();
+        await Db.SaveChangesAsync();
         return TypedResults.NoContent();
     }
     
@@ -70,7 +70,7 @@ public class RecipeSectionController(CartSyncContext db) : ControllerCore
     [Route("/api/recipes/{recipeId}/sections/{recipeSectionId}/delete")]
     public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Delete(Ulid recipeId, Ulid recipeSectionId)
     {
-        RecipeSection? recipeSection = await db.RecipeSections
+        RecipeSection? recipeSection = await Db.RecipeSections
             .Include(recipeSection => recipeSection.Recipe)
             .ThenInclude(recipe => recipe.RecipeSections)
             .FirstOrDefaultAsync(recipeSection => recipeSection.RecipeSectionId == recipeSectionId);
@@ -84,12 +84,12 @@ public class RecipeSectionController(CartSyncContext db) : ControllerCore
             return RecipeSection.NotFoundUnderRecipe(recipeSectionId, recipeId);
         }
 
-        db.RecipeSections.Remove(recipeSection);
+        Db.RecipeSections.Remove(recipeSection);
         
         // Refresh Sort Order
         recipeSection.Recipe.RecipeSections.RefreshOrder();
 
-        await db.SaveChangesAsync();
+        await Db.SaveChangesAsync();
         
         return TypedResults.NoContent();
     }

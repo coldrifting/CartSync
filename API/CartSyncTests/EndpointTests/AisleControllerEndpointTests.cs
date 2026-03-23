@@ -1,26 +1,17 @@
 using System.Net;
 using CartSync.Models;
 using CartSync.Models.Seeding;
-using CartSyncTests.Core;
+using CartSyncTests.Base;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson.Operations;
 
-namespace CartSyncTests.IntegrationTests;
+namespace CartSyncTests.EndpointTests;
 
 [Collection("DatabaseTests")]
-public class AisleControllerIntegrationTests(AppSetupFactory<Program> setupFactory) : AppFixture(setupFactory)
+public class AisleControllerEndpointTests(AppSetupFactory<Program> setupFactory) : AppFixture(setupFactory)
 {
     [Fact]
-    public async Task TestGetAislesHttp()
-    {
-        string url = $"/api/stores/{SeedData.Stores[0].StoreId}/aisles";
-        HttpResponseMessage response = await GetAsync(url);
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-    }
-    
-    [Fact]
-    public async Task TestGetAislesStoreIdInvalid()
+    public async Task TestAislesAll_StoreIdInvalid()
     {
         string url = $"api/stores/{BadIdString}/aisles";
         HttpResponseMessage response = await GetAsync(url);
@@ -29,30 +20,7 @@ public class AisleControllerIntegrationTests(AppSetupFactory<Program> setupFacto
     }
     
     [Fact]
-    public async Task TestEditAislePatch()
-    {
-        JsonPatchDocument<AisleEditRequest> jsonPatch = new()
-        {
-            Operations =
-            {
-                new Operation<AisleEditRequest>
-                {
-                    op = "replace",
-                    path = "/AisleName",
-                    value = "Edited Aisle"
-                }
-            }
-        };
-        
-        string url = $"api/stores/{SeedData.Stores[0].StoreId}/aisles/{SeedData.Aisles[0].AisleId}/edit";
-        HttpResponseMessage response = await PatchAsync(url, jsonPatch);
-        
-        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-        Assert.Contains("Edited Aisle", Context.Aisles.Select(aisle => aisle.AisleName));
-    }
-    
-    [Fact]
-    public async Task TestEditAisleInvalidPatch()
+    public async Task TestAisleEdit_InvalidPatch()
     {
         JsonPatchDocument<AisleEditRequest> jsonPatch = new()
         {
@@ -75,7 +43,7 @@ public class AisleControllerIntegrationTests(AppSetupFactory<Program> setupFacto
     }
     
     [Fact]
-    public async Task TestDeleteAisleBadAisleId()
+    public async Task TestAisleDelete_BadAisleId()
     {
         Ulid storeId = SeedData.Stores[0].StoreId;
         string url = $"api/stores/{storeId}/aisles/{storeId}/delete";

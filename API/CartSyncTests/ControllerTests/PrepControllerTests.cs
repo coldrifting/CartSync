@@ -1,15 +1,15 @@
 using System.Net;
 using CartSync.Controllers.Core;
 using CartSync.Models;
-using CartSyncTests.Core;
+using CartSyncTests.Base;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson.Operations;
 using SeedData = CartSync.Models.Seeding.SeedData;
 
-namespace CartSyncTests.UnitTests;
+namespace CartSyncTests.ControllerTests;
 
 [Collection("DatabaseTests")]
-public class PrepControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fixture)
+public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixture)
 {
     [Fact]
     public async Task TestPrepAll()

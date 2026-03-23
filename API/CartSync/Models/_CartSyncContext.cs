@@ -23,6 +23,8 @@ public class CartSyncContext(DbContextOptions options) : DbContext(options)
     public DbSet<RecipeInstruction> RecipeInstructions { get; set; }
     public DbSet<RecipeSection> RecipeSections { get; set; }
     public DbSet<RecipeSectionEntry> RecipeSectionEntries { get; set; }
+    
+    public DbSet<SelectedStore> SelectedStores { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -87,6 +89,8 @@ public class CartSyncContext(DbContextOptions options) : DbContext(options)
         AddRange(SeedData.RecipeInstructions);
         AddRange(SeedData.RecipeSections);
         AddRange(SeedData.RecipeSectionEntries);
+        
+        AddRange(SeedData.SelectedStores);
         
         SaveChanges();
     }

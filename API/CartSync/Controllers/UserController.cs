@@ -10,13 +10,13 @@ namespace CartSync.Controllers;
 
 [AllowAnonymous]
 [Tags("Users")]
-[Route("/api/user/[action]")]
-public class UserController(CartSyncContext db, JwtAuthentication auth) : ControllerCore
+public class UserController(CartSyncContext context, JwtAuthentication auth) : ControllerCore(context)
 {
     [HttpPost]
+    [Route("/api/user/login")]
     public async Task<Results<Ok<UserLoginSuccessResponse>, BadRequest<Error>>> Login(UserLoginRequest payload)
     {
-        User? user = await db.Users.FirstOrDefaultAsync(u => u.Username == payload.Username);
+        User? user = await Db.Users.FirstOrDefaultAsync(u => u.Username == payload.Username);
 
         if (user is null || !auth.IsPasswordValid(payload.Password, user.Hash, user.Salt))
         {

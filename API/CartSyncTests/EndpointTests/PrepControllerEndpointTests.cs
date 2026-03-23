@@ -2,14 +2,14 @@ using System.Net;
 using System.Net.Http.Json;
 using CartSync.Models;
 using CartSync.Models.Seeding;
-using CartSyncTests.Core;
+using CartSyncTests.Base;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson.Operations;
 
-namespace CartSyncTests.IntegrationTests;
+namespace CartSyncTests.EndpointTests;
 
 [Collection("DatabaseTests")]
-public class PrepControllerIntegrationTests(AppSetupFactory<Program> setupFactory) : AppFixture(setupFactory)
+public class PrepControllerEndpointTests(AppSetupFactory<Program> setupFactory) : AppFixture(setupFactory)
 {
     [Fact]
     public async Task TestLowercaseRedirect()

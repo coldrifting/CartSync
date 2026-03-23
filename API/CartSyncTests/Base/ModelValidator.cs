@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
-namespace CartSyncTests.Core;
+namespace CartSyncTests.Base;
 
 public class ModelValidator : IObjectModelValidator
 {

@@ -5,10 +5,10 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace CartSyncTests.Core;
+namespace CartSyncTests.Base;
 
 [UsedImplicitly]
-public class AppSetupFactory<TProgram> : WebApplicationFactory<TProgram> where TProgram : class
+public class AppSetupFactory<TProgram> : WebApplicationFactory<TProgram>, IDisposable where TProgram : class
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -30,7 +30,13 @@ public class AppSetupFactory<TProgram> : WebApplicationFactory<TProgram> where T
             DatabaseSetup.ResetDatabase();
         });
     }
-    
+
+    public new void Dispose()
+    {
+        DatabaseSetup.ResetDatabase();
+        GC.SuppressFinalize(this);
+    }
+
     public CartSyncContext GetDbContext()
     {
         IServiceScope scope = Services.CreateScope();

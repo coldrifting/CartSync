@@ -4,7 +4,7 @@ using CartSync.Controllers.Core;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 
-namespace CartSyncTests.Core;
+namespace CartSyncTests.Base;
 
 public static class Extensions
 {
@@ -96,6 +96,12 @@ public static class Extensions
     }
     
     extension(Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> results)
+    {
+        public async Task AssertIsSuccessful() => AssertIsNoContent((await results).Result);
+        public async Task<Error> ErrorAsync() => GetValue<Error>((await results).Result);
+    }
+    
+    extension(Task<Results<NoContent, BadRequest<Error>, NotFound<Error>, Conflict<Error>>> results)
     {
         public async Task AssertIsSuccessful() => AssertIsNoContent((await results).Result);
         public async Task<Error> ErrorAsync() => GetValue<Error>((await results).Result);

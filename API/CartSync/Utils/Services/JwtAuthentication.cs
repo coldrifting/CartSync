@@ -16,7 +16,7 @@ public class JwtAuthentication(string secret)
 	private string Secret { get; } = secret;
 
 	// Expire time of generated JWT tokens in minutes
-    private const int ExpireTime = 120; 
+    private const int ExpireTime = 360; 
 
     public string GenerateToken(User user)
     {

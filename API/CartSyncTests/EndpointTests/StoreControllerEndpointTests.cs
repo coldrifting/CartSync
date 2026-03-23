@@ -1,36 +1,22 @@
 using System.Net;
 using System.Net.Http.Json;
 using CartSync.Models;
-using CartSync.Models.Seeding;
-using CartSyncTests.Core;
+using CartSyncTests.Base;
 
-namespace CartSyncTests.IntegrationTests;
+namespace CartSyncTests.EndpointTests;
 
 [Collection("DatabaseTests")]
-public class StoreControllerIntegrationTests(AppSetupFactory<Program> setupFactory) : AppFixture(setupFactory)
+public class StoreControllerEndpointTests(AppSetupFactory<Program> setupFactory) : AppFixture(setupFactory)
 {
     [Fact]
-    public async Task TestAddStoreBadNameEmptyString()
+    public async Task TestStoreAdd_BadStoreNameEmptyString()
     {
         HttpResponseMessage result = await PostAsync("api/stores/add", new StoreAddRequest { StoreName = "" });
         Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
     }
     
     [Fact]
-    public async Task TestHttpDeleteStore()
-    {
-        string url = $"/api/stores/{SeedData.Stores[0].StoreId}/delete";
-        HttpResponseMessage response = await DeleteAsync(url);
-        
-        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-        
-        HttpResponseMessage response2 = await DeleteAsync(url);
-        
-        Assert.Equal(HttpStatusCode.NotFound, response2.StatusCode);
-    }
-    
-    [Fact]
-    public async Task TestHttpAddStore()
+    public async Task TestStoreAdd_HasLocationHeader()
     {
         const string url = "/api/stores/add";
         HttpResponseMessage response = await PostAsync(url, new StoreAddRequest { StoreName = "New Store Name" });
@@ -46,7 +32,20 @@ public class StoreControllerIntegrationTests(AppSetupFactory<Program> setupFacto
         
         Assert.Equal(pathId, value.StoreId);
         
+        Assert.Equal(3, (await GetStores()).Count);
         Assert.Equal(3, Context.Stores.Count());
         Assert.Contains("New Store Name", Context.Stores.Select(s => s.StoreName));
+        
+        // Restore state
+        await DeleteAsync(location.OriginalString);
+    }
+
+    private async Task<List<StoreResponse>> GetStores()
+    {
+        HttpResponseMessage response = await GetAsync($"api/stores");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        List<StoreResponse>? values = await response.Content.ReadFromJsonAsync<List<StoreResponse>>();
+        Assert.NotNull(values);
+        return values;
     }
 }

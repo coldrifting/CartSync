@@ -1,15 +1,15 @@
 ﻿using System.Net;
 using CartSync.Controllers.Core;
 using CartSync.Models;
-using CartSyncTests.Core;
+using CartSyncTests.Base;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson.Operations;
 using SeedData = CartSync.Models.Seeding.SeedData;
 
-namespace CartSyncTests.UnitTests;
+namespace CartSyncTests.ControllerTests;
 
 [Collection("DatabaseTests")]
-public class StoreControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(fixture)
+public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixture)
 {
     [Fact]
     public async Task TestStoreAll()
@@ -35,6 +35,31 @@ public class StoreControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(f
 
         Assert.Equal(3, stores.Count);
         Assert.Contains("new store", stores.Select(s => s.StoreName));
+    }
+    
+    [Fact]
+    public async Task TestStoreSelection()
+    {
+        Ulid store0 = SeedData.Stores[0].StoreId;
+        Ulid store1 = SeedData.Stores[1].StoreId;
+        
+        Error error = await StoreController.Delete(SeedData.Stores[0].StoreId).ErrorAsync();
+        error.AssertStatus(HttpStatusCode.Conflict);
+        
+        await StoreController.Select(store1).AssertIsSuccessful();
+
+        StoreResponse storeResponse = await StoreController.Selected().ValueAsync();
+        Assert.Equal(store1, storeResponse.StoreId);
+
+        await StoreController.Delete(store0).AssertIsSuccessful();
+        
+        Error error2 = await StoreController.Delete(store1).ErrorAsync();
+        error2.AssertStatus(HttpStatusCode.Conflict);
+
+        List<StoreResponse> stores = await StoreController.All().ValueAsync();
+
+        Assert.Single(stores);
+        Assert.Contains(store1, stores.Select(s => s.StoreId));
     }
     
     [Fact]
@@ -167,12 +192,24 @@ public class StoreControllerUnitTests(DatabaseSetup fixture) : DatabaseFixture(f
     [Fact]
     public async Task TestStoreDelete()
     {
-        await StoreController.Delete(SeedData.Stores[0].StoreId);
+        await StoreController.Delete(SeedData.Stores[1].StoreId).AssertIsSuccessful();
 
         List<StoreResponse> stores = await StoreController.All().ValueAsync();
 
         Assert.Single(stores);
-        Assert.DoesNotContain(SeedData.Stores[0].StoreId, stores.Select(s => s.StoreId));
+        Assert.DoesNotContain(SeedData.Stores[1].StoreId, stores.Select(s => s.StoreId));
+    }
+    
+    [Fact]
+    public async Task TestStoreDelete_SelectedShouldError()
+    {
+        Error error = await StoreController.Delete(SeedData.Stores[0].StoreId).ErrorAsync();
+        error.AssertStatus(HttpStatusCode.Conflict);
+
+        List<StoreResponse> stores = await StoreController.All().ValueAsync();
+
+        Assert.Equal(2, stores.Count);
+        Assert.Contains(SeedData.Stores[0].StoreId, stores.Select(s => s.StoreId));
     }
     
     [Fact]

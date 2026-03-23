@@ -1,4 +1,5 @@
 global using UsageResponse = System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<(System.Ulid, string)>>;
+using System.Security.Claims;
 using CartSync.Models.Interfaces;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -13,6 +14,12 @@ public static class Extensions
         {
             return str.EndsWith('y') ? string.Concat(str.AsSpan(0, str.Length - 1), "ies") : str + "s";
         }
+    }
+
+    extension(ClaimsPrincipal user)
+    {
+        public string? Username => 
+            user.Claims.FirstOrDefault(x => x.Type == "sub")?.Value;
     }
     
     extension(UsageResponse usages)

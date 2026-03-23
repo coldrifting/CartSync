@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using CartSync.Controllers.Core;
 using CartSync.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -35,13 +34,10 @@ public static class JwtEvents
 		    {
 			    CartSyncContext dbContext = context.HttpContext.RequestServices.GetRequiredService<CartSyncContext>();
 
-			    if (context.Principal?.Claims is {} claims)
+			    string? username = context.Principal?.Username;
+			    if (dbContext.Users.Any(u => u.Username == username))
 			    {
-				    string? username = claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
-				    if (dbContext.Users.Any(u => u.Username == username))
-				    {
-					    return Task.CompletedTask;
-				    }
+				    return Task.CompletedTask;
 			    }
 
 			    context.Fail("Invalid Token");
