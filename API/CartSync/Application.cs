@@ -1,4 +1,3 @@
-using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using System.Text.Json.Serialization;
 using CartSync.Controllers.Core;
@@ -7,7 +6,6 @@ using CartSync.Utils.Scalar;
 using CartSync.Utils.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Rewrite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -123,10 +121,7 @@ builder.Services.Configure<RouteOptions>(options =>
 
 WebApplication app = builder.Build();
 
-// enforce lowercase URLs
-// by redirecting uppercase urls to lowercase urls
 app.UseCors();
-app.UseRewriter(new RewriteOptions().Add(new RedirectLowerCaseRule()));
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -139,8 +134,6 @@ if (app.Environment.IsDevelopment())
     );
 }
 
-//JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
-//app.UseAuthentication();
 app.MapControllers();
 
 app.Run();
