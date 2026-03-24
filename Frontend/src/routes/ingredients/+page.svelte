@@ -1,8 +1,31 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
     import type {PageProps} from './$types';
-
+    import ListItem from '$lib/ListItem.svelte';
+    import ListButton from "$lib/ListButton.svelte";
+    
     let {data}: PageProps = $props();
+    
+    let dialog: HTMLDialogElement;
+    function onDialogClick(e: Event) {
+        if (e.target === dialog) {
+            dialog.close();
+        }
+    }
+    
+    let dialog2: HTMLDialogElement;
+    function dialog2Close() {
+        deleteId = '';
+        itemInUseText = '';
+        dialog2.close();
+    }
+    
+    function onDialog2Click(e: Event) {
+        if (e.target === dialog2) {
+            dialog2Close();
+        }
+    }
+    
     let filterTerm = $state('');
 
     let filter = (items: IngredientByStore[]) => {
@@ -12,14 +35,118 @@
     }
     
     let filteredIngredients: IngredientByStore[] = $derived(filter(data.ingredients));
+    
+    let deleteId = $state('');
+    let renameId = $state('');
+    let newName = $state('');
+    let itemInUseText = $state('');
+    
+    $effect(() => {
+        if (deleteId.length != 0) {
+            let tryDeleteForm = document.getElementById("tryDeleteForm") as HTMLFormElement;
+            if (tryDeleteForm) {
+                tryDeleteForm.requestSubmit();
+            }
+        }
+    });
+    
+    let actions: ContextAction[] = [
+        {
+            label: "Rename", 
+            isDestructive: false,
+            action: (val, name) => {
+                renameId = val;
+                newName = name ?? "";
+                dialog.showModal();
+            }
+        },
+        {
+            label: "Delete", 
+            isDestructive: true,
+            action: (val, _) => {
+                deleteId = val;
+            }
+        }
+    ];
 </script>
+
+<svelte:head>
+	<title>Ingredients</title>
+</svelte:head>
+
+<dialog class="backdrop:backdrop-blur-xs absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-lg p-10 pb-5 mb-10 mt-2 bg-gray-700 rounded-2xl"
+        bind:this={dialog} 
+        onclick={onDialogClick}>
+        <form 
+                class="w-full" 
+                method="POST" 
+                action="?/rename" 
+                id="renameForm" 
+                use:enhance={() => {dialog.close()}}>
+            <input hidden name="id" bind:value={renameId} />
+            
+            <h1 class="text-2xl mb-5">Rename Item</h1>
+            
+            <div class="mb-3 flex flex-row h-9">
+                <label class="w-30" for="newName">Item Name</label>
+                <input class="flex-1 p-3 rounded-lg bg-gray-900" 
+                       name="newName"
+                       bind:value={newName}
+                        required />
+            </div>
+            <div class="mb-3 flex flex-row">
+                <input type="submit" class="flex-1 h-10 rounded-lg bg-blue-500 hover:bg-blue-600 active:bg-blue-700" />
+            </div>
+        </form>
+</dialog>
+
+
+<dialog class="backdrop:backdrop-blur-xs absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-lg p-10 pb-5 mb-10 mt-2 bg-gray-700 rounded-2xl"
+        bind:this={dialog2} 
+        onclick={onDialog2Click}>
+        <form 
+                class="w-full" 
+                method="POST" 
+                action="?/delete" 
+                id="deleteForm" 
+                use:enhance={() => {dialog2Close()}}>
+            <input hidden name="id" bind:value={deleteId} />
+            
+            <h1 class="text-2xl mb-5">Confirm Item Deletion</h1>
+            
+            <div class="mb-3 flex flex-row">
+                <p class="whitespace-pre-line">{itemInUseText}</p>
+            </div>
+            <div class="mb-3 flex flex-row">
+                <button onclick={dialog2Close} type="button" class="flex-1 h-10 rounded-lg bg-blue-500 hover:bg-blue-600 active:bg-blue-700" >Cancel</button>
+                <button type="submit" class="flex-1 h-10 rounded-lg bg-red-500 hover:bg-red-600 active:bg-red-700" >Delete Item</button>
+            </div>
+        </form>
+</dialog>
+
+<form method="POST" 
+      action="?/tryDelete" 
+      id="tryDeleteForm" 	
+        use:enhance={() => {
+            return async ({ result, update }) => {
+                if (result.type === 'failure' && result.data) {
+                    itemInUseText = (result.data ?? "").toString()
+                    dialog2.showModal();
+                } else {
+                    await update();
+                }
+            };
+        }}
+      >
+    <input hidden name="id" bind:value={deleteId} />
+    <input hidden type="submit" />
+</form>
 
 <h1 class="text-4xl font-semibold">Ingredients</h1>
 <form method="POST"
       action="?/addIngredient" 
-      use:enhance={() => {
-          console.log(filterTerm)
-      }}>
+      use:enhance
+>
     <label for="search" class="block mb-2.5 text-sm font-medium text-heading sr-only">Search</label>
     <div class="relative">
         <div class="absolute inset-y-0 flex items-center ps-3 pointer-events-none">
@@ -38,66 +165,25 @@
                 required/>
     </div>
 
-<div>
-    {#each filteredIngredients as ingredient, i}
-        <a href="/ingredients/{ingredient.itemId}">
-            <div class="
-        flex 
-        p-2.5
-        pl-5
-        pr-3
-        border-r-0
-        border-l-0
-        border-t-0
-        border-gray-400
-        backdrop-brightness-125
-        hover:bg-blue-700 
-        {i === 0 ? ' rounded-t-lg' : ''} 
-        {i === filteredIngredients.length - 1 ? ' rounded-b-lg border-0' : 'border'}">
-                <p class="flex-1">{ingredient.itemName}</p>
-                <div class="flex">
-                    <p class="inset-e-10 text-gray-600">{ingredient.location?.aisleName ?? "(No Location)"}</p>
-                    <div class="flex flex-col">
-                        <svg class="flex-1 w-4 stroke-gray-600"
-                             aria-hidden="true"
-                             xmlns="http://www.w3.org/2000/svg"
-                             width="16"
-                             height="16"
-                             fill="none"
-                             viewBox="0 0 16 16">
-                            <path stroke="strokeColor" stroke-linecap="round" stroke-width="1.5"
-                                  d="M8,0 16,8 8,16"/>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-        </a>
-    {/each}
-    {#if filteredIngredients.length === 0}
-            <input name="itemName" 
-                   value="{filterTerm}" 
-                   hidden />
-            <button type="submit" 
-                    aria-label="Add Ingredient"
-                    class="
-                        flex 
-                        p-2.5
-                        pl-5
-                        pr-3
-                        border-r-0
-                        border-l-0
-                        border-t-0
-                        bg-blue-500
-                        hover:bg-blue-700 
-                        active:bg-blue-900 
-                        backdrop-brightness-125
-                        rounded-lg
-                        w-full"
-                    disabled="{filterTerm.trim().length === 0}">
-                <span class="font-semibold">Add Ingredient</span>
-            </button>
-    {/if}
-</div>
+    <div>
+        <ul>
+            {#each filteredIngredients as ingredient, i}
+                <input name="itemName" value="{filterTerm}" hidden />
+                <ListItem name={ingredient.itemName}
+                          id={ingredient.itemId}
+                          subtitle={ingredient.location?.aisleName ?? "(No Location)"}
+                          link="/ingredients/{ingredient.itemId}" 
+                          isTop={i === 0}
+                          isBottom={i === filteredIngredients.length - 1}
+                          actions={actions}
+                />
+            {/each}
+            {#if filteredIngredients.length === 0}
+                <input name="itemName" value="{filterTerm}" hidden />
+                <ListButton name="Add Ingredient"/>
+            {/if}
+        </ul>
+    </div>
 </form>
 
 <style lang="postcss">

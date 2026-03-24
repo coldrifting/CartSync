@@ -45,6 +45,32 @@ declare global {
 		name: string;
 		icon: string;
 	}
+	
+	class ContextAction {
+		label: string;
+		isDestructive: boolean;
+		action: (val: string, data: string | null) => void;
+	}
+	
+	class ItemMinimal {
+		itemId: string;
+		itemName: string;
+		itemTemp: string;
+	}
+	
+	class RecipeMinimal {
+		recipeId: string;
+		recipeName: string;
+		url: string;
+		isPinned: boolean;
+	}
+	
+	class PrepUsagesReport {
+		itemId: string;
+		itemName: string;
+		items: ItemMinimal[];
+		recipes: RecipeMinimal[];
+	}
 }
 
 export {};

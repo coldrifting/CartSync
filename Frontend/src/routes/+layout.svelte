@@ -82,6 +82,7 @@
 						mb-3
 						h-12
 						w-12
+						hover:cursor-pointer
 						group-hover:w-48
 						rounded-lg
 						
