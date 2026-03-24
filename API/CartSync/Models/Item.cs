@@ -42,6 +42,7 @@ public class Item : IEditable<ItemEditRequest>, IResponse<Item, ItemResponse>
             Preps = item.Preps
                 .AsQueryable()
                 .OrderBy(p => p.PrepName)
+                .ThenBy(p => p.PrepId)
                 .Select(Prep.ToResponse)
                 .ToImmutableList()
                 .WithValueSemantics(),
@@ -54,8 +55,8 @@ public class Item : IEditable<ItemEditRequest>, IResponse<Item, ItemResponse>
                 .WithValueSemantics()
         };
     
-    public static Expression<Func<Item, ItemResponse>> ToLocatedResponse(Ulid storeId) =>
-        item => new ItemResponse
+    public static Expression<Func<Item, ItemByStoreResponse>> ToByStoreResponse(Ulid storeId) =>
+        item => new ItemByStoreResponse
         {
             ItemId = item.ItemId,
             ItemName = item.ItemName,
@@ -64,19 +65,15 @@ public class Item : IEditable<ItemEditRequest>, IResponse<Item, ItemResponse>
             Preps = item.Preps
                 .AsQueryable()
                 .OrderBy(p => p.PrepName)
-                .ThenBy(p => p.PrepId)
                 .Select(Prep.ToResponse)
                 .ToImmutableList()
                 .WithValueSemantics(),
-            Locations = item.ItemAisles
+            Location = item.ItemAisles
                 .AsQueryable()
-                .OrderBy(a => a.Store.StoreName)
-                .ThenBy(a => a.Aisle.AisleName)
-                .Where(a => a.StoreId == storeId)
                 .Select(ItemAisle.ToResponse)
-                .ToImmutableList()
-                .WithValueSemantics()
+                .FirstOrDefault(a => a.StoreId == storeId)
         };
+    
 
     public static Expression<Func<Item, ItemMinimalResponse>> ToMinimalResponse =>
         item => new ItemMinimalResponse
@@ -149,6 +146,16 @@ public record ItemResponse
     public required UnitType DefaultUnitType { get; init; }
     public required ReadOnlyList<PrepResponse> Preps { get; init; }
     public required ReadOnlyList<ItemAisleResponse> Locations { get; init; }
+}
+
+public record ItemByStoreResponse
+{
+    public required Ulid ItemId { get; init; }
+    public required string ItemName { get; init; }
+    public required ItemTemp ItemTemp { get; init; }
+    public required UnitType DefaultUnitType { get; init; }
+    public required ReadOnlyList<PrepResponse> Preps { get; init; }
+    public required ItemAisleResponse? Location { get; init; }
 }
 
 public record ItemMinimalResponse

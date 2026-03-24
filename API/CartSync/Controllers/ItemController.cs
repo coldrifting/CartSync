@@ -14,14 +14,15 @@ public class ItemController(CartSyncContext context) : ControllerCore(context)
 {
     [HttpGet]
     [Route("/api/items")]
-    public async Task<Results<Ok<List<ItemResponse>>, BadRequest<Error>, NotFound<Error>>> All()
+    public async Task<Results<Ok<List<ItemByStoreResponse>>, BadRequest<Error>, NotFound<Error>>> All()
     {
         Ulid storeId = await GetSelectedStoreId();
-        List<ItemResponse> allItems = await Db.Items
+        List<ItemByStoreResponse> allItems = await Db.Items
                 .Include(i => i.Preps)
                 .Include(i => i.Aisles)
-                .Select(Item.ToLocatedResponse(storeId))
+                .Select(Item.ToByStoreResponse(storeId))
                 .OrderBy(i => i.ItemName)
+                .ThenBy(i => i.ItemId)
                 .ToListAsync();
 
         return TypedResults.Ok(allItems);

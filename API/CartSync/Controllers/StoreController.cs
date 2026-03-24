@@ -14,20 +14,22 @@ public class StoreController(CartSyncContext context) : ControllerCore(context)
     [Route("/api/stores")]
     public async Task<Ok<List<StoreResponse>>> All()
     {
+        Ulid selectedStoreId = await GetSelectedStoreId();
         List<StoreResponse> stores = await Db.Stores
             .OrderBy(s => s.StoreName)
             .Select(Store.ToResponse)
             .ToListAsync();
 
+        for (int index = 0; index < stores.Count; index++)
+        {
+            StoreResponse storeResponse = stores[index];
+            if (storeResponse.StoreId == selectedStoreId)
+            {
+                stores[index] = storeResponse with { IsSelected = true };
+            }
+        }
+
         return TypedResults.Ok(stores);
-    }
-    
-    [HttpGet]
-    [Route("/api/stores/selected")]
-    public async Task<Ok<StoreResponse>> Selected()
-    {
-        Store store = await GetSelectedStore();
-        return TypedResults.Ok(Store.ToResponse.Compile()(store));
     }
     
     [HttpPost]
@@ -47,7 +49,7 @@ public class StoreController(CartSyncContext context) : ControllerCore(context)
 
     [HttpPost]
     [Route("/api/stores/{storeId}/select")]
-    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Select(Ulid storeId)
+    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Select(Ulid storeId, [FromBody] object? x = null)
     {
         Store? store = await Db.Stores.FindAsync(storeId);
         if (store == null)

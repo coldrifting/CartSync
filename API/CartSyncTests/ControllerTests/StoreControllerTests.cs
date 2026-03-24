@@ -48,8 +48,9 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
         
         await StoreController.Select(store1).AssertIsSuccessful();
 
-        StoreResponse storeResponse = await StoreController.Selected().ValueAsync();
-        Assert.Equal(store1, storeResponse.StoreId);
+        List<StoreResponse> storeResponse = await StoreController.All().ValueAsync();
+        Assert.False(storeResponse.FirstOrDefault(s => s.StoreId == store0)?.IsSelected);
+        Assert.True(storeResponse.FirstOrDefault(s => s.StoreId == store1)?.IsSelected);
 
         await StoreController.Delete(store0).AssertIsSuccessful();
         

@@ -23,14 +23,16 @@ public class Store : IEditable<StoreEditRequest>, IResponse<Store, StoreResponse
         new()
         {
             StoreId = StoreId,
-            StoreName = StoreName
+            StoreName = StoreName,
+            IsSelected = false
         };
     
     public static Expression<Func<Store, StoreResponse>> ToResponse =>
         store => new StoreResponse
         {
             StoreId = store.StoreId,
-            StoreName = store.StoreName
+            StoreName = store.StoreName,
+            IsSelected = false
         };
     
     // Conversion and Validation
@@ -63,8 +65,9 @@ public class Store : IEditable<StoreEditRequest>, IResponse<Store, StoreResponse
 
 public record StoreResponse
 {
-    public Ulid StoreId { get; init; }
+    public required Ulid StoreId { get; init; }
     public required string StoreName { get; init; }
+    public required bool IsSelected { get; init; }
 }
 
 public record StoreAddRequest
