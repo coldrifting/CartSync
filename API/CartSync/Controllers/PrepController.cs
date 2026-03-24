@@ -1,6 +1,5 @@
 using CartSync.Controllers.Core;
 using CartSync.Models;
-using CartSync.Utils;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc;
@@ -41,36 +40,22 @@ public class PrepController(CartSyncContext context) : ControllerCore(context)
     
     [HttpGet]
     [Route("/api/preps/{prepId}/usages")]
-    public async Task<Results<Ok<UsageResponse>, BadRequest<Error>, NotFound<Error>>> Usages(Ulid prepId)
+    public async Task<Results<Ok<PrepUsagesResponse>, BadRequest<Error>, NotFound<Error>>> Usages(Ulid prepId)
     {
-        Prep? prep = await Db.Preps
+        PrepUsagesResponse? prepUsages = await Db.Preps
             .Include(p => p.Items)
-            .Include(p => p.ItemPreps)
+            .AsSplitQuery()
             .Include(p => p.RecipeSectionEntries)
             .ThenInclude(r => r.RecipeSection)
             .ThenInclude(r => r.Recipe)
+            .Select(Prep.ToUsagesResponse)
             .FirstOrDefaultAsync(p => p.PrepId == prepId);
-        if (prep == null)
+        if (prepUsages == null)
         {
             return Prep.NotFound(prepId);
         }
 
-        IOrderedEnumerable<Item> items = prep.Items
-            .OrderBy(i => i.ItemName)
-            .ThenBy(i => i.ItemId);
-        
-        IEnumerable<Recipe> recipes = prep.RecipeSectionEntries
-            .Select(r => r.RecipeSection)
-            .Select(r => r.Recipe)
-            .Distinct()
-            .OrderBy(r => r.RecipeName)
-            .ThenBy(r => r.RecipeId);
-        
-        UsageResponse result = new();
-        result.Update(items, i => i.ItemId, i => i.ItemName);
-        result.Update(recipes, r => r.RecipeId, r => r.RecipeName);
-        
-        return TypedResults.Ok(result);
+        return TypedResults.Ok(prepUsages);
     }
 
     [HttpPatch]

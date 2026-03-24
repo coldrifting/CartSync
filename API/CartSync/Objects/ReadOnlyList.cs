@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace CartSync.Objects;
 
@@ -9,20 +11,24 @@ namespace CartSync.Objects;
 /// </summary>
 [DebuggerDisplay("Count = {Count}")]
 [DebuggerTypeProxy(typeof(ICollection<>))]
-public class ReadOnlyList<T>(IImmutableList<T> list)
-    : IImmutableList<T>, IEquatable<IImmutableList<T>>
+[CollectionBuilder(typeof(ReadOnlyListBuilder), nameof(ReadOnlyListBuilder.Create))]
+public class ReadOnlyList<T> : IImmutableList<T>, IEquatable<IImmutableList<T>>
 {
     [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-    private readonly IImmutableList<T> _list = list;
-
-    public ReadOnlyList() : this(ImmutableList<T>.Empty)
+    private readonly IImmutableList<T> _list;
+    
+    public ReadOnlyList()
     {
+        _list = ImmutableList<T>.Empty;
     }
     
-    public ReadOnlyList(IQueryable<T> query) : this(query.ToImmutableList())
+    public ReadOnlyList(IEnumerable<T> items)
     {
+        _list = items.ToImmutableList();
     }
-
+    
+    internal static ReadOnlyList<T> Create(ReadOnlyList<T> values) => new(values);
+    
     #region IImutableList implementation
     public T this[int index] => _list[index];
 
@@ -63,6 +69,34 @@ public class ReadOnlyList<T>(IImmutableList<T> list)
                 return h * 19 + 0;
             });
         }
+    }
+
+    public override string ToString()
+    {
+        StringBuilder builder = new();
+        
+        builder.Append("ReadOnlyList[");
+
+        foreach (T item in _list)
+        {
+            builder.Append(item);
+            builder.Append(", ");
+        }
+        
+        builder.Length--;
+        builder.Append(']');
+        
+        return builder.ToString();
+    }
+}
+
+public static class ReadOnlyListBuilder
+{
+    public static ReadOnlyList<T> Create<T>(ReadOnlySpan<T> values)
+    {
+        List<T> list = new(values.Length);
+        list.AddRange(values);
+        return new ReadOnlyList<T>(list);
     }
 }
 

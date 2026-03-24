@@ -32,33 +32,6 @@ public class AisleController(CartSyncContext context) : ControllerCore(context)
         
         return TypedResults.Ok(aisles);
     }
-    
-    [HttpGet]
-    [Route("/api/stores/{storeId}/aisles/{aisleId}/usages")]
-    public async Task<Results<Ok<UsageResponse>, BadRequest<Error>, NotFound<Error>>> Usages(Ulid storeId, Ulid aisleId)
-    {
-        Aisle? aisle = await Db.Aisles
-            .Include(a => a.Items)
-            .FirstOrDefaultAsync(a => a.AisleId == aisleId);
-        if (aisle == null)
-        {
-            return Aisle.NotFound(aisleId);
-        }
-
-        if (aisle.StoreId != storeId)
-        {
-            return Aisle.NotFoundUnderStore(aisleId, storeId);
-        }
-
-        IOrderedEnumerable<Item> items = aisle.Items
-            .OrderBy(i => i.ItemName)
-            .ThenBy(i => i.ItemId);
-        
-        UsageResponse result = new();
-        result.Update(items, i => i.ItemId, i => i.ItemName);
-        
-        return TypedResults.Ok(result);
-    }
 
     [HttpPost]
     [Route("/api/stores/{storeId}/aisles/add")]

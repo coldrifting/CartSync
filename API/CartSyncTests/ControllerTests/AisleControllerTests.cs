@@ -32,65 +32,6 @@ public class AisleControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
         Error error = await AisleController.All(Ulid.NotFound).ErrorAsync();
         error.AssertStatus(HttpStatusCode.NotFound);
     }
-    
-    [Fact]
-    public async Task TestAisleUsage()
-    {
-        UsageResponse expected = new()
-        {
-            {
-                "Items", 
-                [
-                    (SeedData.Items[116].ItemId,  SeedData.Items[116].ItemName),
-                    (SeedData.Items[117].ItemId,  SeedData.Items[117].ItemName),
-                    (SeedData.Items[118].ItemId,  SeedData.Items[118].ItemName),
-                    (SeedData.Items[119].ItemId,  SeedData.Items[119].ItemName),
-                    (SeedData.Items[120].ItemId,  SeedData.Items[120].ItemName)
-                ]
-            },
-        };
-
-        UsageResponse result = await AisleController.Usages(SeedData.Stores[0].StoreId, SeedData.Aisles[2].AisleId).ValueAsync();
-        Assert.Equal(expected, result, Extensions.UsageResponseComparer);
-    }
-    
-    [Fact]
-    public async Task TestAisleUsage_2()
-    {
-        UsageResponse expected = new()
-        {
-            {
-                "Items", 
-                [
-                    (SeedData.Items[0].ItemId,  SeedData.Items[0].ItemName),
-                ]
-            },
-        };
-        
-        UsageResponse result = await AisleController.Usages(SeedData.Stores[1].StoreId, SeedData.Aisles[23].AisleId).ValueAsync();
-        Assert.Equal(expected, result, Extensions.UsageResponseComparer);
-    }
-
-    [Fact]
-    public async Task TestAisleUsage_AisleNotFound()
-    {
-        Error error = await AisleController.Usages(SeedData.Stores[0].StoreId, Ulid.NotFound).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
-    }
-
-    [Fact]
-    public async Task TestAisleUsage_StoreNotFound()
-    {
-        Error error = await AisleController.Usages(Ulid.NotFound, SeedData.Aisles[0].AisleId).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
-    }
-    
-    [Fact]
-    public async Task TestAisleUsage_AisleNotUnderStore()
-    {
-        Error error = await AisleController.Usages(SeedData.Stores[1].StoreId, SeedData.Aisles[5].AisleId).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
-    }
 
     [Fact]
     public async Task TestAisleAdd()

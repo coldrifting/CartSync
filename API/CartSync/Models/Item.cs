@@ -65,6 +65,7 @@ public class Item : IEditable<ItemEditRequest>, IResponse<Item, ItemResponse>
             Preps = item.Preps
                 .AsQueryable()
                 .OrderBy(p => p.PrepName)
+                .ThenBy(p => p.PrepId)
                 .Select(Prep.ToResponse)
                 .ToImmutableList()
                 .WithValueSemantics(),
@@ -73,7 +74,6 @@ public class Item : IEditable<ItemEditRequest>, IResponse<Item, ItemResponse>
                 .Select(ItemAisle.ToResponse)
                 .FirstOrDefault(a => a.StoreId == storeId)
         };
-    
 
     public static Expression<Func<Item, ItemMinimalResponse>> ToMinimalResponse =>
         item => new ItemMinimalResponse
@@ -81,6 +81,29 @@ public class Item : IEditable<ItemEditRequest>, IResponse<Item, ItemResponse>
             ItemId = item.ItemId,
             ItemName = item.ItemName,
             ItemTemp = item.ItemTemp
+        };
+
+    public static Expression<Func<Item, ItemUsagesResponse>> ToUsagesResponse =>
+        item => new ItemUsagesResponse
+        {
+            ItemId = item.ItemId,
+            ItemName = item.ItemName,
+            Preps = item.Preps
+                .AsQueryable()
+                .OrderBy(p => p.PrepName)
+                .ThenBy(p => p.PrepId)
+                .Select(Prep.ToResponse)
+                .ToImmutableList()
+                .WithValueSemantics(),
+            Recipes = item.RecipeSectionEntries
+                .AsQueryable()
+                .Select(r => r.RecipeSection.Recipe)
+                .Distinct()
+                .OrderBy(r => r.RecipeName)
+                .ThenBy(r => r.RecipeId)
+                .Select(Recipe.ToMinimalResponse)
+                .ToImmutableList()
+                .WithValueSemantics()
         };
     
     // Since new objects will have no children we can skip querying the db after inserting
@@ -163,6 +186,14 @@ public record ItemMinimalResponse
     public required Ulid ItemId { get; init; }
     public required string ItemName { get; init; }
     public required ItemTemp ItemTemp { get; init; }
+}
+
+public record ItemUsagesResponse
+{
+    public required Ulid ItemId { get; init; }
+    public required string ItemName { get; init; }
+    public required ReadOnlyList<PrepResponse> Preps { get; init; }
+    public required ReadOnlyList<RecipeMinimalResponse> Recipes { get; init; }
 }
 
 public record ItemAddRequest

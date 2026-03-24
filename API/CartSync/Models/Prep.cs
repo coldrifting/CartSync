@@ -1,8 +1,10 @@
+using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
 using System.Linq.Expressions;
 using CartSync.Controllers.Core;
 using CartSync.Models.Interfaces;
 using CartSync.Models.Joins;
+using CartSync.Objects;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,6 +29,29 @@ public class Prep : IEditable<PrepEditRequest>, IResponse<Prep, PrepResponse>
         {
             PrepId = prep.PrepId,
             PrepName = prep.PrepName
+        };
+    
+    public static Expression<Func<Prep, PrepUsagesResponse>> ToUsagesResponse =>
+        prep => new PrepUsagesResponse
+        {
+            PrepId = prep.PrepId,
+            PrepName = prep.PrepName,
+            Items = prep.Items
+                .AsQueryable()
+                .OrderBy(i => i.ItemName)
+                .ThenBy(i => i.ItemId)
+                .Select(Item.ToMinimalResponse)
+                .ToImmutableList()
+                .WithValueSemantics(),
+            Recipes = prep.RecipeSectionEntries
+                .AsQueryable()
+                .Select(r => r.RecipeSection.Recipe)
+                .Distinct()
+                .OrderBy(r => r.RecipeName)
+                .ThenBy(r => r.RecipeId)
+                .Select(Recipe.ToMinimalResponse)
+                .ToImmutableList()
+                .WithValueSemantics()
         };
     
     public PrepResponse ToNewResponse =>
@@ -57,6 +82,15 @@ public record PrepResponse
 {
     public required Ulid PrepId { get; init; }
     public required string PrepName { get; init; }
+}
+
+
+public record PrepUsagesResponse
+{
+    public required Ulid PrepId { get; init; }
+    public required string PrepName { get; init; }
+    public required ReadOnlyList<ItemMinimalResponse> Items { get; init; }
+    public required ReadOnlyList<RecipeMinimalResponse> Recipes { get; init; }
 }
 
 public record PrepAddRequest

@@ -30,47 +30,91 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     [Fact]
     public async Task TestPrepUsages_ItemAndRecipeUsagesFound()
     {
-        UsageResponse expected = new()
+        PrepUsagesResponse expected = new()
         {
-            {
-                "Items", 
-                [
-                    (SeedData.Items[179].ItemId,  SeedData.Items[179].ItemName),
-                    (SeedData.Items[180].ItemId,  SeedData.Items[180].ItemName),
-                    (SeedData.Items[181].ItemId,  SeedData.Items[181].ItemName),
-                    (SeedData.Items[182].ItemId,  SeedData.Items[182].ItemName),
-                    (SeedData.Items[183].ItemId,  SeedData.Items[183].ItemName),
-                    (SeedData.Items[184].ItemId,  SeedData.Items[184].ItemName),
-                ]
-            },
-            {
-                "Recipes", 
-                [
-                    (SeedData.Recipes[1].RecipeId,  SeedData.Recipes[1].RecipeName),
-                    (SeedData.Recipes[3].RecipeId,  SeedData.Recipes[3].RecipeName),
-                ]
-            },
+            PrepId = SeedData.Preps[3].PrepId,
+            PrepName = SeedData.Preps[3].PrepName,
+            Items = [
+                new ItemMinimalResponse
+                {
+                    ItemId = SeedData.Items[179].ItemId,
+                    ItemName = SeedData.Items[179].ItemName,
+                    ItemTemp = SeedData.Items[179].ItemTemp,
+                },
+                new ItemMinimalResponse
+                {
+                    ItemId = SeedData.Items[180].ItemId,
+                    ItemName = SeedData.Items[180].ItemName,
+                    ItemTemp = SeedData.Items[180].ItemTemp,
+                },
+                new ItemMinimalResponse
+                {
+                    ItemId = SeedData.Items[181].ItemId,
+                    ItemName = SeedData.Items[181].ItemName,
+                    ItemTemp = SeedData.Items[181].ItemTemp,
+                },
+                new ItemMinimalResponse
+                {
+                    ItemId = SeedData.Items[182].ItemId,
+                    ItemName = SeedData.Items[182].ItemName,
+                    ItemTemp = SeedData.Items[182].ItemTemp,
+                },
+                new ItemMinimalResponse
+                {
+                    ItemId = SeedData.Items[183].ItemId,
+                    ItemName = SeedData.Items[183].ItemName,
+                    ItemTemp = SeedData.Items[183].ItemTemp,
+                },
+                new ItemMinimalResponse
+                {
+                    ItemId = SeedData.Items[184].ItemId,
+                    ItemName = SeedData.Items[184].ItemName,
+                    ItemTemp = SeedData.Items[184].ItemTemp,
+                }
+            ],
+            Recipes = [
+                new RecipeMinimalResponse
+                {
+                    RecipeId = SeedData.Recipes[1].RecipeId,
+                    RecipeName = SeedData.Recipes[1].RecipeName,
+                    Url = SeedData.Recipes[1].Url,
+                    IsPinned =  SeedData.Recipes[1].IsPinned,
+                },
+                new RecipeMinimalResponse
+                {
+                    RecipeId = SeedData.Recipes[3].RecipeId,
+                    RecipeName = SeedData.Recipes[3].RecipeName,
+                    Url = SeedData.Recipes[3].Url,
+                    IsPinned =  SeedData.Recipes[3].IsPinned,
+                }
+            ]
         };
         
-        UsageResponse result = await PrepController.Usages(SeedData.Preps[3].PrepId).ValueAsync();
-        Assert.Equal(expected, result, Extensions.UsageResponseComparer);
+        PrepUsagesResponse result = await PrepController.Usages(SeedData.Preps[3].PrepId).ValueAsync();
+        Assert.Equal(expected, result);
     }
     
     [Fact]
     public async Task TestPrepUsages_OnlyItemUsagesFound()
     {
-        UsageResponse expected = new()
+        PrepUsagesResponse expected = new()
         {
-            {
-                "Items", 
-                [
-                    (SeedData.Items[56].ItemId,  SeedData.Items[56].ItemName)
-                ]
-            }
+            PrepId = SeedData.Preps[6].PrepId,
+            PrepName = SeedData.Preps[6].PrepName,
+            Items =
+            [
+                new ItemMinimalResponse
+                {
+                    ItemId = SeedData.Items[56].ItemId,
+                    ItemName = SeedData.Items[56].ItemName,
+                    ItemTemp = SeedData.Items[56].ItemTemp,
+                },
+            ],
+            Recipes = []
         };
         
-        UsageResponse result = await PrepController.Usages(SeedData.Preps[6].PrepId).ValueAsync();
-        Assert.Equal(expected, result, Extensions.UsageResponseComparer);
+        PrepUsagesResponse result = await PrepController.Usages(SeedData.Preps[6].PrepId).ValueAsync();
+        Assert.Equal(expected, result);
     }
     
     [Fact]

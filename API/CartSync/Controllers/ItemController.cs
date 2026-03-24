@@ -1,7 +1,6 @@
 using CartSync.Controllers.Core;
 using CartSync.Models;
 using CartSync.Models.Joins;
-using CartSync.Utils;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc;
@@ -30,29 +29,22 @@ public class ItemController(CartSyncContext context) : ControllerCore(context)
     
     [HttpGet]
     [Route("/api/items/{itemId}/usages")]
-    public async Task<Results<Ok<UsageResponse>, BadRequest<Error>, NotFound<Error>>> Usages(Ulid itemId)
+    public async Task<Results<Ok<ItemUsagesResponse>, BadRequest<Error>, NotFound<Error>>> Usages(Ulid itemId)
     {
-        Item? item = await Db.Items
+        ItemUsagesResponse? itemUsages = await Db.Items
+            .Include(i => i.Preps)
+            .AsSplitQuery()
             .Include(i => i.RecipeSectionEntries)
             .ThenInclude(r => r.RecipeSection)
             .ThenInclude(r => r.Recipe)
+            .Select(Item.ToUsagesResponse)
             .FirstOrDefaultAsync(i => i.ItemId == itemId);
-        if (item == null)
+        if (itemUsages == null)
         {
             return Aisle.NotFound(itemId);
         }
-        
-        IEnumerable<Recipe> recipes = item.RecipeSectionEntries
-            .Select(r => r.RecipeSection)
-            .Select(r => r.Recipe)
-            .Distinct()
-            .OrderBy(r => r.RecipeName)
-            .ThenBy(r => r.RecipeId);
-        
-        UsageResponse result = new();
-        result.Update(recipes, r => r.RecipeId, r => r.RecipeName);
-        
-        return TypedResults.Ok(result);
+
+        return TypedResults.Ok(itemUsages);
     }
     
     [HttpPost]

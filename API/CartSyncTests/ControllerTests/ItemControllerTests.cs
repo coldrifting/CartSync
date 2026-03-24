@@ -53,30 +53,114 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     }
 
     [Fact]
-    public async Task TestItemUsage()
+    public async Task TestItemUsage_OnlyRecipes()
     {
-        UsageResponse expected = new()
+        ItemUsagesResponse expected = new()
         {
-            {
-                "Recipes", 
-                [
-                    (SeedData.Recipes[2].RecipeId,  SeedData.Recipes[2].RecipeName),
-                    (SeedData.Recipes[0].RecipeId,  SeedData.Recipes[0].RecipeName)
-                ]
-            },
+            ItemId = SeedData.Items[66].ItemId,
+            ItemName = SeedData.Items[66].ItemName,
+            Recipes = [
+                new RecipeMinimalResponse
+                {
+                    RecipeId = SeedData.Recipes[2].RecipeId,
+                    RecipeName = SeedData.Recipes[2].RecipeName,
+                    Url = SeedData.Recipes[2].Url,
+                    IsPinned =  SeedData.Recipes[2].IsPinned,
+                },
+                new RecipeMinimalResponse
+                {
+                    RecipeId = SeedData.Recipes[0].RecipeId,
+                    RecipeName = SeedData.Recipes[0].RecipeName,
+                    Url = SeedData.Recipes[0].Url,
+                    IsPinned =  SeedData.Recipes[0].IsPinned,
+                },
+                new RecipeMinimalResponse
+                {
+                    RecipeId = SeedData.Recipes[3].RecipeId,
+                    RecipeName = SeedData.Recipes[3].RecipeName,
+                    Url = SeedData.Recipes[3].Url,
+                    IsPinned =  SeedData.Recipes[3].IsPinned,
+                }
+            ],
+            Preps = []
         };
         
-        UsageResponse result = await ItemController.Usages(SeedData.Items[88].ItemId).ValueAsync();
-        Assert.Equal(expected, result, Extensions.UsageResponseComparer);
+        ItemUsagesResponse result = await ItemController.Usages(SeedData.Items[66].ItemId).ValueAsync();
+        Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public async Task TestItemUsage_OnlyPreps()
+    {
+        ItemUsagesResponse expected = new()
+        {
+            ItemId = SeedData.Items[2].ItemId,
+            ItemName = SeedData.Items[2].ItemName,
+            Recipes = [],
+            Preps =
+            [
+                new PrepResponse
+                {
+                    PrepId = SeedData.Preps[7].PrepId,
+                    PrepName = SeedData.Preps[7].PrepName,
+                }
+            ]
+        };
+        Assert.Single(expected.Preps);
+        
+        ItemUsagesResponse result = await ItemController.Usages(SeedData.Items[2].ItemId).ValueAsync();
+        Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public async Task TestItemUsage_RecipesAndPreps()
+    {
+        ItemUsagesResponse expected = new()
+        {
+            ItemId = SeedData.Items[207].ItemId,
+            ItemName = SeedData.Items[207].ItemName,
+            Recipes = [
+                new RecipeMinimalResponse
+                {
+                    RecipeId = SeedData.Recipes[0].RecipeId,
+                    RecipeName = SeedData.Recipes[0].RecipeName,
+                    Url = SeedData.Recipes[0].Url,
+                    IsPinned =  SeedData.Recipes[0].IsPinned,
+                },
+                new RecipeMinimalResponse
+                {
+                    RecipeId = SeedData.Recipes[3].RecipeId,
+                    RecipeName = SeedData.Recipes[3].RecipeName,
+                    Url = SeedData.Recipes[3].Url,
+                    IsPinned =  SeedData.Recipes[3].IsPinned,
+                }
+            ],
+            Preps = [
+                new PrepResponse
+                {
+                    PrepId = SeedData.Preps[2].PrepId,
+                    PrepName = SeedData.Preps[2].PrepName,
+                }
+            ]
+        };
+        
+        ItemUsagesResponse result = await ItemController.Usages(SeedData.Items[207].ItemId).ValueAsync();
+        Assert.Equal(expected, result);
     }
 
     [Fact]
     public async Task TestItemUsage_NoUsages()
     {
-        UsageResponse expected = new();
+        ItemUsagesResponse expected = new()
+        {
+            ItemId = SeedData.Items[22].ItemId,
+            ItemName = SeedData.Items[22].ItemName,
+            Recipes = [],
+            Preps = []
+        };
         
-        UsageResponse result = await ItemController.Usages(SeedData.Items[22].ItemId).ValueAsync();
-        Assert.Equal(expected, result, Extensions.UsageResponseComparer);
+        ItemUsagesResponse result = await ItemController.Usages(SeedData.Items[22].ItemId).ValueAsync();
+        Assert.Equal(expected, result);
     }
 
     [Fact]

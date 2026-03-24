@@ -11,6 +11,7 @@ public static partial class SeedData
         new() { PrepId = Ulid.Parse("01KJ8AQ9DKZ7VQKAC27VRAWBRW"), PrepName = "Shredded" },
         new() { PrepId = Ulid.Parse("01KJ8AQ9DKR01ZTNR87JASJPTV"), PrepName = "Sliced" },
         new() { PrepId = Ulid.Parse("01KJ8AQ9DK9BC9DTDE6KQSQV3Z"), PrepName = "Sliced (Halves)" },
-        new() { PrepId = Ulid.Parse("01KJ8AQ9DM0N30S4073K3X3CQ1"), PrepName = "Cooked" }
+        new() { PrepId = Ulid.Parse("01KJ8AQ9DM0N30S4073K3X3CQ1"), PrepName = "Cooked" },
+        new() { PrepId = Ulid.Parse("01KMGE78T79S9XDQBJDNTZ8P29"), PrepName = "Test Prep" }
     ];
 }

@@ -25,6 +25,7 @@ public static partial class SeedData
         new() { ItemId = Items[205].ItemId, PrepId = Preps[4].PrepId },
         new() { ItemId = Items[209].ItemId, PrepId = Preps[5].PrepId },
         new() { ItemId = Items[215].ItemId, PrepId = Preps[5].PrepId },
-        new() { ItemId = Items[56].ItemId, PrepId = Preps[6].PrepId }
+        new() { ItemId = Items[56].ItemId, PrepId = Preps[6].PrepId },
+        new() { ItemId = Items[2].ItemId, PrepId = Preps[7].PrepId }
     ];
 }

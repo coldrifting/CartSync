@@ -54,6 +54,16 @@ public class Recipe : IEditable<RecipeEditRequest>, IResponse<Recipe, RecipeResp
                     .WithValueSemantics(),
             };
     
+    public static Expression<Func<Recipe, RecipeMinimalResponse>> ToMinimalResponse =>
+        recipe =>
+            new RecipeMinimalResponse
+            {
+                RecipeId = recipe.RecipeId,
+                RecipeName = recipe.RecipeName,
+                Url = recipe.Url,
+                IsPinned = recipe.IsPinned
+            };
+    
     // Since new objects will have no children we can skip querying the db after inserting
     public RecipeResponse ToNewResponse =>
         new()

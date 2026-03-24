@@ -44,6 +44,6 @@ public class PrepControllerEndpointTests(AppSetupFactory<Program> setupFactory) 
         HttpResponseMessage prepDeleteRequest = await DeleteAsyncAnonymous($"/api/preps/{prepId}/delete");
         Assert.Equal(HttpStatusCode.Unauthorized, prepDeleteRequest.StatusCode);
         Assert.Contains(SeedData.Preps[4].PrepName, Context.Preps.Select(p => p.PrepName));
-        Assert.Equal(7, Context.Preps.Count());
+        Assert.Equal(8, Context.Preps.Count());
     }
 }

@@ -1,4 +1,3 @@
-global using UsageResponse = System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<(System.Ulid, string)>>;
 using System.Security.Claims;
 using CartSync.Models.Interfaces;
 using JetBrains.Annotations;
@@ -20,30 +19,6 @@ public static class Extensions
     {
         public string? Username => 
             user.Claims.FirstOrDefault(x => x.Type == "sub")?.Value;
-    }
-    
-    extension(UsageResponse usages)
-    {
-        public void Update<T>(IEnumerable<T> items, Func<T, Ulid> getId, Func<T, string> getName)
-        {
-            string keyName = typeof(T).Name.Pluralize();
-            foreach (T item in items)
-            {
-                if (usages.TryGetValue(keyName, out List<(Ulid, string)>? usage))
-                {
-                    (Ulid, string) candidate = (getId.Invoke(item), getName.Invoke(item));
-
-                    if (!usage.Contains(candidate))
-                    {
-                        usage.Add(candidate);
-                    }
-                }
-                else
-                {
-                    usages[keyName] = [ (getId.Invoke(item), getName.Invoke(item)) ];
-                }
-            }
-        }
     }
     
     extension(IEnumerable<ISortable> list)
