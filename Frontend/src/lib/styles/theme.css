@@ -1,0 +1,44 @@
+:root {
+    --appbar-height: 5rem;
+    
+    --sidebar-width: 4rem;
+    --sidebar-expanded-width: 12rem;
+    
+    min-width: 320px;
+    overscroll-behavior: none;
+
+    .modal-body {
+        padding: 0;
+    }
+
+    .modal-body > form > div {
+        padding: 1rem;
+    }
+
+    .modal-body > form > div > p{
+        padding: 0 0 0 3rem;
+    }
+
+    .modal-header {
+        border-bottom: none;
+    }
+
+    .modal-footer {
+        padding: 0;
+        border-top: none;
+    }
+
+    .form-floating > .form-control-plaintext ~ label::after, .form-floating > .form-control:focus ~ label::after, .form-floating > .form-control:not(:placeholder-shown) ~ label::after, .form-floating > .form-select ~ label::after {
+        background-color: transparent;
+    }
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.whitespace-pre-line {
+    white-space: pre-line;
+}

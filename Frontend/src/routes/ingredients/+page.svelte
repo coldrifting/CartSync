@@ -1,14 +1,13 @@
 <script lang="ts">
     import {enhance} from '$app/forms';
     import type {PageProps} from './$types';
-    import ListItem from '$lib/ListItem.svelte';
+    import ListItem from '$lib/components/ListItem.svelte';
     import {
         Button,
         Col,
         FormGroup,
         Input,
         Modal,
-        ModalBody,
         ModalFooter,
         Row
     } from "@sveltestrap/sveltestrap";
@@ -95,12 +94,12 @@
           action="?/rename"
           id="renameForm"
           use:enhance={() => {closeRenameDialog()}}>
-        <input hidden name="id" bind:value={renameId}/>
-        <ModalBody>
+        <div>
+            <input hidden name="id" bind:value={renameId}/>
             <FormGroup floating label="Item Name">
                 <Input name="newName" bind:value={newName} required/>
             </FormGroup>
-        </ModalBody>
+        </div>
         <ModalFooter>
             <Button color="secondary" type="button" onclick={closeRenameDialog}>Cancel</Button>
             <Button color="primary" type="submit">Rename</Button>
@@ -117,10 +116,10 @@
           action="?/delete"
           id="deleteForm"
           use:enhance={() => {closeDeleteDialog()}}>
-        <input hidden name="id" bind:value={deleteId}/>
-        <ModalBody>
+        <div>
+            <input hidden name="id" bind:value={deleteId}/>
             <p class="whitespace-pre-line">{itemInUseText}</p>
-        </ModalBody>
+        </div>
         <ModalFooter>
             <Button color="secondary" type="button" onclick={closeDeleteDialog}>Cancel</Button>
             <Button color="danger" type="submit">Delete</Button>
@@ -180,10 +179,3 @@
         </ul>
     </div>
 </form>
-
-<style lang="postcss">
-    @reference "tailwindcss";
-    :global(html) {
-        background-color: theme(--color-gray-100);
-    }
-</style>

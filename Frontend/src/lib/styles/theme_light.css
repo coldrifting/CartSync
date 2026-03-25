@@ -1,0 +1,44 @@
+:root {
+    @media (prefers-color-scheme: light) {
+        --nav-current: var(--bs-primary-border-subtle);
+        --nav-highlight: var(--bs-primary);
+
+        --appbar-item-current: var(--bs-primary);
+        --appbar-item-pressed: var(--bs-primary-text-emphasis);
+
+        --bs-dark: black;
+        --bs-body-bg: #ffffff;
+        --bs-border-color: #9aaaaa;
+        --bs-border-color-translucent: #9aaaaa;
+        --bs-card-color: #ffffff;
+        --bs-card-bg: #ffffff;
+        --bs-card-cap-bg: #eeeeee;
+        --bs-modal-bg: #1e2938;
+        
+        .form-control {
+            --bs-body-bg: #162028;
+        }
+        
+        .card {
+            --bs-card-title-color: white;
+            --bs-card-bg: #ffffff;
+        }
+
+        .card-body {
+            --bs-card-color: #ffffff;
+        }
+
+        .card-footer {
+            border-top: none;
+            --bs-card-cap-bg: #eeeeee;
+        }
+
+        .modal-content {
+            --bs-modal-bg: #1e2938;
+        }
+        
+        .modal-footer {
+            --bs-modal-footer-bg: #242f3f;
+        }
+    }
+}

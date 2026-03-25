@@ -1,0 +1,45 @@
+:root {
+    @media (prefers-color-scheme: dark) {
+        --nav-current: var(--bs-primary-border-subtle);
+        --nav-highlight: var(--bs-primary);
+        --nav-highlight-border: var(--bs-primary-text-emphasis);
+
+        --appbar-item-current: var(--bs-primary);
+        --appbar-item-pressed: var(--bs-primary-text-emphasis);
+
+        --bs-dark: white;
+        --bs-body-bg: #101828;
+        --bs-border-color: #3a4451;
+        --bs-border-color-translucent: #3a4451;
+        --bs-card-color: #9aaaaa;
+        --bs-card-bg: #1e2938;
+        --bs-card-cap-bg: #242f3f;
+        --bs-modal-bg: #1e2938;
+
+        .form-control {
+            --bs-body-bg: #162028;
+        }
+        
+        .card {
+            --bs-card-title-color: white;
+            --bs-card-bg: #1e2938;
+        }
+
+        .card-body {
+            --bs-card-color: #9aaaaa;
+        }
+
+        .card-footer {
+            border-top: none;
+            --bs-card-cap-bg: #242f3f;
+        }
+
+        .modal-content {
+            --bs-modal-bg: #1e2938;
+        }
+
+        .modal-footer {
+            --bs-modal-footer-bg: #242f3f;
+        }
+    }
+}

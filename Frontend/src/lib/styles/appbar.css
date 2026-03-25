@@ -1,0 +1,49 @@
+footer {
+    height: calc(var(--appbar-height) + env(safe-area-inset-bottom));
+    width: 100%;
+    padding-top: 0.5rem;
+    padding-bottom: calc(env(safe-area-inset-bottom));
+    background-color: var(--bs-card-bg);
+    border-top: 1px solid var(--bs-border-color);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+
+    a {
+        -webkit-touch-callout: none;
+        text-decoration: none;
+        color: var(--bs-dark);
+        font-weight: 500;
+        font-size: 0.75em;
+        div {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        &.current {
+            color: var(--appbar-item-current);
+            svg {
+                color: var(--appbar-item-current);
+            }
+        }
+
+        :active {
+            color: var(--appbar-item-pressed);
+            svg {
+                color: var(--appbar-item-pressed);
+            }
+        }
+
+        :hover {
+            color: var(--appbar-item-pressed);
+            svg {
+                color: var(--appbar-item-pressed);
+            }
+        }
+    }
+
+    @media (width >= 576px) {
+        display: none;
+    }
+}
