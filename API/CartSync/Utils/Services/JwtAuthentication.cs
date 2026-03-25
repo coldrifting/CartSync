@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using CartSync.Models;
 using JetBrains.Annotations;
+using Microsoft.IdentityModel.Tokens;
 
 namespace CartSync.Utils.Services;
 
@@ -11,12 +12,29 @@ public record TokenHeaderResponse(string Alg = "HS256", string Typ = "JWT");
 public record TokenPayloadResponse(string Iss, string Sub, long Exp);
 
 [UsedImplicitly]
-public class JwtAuthentication(string secret)
+public class JwtAuthentication
 {
-	private string Secret { get; } = secret;
+	public SymmetricSecurityKey Key { get; init; }
+	private byte[] Secret { get; }
 
 	// Expire time of generated JWT tokens in minutes
-    private const int ExpireTime = 360; 
+	private const int ExpireTime = 360; 
+	
+	public JwtAuthentication(ConfigurationManager config)
+	{
+		string? storedKey = config["Authentication:Secret"];
+		if (storedKey is not null)
+		{
+			Secret = Encoding.UTF8.GetBytes(storedKey);
+		}
+		else
+		{
+			Console.WriteLine("Authentication:Secret not found. Using generated secret...");
+			Secret = Encoding.UTF8.GetBytes(Hash.GenerateHash());
+		}
+		
+		Key = new SymmetricSecurityKey(Secret);
+	}
 
     public string GenerateToken(User user)
     {
@@ -44,7 +62,7 @@ public class JwtAuthentication(string secret)
                signature;
     }
     
-    public bool IsPasswordValid(string password, byte[] hash, byte[] salt)
+    public static bool IsPasswordValid(string password, byte[] hash, byte[] salt)
     {
         byte[] hashToCompare = Rfc2898DeriveBytes.Pbkdf2(password, salt, Hash.Iterations, HashAlgorithmName.SHA512, Hash.KeySize);
         return CryptographicOperations.FixedTimeEquals(hashToCompare, hash);
@@ -56,9 +74,8 @@ public class JwtAuthentication(string secret)
         string encodedHeader = Hash.Base64Encode(header);
         string encodedPayload = Hash.Base64Encode(payload);
 
-        byte[] key = Encoding.UTF8.GetBytes(Secret);
         byte[] source = Encoding.UTF8.GetBytes(encodedHeader + '.' + encodedPayload);
 
-        return Hash.Base64EncodeBytes(HMACSHA256.HashData(key, source));
+        return Hash.Base64EncodeBytes(HMACSHA256.HashData(Secret, source));
     }
 }

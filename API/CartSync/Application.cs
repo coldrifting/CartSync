@@ -1,4 +1,3 @@
-using System.Text;
 using System.Text.Json.Serialization;
 using CartSync.Controllers.Core;
 using CartSync.Models;
@@ -48,13 +47,8 @@ builder.Services.AddCors(options =>
         });
 });
 
-
-string key = builder.Configuration["Authentication:Secret"] 
-             ?? throw new InvalidOperationException("Authentication:Secret not found");
-SymmetricSecurityKey jwtSigningKey = new(Encoding.UTF8.GetBytes(key));
-
-builder.Services.AddSingleton(new JwtAuthentication(key));
-
+JwtAuthentication jwtAuthentication = new(builder.Configuration);
+builder.Services.AddSingleton(jwtAuthentication);
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(jwtOptions =>
     {
@@ -62,7 +56,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             ValidateIssuer = false,
             ValidateAudience = false,
-            IssuerSigningKey = jwtSigningKey
+            IssuerSigningKey = jwtAuthentication.Key
         };
         jwtOptions.Events = JwtEvents.BearerEvents();
         jwtOptions.MapInboundClaims = false;

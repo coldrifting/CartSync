@@ -18,7 +18,7 @@ public class UserController(CartSyncContext context, JwtAuthentication auth) : C
     {
         User? user = await Db.Users.FirstOrDefaultAsync(u => u.Username == payload.Username);
 
-        if (user is null || !auth.IsPasswordValid(payload.Password, user.Hash, user.Salt))
+        if (user is null || !JwtAuthentication.IsPasswordValid(payload.Password, user.Hash, user.Salt))
         {
             return Error.BadRequestInvalidLogin();
         }
