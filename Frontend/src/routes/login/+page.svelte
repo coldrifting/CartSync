@@ -25,8 +25,9 @@
 
 <Container class="vh-100">
     <Row class="vh-100 justify-content-center align-items-center">
-        <Col md="8" lg="6" class="offset-md-2 offset-lg-3">
-            <form action="?/login"
+        <Col>
+            <form class="d-flex justify-content-center align-items-center"
+                  action="?/login"
                   use:enhance={() => {
                       
                 return async ({ update }) => {
@@ -34,7 +35,7 @@
                 };
             }}
                   method="POST">
-                <Card class="bg-modal">
+                <Card class="bg-modal login-container">
                     <CardBody>
                         <CardTitle class="mb-3">Login</CardTitle>
                         <FormGroup floating label="Username">
