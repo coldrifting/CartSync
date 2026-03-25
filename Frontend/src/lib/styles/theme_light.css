@@ -15,6 +15,9 @@
         --bs-card-cap-bg: #eeeeee;
         --bs-modal-bg: #1e2938;
         
+        --ctx-menu-background: var(--bs-body-bg);
+        --ctx-menu-hover-bg: var(--bs-card-cap-bg);
+        
         .form-control {
             --bs-body-bg: #162028;
         }

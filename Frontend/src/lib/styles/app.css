@@ -5,6 +5,13 @@
 @import 'appbar.css';
 @import 'sidebar.css';
 
+.login-container {
+    width: 100%;
+    @media (width >= 576px) {
+        width: 576px;
+    }
+}
+
 #app-container {
     min-height: 100dvh;
     height: 100dvh;
@@ -41,24 +48,42 @@
         stroke: darkgray;
     }
 
-    &.list-button-top {
+    &.top {
         border-radius: 0.4em 0.4em 0 0;
     }
 
-    &.list-button-bottom {
+    &.bottom {
         border-radius: 0 0 0.4em 0.4em;
         border-bottom: 1px solid var(--bs-border-color);
     }
-
-    &.list-button-single {
-        border-radius: 0.4em 0.4em 0.4em 0.4em;
-        border: 1px solid var(--bs-border-color);
-    }
 }
 
-.login-container {
-    width: 100%;
-    @media (width >= 576px) {
-        width: 576px;
+.title-navigation {
+    color: var(--bs-primary-text-emphasis);
+    font-size: 1.5rem;
+    text-decoration: none;
+    font-weight: 500;
+    
+    div {
+        display: flex;
+        align-items: center;
+    }
+    
+    svg {
+        width: 1.35rem;
+        height: 1.35rem;
+    }
+    
+    span {
+        padding-bottom: 0.25rem;
+        padding-left: 0.25rem;
+    }
+    
+    &:hover {
+        color: var(--bs-primary);
+    }
+    
+    &:active {
+        color: var(--bs-primary-border-subtle);
     }
 }

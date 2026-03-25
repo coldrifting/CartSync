@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import ContextMenu, { Item, Settings } from "svelte-contextmenu";
+    import ContextMenu, { Item } from "svelte-contextmenu";
 
     let { 
         name, 
@@ -22,8 +22,6 @@
     
     let myMenu: ContextMenu | null = $state(null)
     
-    const boldSettings = Settings.BootstrapCss();
-    
     let mounted = $derived(false);
     
     onMount(() => {
@@ -33,22 +31,19 @@
 
 <li>
     {#if mounted}
-        <ContextMenu bind:this={myMenu} settings={boldSettings} >
-            {#each actions as action}
-                <Item on:click={() => {action.action(id, name)}} class={action.isDestructive ? 'text-danger hover:bg-red-500/50 hover:text-white' : ''} >
+        <ContextMenu bind:this={myMenu}>
+            {#each actions as action, i}
+                <Item 
+                        on:click={() => {action.action(id, name)}} 
+                        class="{i === 0 ? 'top' : ''} {i === actions.length - 1 ? 'bottom' : ''} {action.isDestructive ? 'delete' : ''} "
+                >
                     {action.label}
                 </Item>
             {/each}
         </ContextMenu>
     {/if}
     
-    <a href="{link}" class="btn btn-primary list-button {isTop && isBottom 
-                                                        ? 'list-button-single' 
-                                                        : isTop 
-                                                            ? 'list-button-top' 
-                                                            : isBottom 
-                                                                ? 'list-button-bottom' 
-                                                                : ''}" role="button"
+    <a href="{link}" class="btn btn-primary list-button {isTop ? 'top' : ''} {isBottom ? 'bottom' : ''}" role="button"
        oncontextmenu={(e) => {
            if (!e.shiftKey) {
                 myMenu?.show(e);

@@ -1,26 +1,14 @@
 <script lang="ts">
     import type {PageProps} from './$types';
+    import LinkHeader from "$lib/components/LinkHeader.svelte";
 
     let {data}: PageProps = $props();
     let ingredient = $derived(data.ingredient);
 </script>
 
 <!-- TODO -->
-<a href="/ingredients" class="text-decoration-none h2 title-navigation ">
-    <div class="d-flex flex-row">
-        <svg class="mt-2 text-primary"
-             aria-hidden="true"
-             xmlns="http://www.w3.org/2000/svg"
-             width="24"
-             height="24"
-             fill="none"
-             viewBox="0 0 16 16">
-            <path stroke="strokeColor" stroke-linecap="round" stroke-width="2"
-                  d="M8,16 2,8 8,0"/>
-        </svg>
-        <span>{ingredient.itemName}</span>
-    </div>
-</a>
+<LinkHeader url="/ingredients" title="Ingredients"/>
+<h2 class="text-center">{ingredient.itemName}</h2>
 <p>{ingredient.itemTemp}</p>
 <p>{ingredient.defaultUnitType}</p>
 
