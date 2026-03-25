@@ -10,8 +10,7 @@ export async function handle({ event, resolve }) {
     }
     
     // Redirect unauthenticated users trying to access protected routes
-    const redirectToUrl = `/login?redirectTo=${event.url.pathname}`;
-    throw redirect(303, redirectToUrl);
+    throw redirect(303, '/login');
   }
 
   // If authenticated, you can fetch user data and put it in locals for access in load functions

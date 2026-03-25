@@ -1,45 +1,64 @@
-<script>
-	import { enhance } from '$app/forms';
+<script lang='ts'>
+    import favicon from '$lib/assets/favicon.svg';
+    import '../../app.css';
+    import {
+        Button,
+        Col,
+        Row,
+        Container,
+        Card,
+        CardBody, CardFooter,
+        CardTitle,
+        FormGroup,
+        Input
+    } from '@sveltestrap/sveltestrap';
 
-	let { data, form } = $props();
+    import {enhance} from '$app/forms';
+
+    let {form} = $props();
 </script>
 
-<div class="flex h-screen">
-    <div class="flex flex-col w-full">
-        <div class="h-32 shrink"></div>
-        <h1 class="text-4xl ml-8 font-semibold">Login</h1>
-        <form class="text-lg p-10 pb-5 mb-10 mt-2 bg-gray-700 rounded-2xl" 
-              method="POST" 
-              action="?/login" 
-              use:enhance={() => {
+<svelte:head>
+    <title>CartSync - Login</title>
+    <link rel="icon" href={favicon}/>
+</svelte:head>
+
+<Container class="vh-100">
+    <Row class="vh-100 justify-content-center align-items-center">
+        <Col md="8" lg="6" class="offset-md-2 offset-lg-3">
+            <form action="?/login"
+                  use:enhance={() => {
+                      
                 return async ({ update }) => {
-                  update({ reset: false });
-                };}}>
-            <div class="mb-3 flex flex-row h-9">
-                <label class="w-30" for="username">Username</label>
-                <input class="flex-1 p-3 rounded-lg bg-gray-900" 
-                       name="username"
-                       placeholder="Username"
-                       required
-                />
-            </div>
-            <div class="mb-3 flex flex-row h-9">
-                <label class="w-30" for="password">Password</label>
-                <input class="flex-1 p-3 rounded-lg bg-gray-900" 
-                       name="password" 
-                       type="password"
-                       placeholder="Password"
-                       required
-                />
-            </div>
-            {#if form?.error}
-                <div class="mb-3 text-right">
-                    <span class="text-sm text-red-500">Invalid username or password</span>
-                </div>
-            {/if}
-            <div class="mb-3 flex flex-row">
-                <input type="submit" class="flex-1 h-10 rounded-lg bg-blue-500 hover:bg-blue-600 active:bg-blue-700" />
-            </div>
-        </form>
-    </div>
-</div>
+                    update({ reset: false });
+                };
+            }}
+                  method="POST">
+                <Card class="bg-modal">
+                    <CardBody>
+                        <CardTitle class="mb-3">Login</CardTitle>
+                        <FormGroup floating label="Username">
+                            <Input name="username" required/>
+                        </FormGroup>
+                        <FormGroup floating label="Password">
+                            <Input name="password" type="password" required/>
+                        </FormGroup>
+
+                    </CardBody>
+                    <CardFooter>
+                        <Row>
+                            <Col sm="7">
+                                {#if form?.error}
+                                    <h6 class="text-danger m-6">Invalid username or password</h6>
+                                {/if}
+                            </Col>
+                            <Col sm="5">
+                                <Button color="primary" block type="submit">Login</Button>
+                            </Col>
+                        </Row>
+                    </CardFooter>
+                </Card>
+            </form>
+        </Col>
+    </Row>
+</Container>

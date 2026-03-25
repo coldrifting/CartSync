@@ -35,7 +35,7 @@ class ItemUsagesReport {
             message += "\n";
         }
         
-        message += "If you proceed with deletion the relations will be lost";
+        message += "Are you sure you want to delete this item?";
         return message;
 	}
 }
