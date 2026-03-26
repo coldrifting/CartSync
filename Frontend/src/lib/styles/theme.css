@@ -46,6 +46,19 @@
             }
         }
     }
+    
+    .multiselect {
+        height: 3.75rem;
+        
+        .selected {
+            height: 3rem;
+        }
+        
+        .options {
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
+    }
 
     .modal-body {
         padding: 0;

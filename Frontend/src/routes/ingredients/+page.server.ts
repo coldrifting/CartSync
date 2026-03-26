@@ -1,25 +1,14 @@
 import type {Actions, PageServerLoad} from './$types';
-import ErrorResponse from "$lib/types/ErrorResponse.js";
 import ItemUsagesReport from "$lib/types/ItemUsagesReport.js";
 import {fail} from "@sveltejs/kit";
+import {getAllItemsByStore, getItemUsages} from "$lib/requests/get.js";
+import {getValue} from "$lib/requests/requests.js";
+import {addItem} from "$lib/requests/post.js";
+import {deleteItem} from "$lib/requests/delete.js";
+import {editItemName} from "$lib/requests/patch.js";
 
 export const load: PageServerLoad = async ({cookies}) => {
-
-    const token: string = cookies.get('token') ?? "";
-
-    const url = 'http://localhost:5164/api/items';
-    const response = await fetch(url, {
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-        }
-    })
-    if (!response.ok) {
-        throw new Error(`Response status: ${response.status}`);
-    }
-
-    const ingredients: IngredientByStore[] = await response.json()
-
+    const ingredients = await getAllItemsByStore(cookies);
     return {
         ingredients: ingredients
     }
@@ -27,119 +16,30 @@ export const load: PageServerLoad = async ({cookies}) => {
 
 export const actions: Actions = {
     addIngredient: async ({request, cookies}) => {
-        const formData = await request.formData();
-        const iinputItemName = formData.get('itemName')
-        if (!iinputItemName || iinputItemName === '') {
-            throw new Error(`Invalid New Item Name: ${iinputItemName}`);
-        }
-
-        const itemName = iinputItemName.toString().trim();
-
-        const token: string = cookies.get('token') ?? "";
-        const url: string = "http://localhost:5164/api/items/add";
-        const response = await fetch(url, {
-            method: 'POST',
-            body: JSON.stringify({itemName}),
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            }
-        })
-        if (!response.ok) {
-            throw new Error(`Response status: ${response.status}`);
-        }
+        const data: FormData = await request.formData();
+        const itemName = await getValue(data, 'itemName');
+        await addItem(cookies, itemName)
     },
     tryDelete: async ({request, cookies}) => {
-        const formData = await request.formData();
-        const itemId = formData.get('id')
-        if (!itemId || itemId === '') {
-            throw new Error(`Invalid Item Id: ${itemId}`);
-        }
-
-        const token: string = cookies.get('token') ?? "";
-        const url: string = `http://localhost:5164/api/items/${itemId}/usages`;
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            }
-        })
-        if (!response.ok) {
-            const error: ErrorResponse = Object.assign(new ErrorResponse(), await response.json());
-            const errorMsg = error.getErrorMsg();
-            throw new Error(errorMsg);
-        }
-        const usages: ItemUsagesReport = Object.assign(new ItemUsagesReport(), await response.json());
+        const data: FormData = await request.formData();
+        const tryDeleteItemId = await getValue(data, 'id');
+        const usages: ItemUsagesReport = await getItemUsages(cookies, tryDeleteItemId);
         if (usages && (usages.preps.length > 0 || usages.recipes.length > 0)) {
-            return fail(409, usages.toMessage())
+            return fail(409, usages.toMessage());
         }
-
-        const deleteUrl: string = `http://localhost:5164/api/items/${itemId}/delete`;
-        const deleteResponse = await fetch(deleteUrl, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            }
-        })
-        if (!deleteResponse.ok) {
-            const error: ErrorResponse = Object.assign(new ErrorResponse(), await deleteResponse.json());
-            const errorMsg = error.getErrorMsg();
-            throw new Error(errorMsg);
-        }
+        
+        await deleteItem(cookies, tryDeleteItemId);
     },
     delete: async ({request, cookies}) => {
-        const formData = await request.formData();
-        const itemId = formData.get('id')
-        if (!itemId || itemId === '') {
-            throw new Error(`Invalid Item Id: ${itemId}`);
-        }
-
-        const token: string = cookies.get('token') ?? "";
-        const url: string = `http://localhost:5164/api/items/${itemId}/delete`;
-        const response = await fetch(url, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            }
-        })
-        if (!response.ok) {
-            const error: ErrorResponse = Object.assign(new ErrorResponse(), await response.json());
-            const errorMsg = error.getErrorMsg();
-            throw new Error(errorMsg);
-        }
+        const data: FormData = await request.formData();
+        const deleteItemId = await getValue(data, 'id');
+        await deleteItem(cookies, deleteItemId);
     },
     rename: async ({request, cookies}) => {
-        const formData = await request.formData();
-        const itemId = formData.get('id')
-        if (!itemId || itemId === '') {
-            throw new Error(`Invalid Item Id: ${itemId}`);
-        }
-        const newName = formData.get('newName')
-        if (!newName || newName === '') {
-            throw new Error(`Invalid Item Name: ${newName}`);
-        }
-
-        const token: string = cookies.get('token') ?? "";
-        const url: string = `http://localhost:5164/api/items/${itemId}/edit`;
-        const response = await fetch(url, {
-            method: 'PATCH',
-            body: JSON.stringify([{
-                "op": "replace",
-                "path": "/ItemName",
-                "value": newName.toString().trim()
-            }]),
-            headers: {
-                'Content-Type': 'application/json-patch+json',
-                'Authorization': `Bearer ${token}`
-            }
-        })
-        if (!response.ok) {
-            const error: ErrorResponse = Object.assign(new ErrorResponse(), await response.json());
-            const errorMsg = error.getErrorMsg();
-            throw new Error(errorMsg);
-        }
+        const data: FormData = await request.formData();
+        const renameItemId = await getValue(data, 'id');
+        const renameItemName = await getValue(data, 'newName');
+        
+        await editItemName(cookies, renameItemId, renameItemName);
     }
 };

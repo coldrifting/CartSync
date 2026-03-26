@@ -9,7 +9,20 @@ declare global {
 		// interface Platform {}
 	}
 		
-	class IngredientByStore{
+	class Store {
+		storeId: string;
+		storeName: string;
+		isSelected: boolean;
+	}
+	
+	class Aisle {
+		aisleId: string;
+		storeId: string;
+		aisleName: string;
+		sortOrder: number;
+	}
+	
+	class IngredientByStore {
 		itemId: string;
 		itemName: string;
 		itemTemp: string;
@@ -18,7 +31,7 @@ declare global {
 		location: Location | undefined;
 	}
 	
-	class Ingredient{
+	class Ingredient {
 		itemId: string;
 		itemName: string;
 		itemTemp: string;
@@ -27,12 +40,12 @@ declare global {
 		locations: Location[];
 	}
 	
-	class Prep{
+	class Prep {
 		prepId: string;
 		prepName: string;
 	}
 	
-	class Location{
+	class Location {
 		aisleId: string;
 		aisleName: string;
 		bay: string;

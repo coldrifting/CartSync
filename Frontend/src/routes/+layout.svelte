@@ -32,9 +32,9 @@
         <Sidebar navLinks={navLinks} />
 
         <main id="app-content">
-            <Container>
+            <div id="content-container">
                 {@render children()}
-            </Container>
+            </div>
         </main>
 
         <Appbar navLinks={navLinks} />

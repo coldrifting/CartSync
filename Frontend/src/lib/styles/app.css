@@ -20,6 +20,12 @@
     flex-direction: column;
 }
 
+#content-container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0.5rem 1rem;
+}
+
 #app-content {
     flex-grow: 1;
     height: calc(100dvh - var(--appbar-height) - env(safe-area-inset-bottom));
