@@ -156,10 +156,13 @@
     <Row>
         <Col class="input-group">
             <FormGroup class="mb-3" floating label="Search">
-                <Input name="search" id="search" required bind:value={filterTerm}/>
+                <Input name="search" id="search" class="rounded-end-2" required bind:value={filterTerm}/>
             </FormGroup>
+            <Button class="input-button mb-3 {filterTerm === '' ? 'd-none' : ''}" type="button" onclick={() => {filterTerm = ''}} >
+                <i class="fa fa-times"></i>
+            </Button>
             {#if filterValidForNewItem()}
-                <button class="mb-3 btn btn-primary" type="submit">Add</button>
+                <Button color="primary" class="input-side-button mb-3" type="submit">Add</Button>
             {/if}
         </Col>
     </Row>

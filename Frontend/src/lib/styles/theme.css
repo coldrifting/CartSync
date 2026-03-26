@@ -25,6 +25,10 @@
                 border-bottom-left-radius: 0.5rem !important;
                 border-bottom-right-radius: 0.5rem !important;
             }
+            
+            &.top.bottom {
+                border-radius: 0.5rem !important;
+            }
         }
 
         .delete {
