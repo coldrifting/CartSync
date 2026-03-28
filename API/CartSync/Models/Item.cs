@@ -125,7 +125,7 @@ public class Item : IEditable<ItemEditRequest>, IResponse<Item, ItemResponse>
         {
             ItemName = ItemName,
             ItemTemp = ItemTemp,
-            AisleId = Aisles.FirstOrDefault(a => a.StoreId == storeId)?.AisleId,
+            Location = ItemAisles.FirstOrDefault(a => a.StoreId == storeId)?.ToEditRequest(),
             DefaultUnitType = DefaultUnitType,
             PrepIds = Preps
                 .OrderBy(p => p.PrepName)
@@ -212,5 +212,5 @@ public record ItemEditRequest
     [Required] public required List<Ulid> PrepIds { get; init; }
     
     // Dont use required attribute
-    public required Ulid? AisleId { get; init; }
+    public required ItemAisleEditRequest? Location { get; init; }
 }

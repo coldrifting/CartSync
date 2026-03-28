@@ -102,7 +102,7 @@
         </div>
         <ModalFooter>
             <Button color="secondary" type="button" onclick={closeRenameDialog}>Cancel</Button>
-            <Button color="primary" type="submit">Rename</Button>
+            <Button color="primary" type="submit" disabled={newName.trim() === ""}>Rename</Button>
         </ModalFooter>
     </form>
 </Modal>
@@ -144,7 +144,7 @@
     <input hidden type="submit"/>
 </form>
 
-<h1>Ingredients</h1>
+<h1>Items</h1>
 <form method="POST"
       action="?/addIngredient"
       use:enhance={() => {
@@ -170,14 +170,14 @@
     <div>
         <ul>
             {#each filteredIngredients as ingredient, i}
-                <ListItem name={ingredient.itemName}
-                          id={ingredient.itemId}
-                          subtitle={ingredient.location?.aisleName ?? "(No Location)"}
-                          link="/ingredients/{ingredient.itemId}"
-                          isTop={i === 0}
-                          isBottom={i === filteredIngredients.length - 1}
-                          actions={actions}
-                />
+                <li>
+                    <ListItem name={ingredient.itemName}
+                              id={ingredient.itemId}
+                              subtitle={ingredient.location?.aisleName ?? "(No Location)"}
+                              link="/items/{ingredient.itemId}"
+                              actions={actions}
+                    />
+                </li>
             {/each}
         </ul>
     </div>

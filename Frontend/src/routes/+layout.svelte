@@ -15,7 +15,7 @@
 
     let navLinks: NavInfo[] = $state([
         {url: "/stores", name: "Stores", icon: storesIcon},
-        {url: "/ingredients", name: "Ingredients", icon: itemsIcon},
+        {url: "/items", name: "Items", icon: itemsIcon},
         {url: "/recipes", name: "Recipes", icon: recipeIcon},
         {url: "/cart", name: "Cart", icon: cartIcon},
     ])

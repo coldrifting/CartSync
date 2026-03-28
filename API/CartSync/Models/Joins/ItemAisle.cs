@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq.Expressions;
 using CartSync.Objects.Enums;
@@ -35,6 +36,15 @@ public class ItemAisle
             SortOrder = itemAisle.Aisle.SortOrder,
             Bay = itemAisle.Bay
         };
+
+    public ItemAisleEditRequest ToEditRequest()
+    {
+        return new ItemAisleEditRequest
+        {
+            AisleId = AisleId,
+            Bay = Bay,
+        };
+    }
 }
 
 public record ItemAisleResponse
@@ -44,4 +54,13 @@ public record ItemAisleResponse
     public required string AisleName { get; init; }
     public required BayType Bay { get; init; }
     public required int SortOrder { get; init; }
+}
+
+public record ItemAisleEditRequest
+{
+    [Required]
+    public required Ulid AisleId { get; init; }
+    
+    [Required]
+    public required BayType Bay { get; init; }
 }

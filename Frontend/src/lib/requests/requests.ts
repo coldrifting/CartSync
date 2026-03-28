@@ -2,6 +2,8 @@ import {redirect} from "@sveltejs/kit";
 import type {Cookies} from "@sveltejs/kit";
 import ErrorResponse from "$lib/types/ErrorResponse.js";
 
+export const apiBaseUrl: string = "http://localhost:5164/api";
+
 function getToken(cookies: Cookies): string {
     return cookies.get('token') ?? "";
 }

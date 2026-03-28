@@ -1,31 +1,24 @@
 import type {Actions, PageServerLoad} from './$types';
 import {getAllAisles, getAllPreps, getAllStores, getItem} from "$lib/requests/get.js";
 import {getValue} from "$lib/requests/requests.js";
-import {editItemDefaultUnits, editItemTemp} from "$lib/requests/patch.js";
-import type {Option} from "svelte-multiselect";
+import {editItemAisle, editItemDefaultUnits, editItemTemp} from "$lib/requests/patch.js";
+import {setCurrentStore} from "$lib/requests/post.js";
 
 export const load: PageServerLoad = async ({params, cookies}) => {
-    
     const stores = await getAllStores(cookies);
     const selectedStore = stores.filter(s => s.isSelected)[0];
     
-    const [aisles, preps, item] = await Promise.all([
+    const [aisles, item] = await Promise.all([
         getAllAisles(cookies, selectedStore.storeId),
-        getAllPreps(cookies),
         getItem(cookies, params.itemId)
     ]);
     
-    const allPreps: Option[] = preps.map(prep => ({label: prep.prepName, value: prep.prepId}));
-    const selectedPreps: Option[] = item.preps.map(prep => ({label: prep.prepName, value: prep.prepId}));
-
     return {
         stores: stores,
         selectedStore: selectedStore,
         aisles: aisles,
-        preps: preps,
-        allPreps: allPreps,
-        selectedPreps: selectedPreps,
-        ingredient: item
+        selectedPreps: item.preps,
+        item: item
     }
 };
 
@@ -42,5 +35,18 @@ export const actions: Actions = {
         const itemDefaultUnits: string = await getValue(data, 'itemDefaultUnits');
         const itemDefaultUnitsItemId: string = await getValue(data, 'itemId');
         await editItemDefaultUnits(cookies, itemDefaultUnitsItemId, itemDefaultUnits);
+    },
+    editCurrentStore: async ({request, cookies}) => {
+        const data: FormData = await request.formData();
+        const storeId: string = await getValue(data, 'storeId');
+        await setCurrentStore(cookies, storeId);
+    },
+    editItemAisle: async ({request, cookies}) => {
+        const data: FormData = await request.formData();
+        const itemId: string = await getValue(data, 'itemId');
+        const aisleId: string = await getValue(data, 'aisleId');
+        const bay: string = await getValue(data, 'bay');
+        const location: LocationEdit = {aisleId: aisleId, bay: bay};
+        await editItemAisle(cookies, itemId, location);
     }
 }

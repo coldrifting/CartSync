@@ -1,14 +1,14 @@
 import type {Actions, PageServerLoad} from './$types';
 import ItemUsagesReport from "$lib/types/ItemUsagesReport.js";
 import {fail} from "@sveltejs/kit";
-import {getAllItemsByStore, getItemUsages} from "$lib/requests/get.js";
+import {getAllItems, getItemUsages} from "$lib/requests/get.js";
 import {getValue} from "$lib/requests/requests.js";
 import {addItem} from "$lib/requests/post.js";
 import {deleteItem} from "$lib/requests/delete.js";
 import {editItemName} from "$lib/requests/patch.js";
 
 export const load: PageServerLoad = async ({cookies}) => {
-    const ingredients = await getAllItemsByStore(cookies);
+    const ingredients: IngredientByStore[] = await getAllItems(cookies);
     return {
         ingredients: ingredients
     }

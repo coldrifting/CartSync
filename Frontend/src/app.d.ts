@@ -45,6 +45,17 @@ declare global {
 		prepName: string;
 	}
 	
+	class PrepSelect {
+		prepId: string;
+		prepName: string;
+		isSelected: boolean;
+	}
+	
+	class LocationEdit {
+		aisleId: string;
+		bay: string;
+	}
+	
 	class Location {
 		aisleId: string;
 		aisleName: string;
@@ -76,13 +87,6 @@ declare global {
 		recipeName: string;
 		url: string;
 		isPinned: boolean;
-	}
-	
-	class PrepUsagesReport {
-		itemId: string;
-		itemName: string;
-		items: ItemMinimal[];
-		recipes: RecipeMinimal[];
 	}
 }
 

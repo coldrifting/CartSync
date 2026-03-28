@@ -1,7 +1,12 @@
 import type {Cookies} from "@sveltejs/kit";
-import {del} from "$lib/requests/requests.js";
+import {apiBaseUrl, del} from "$lib/requests/requests.js";
 
 export async function deleteItem(cookies: Cookies, itemId: string): Promise<void> {
-    const url = `http://localhost:5164/api/items/${itemId}/delete`;
-    const response = await del(cookies, url);
+    const url = `${apiBaseUrl}/items/${itemId}/delete`;
+    await del(cookies, url);
+}
+
+export async function deletePrep(cookies: Cookies, prepId: string): Promise<void> {
+    const url = `${apiBaseUrl}/preps/${prepId}/delete`;
+    await del(cookies, url);
 }

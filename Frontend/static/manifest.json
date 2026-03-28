@@ -5,7 +5,7 @@
   "start_url": "/",
   "icons": [
     {
-      "src": "icons/myIcon512.png",
+      "src": "icons/CartSync_512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

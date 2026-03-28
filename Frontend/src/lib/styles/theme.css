@@ -15,20 +15,6 @@
     .context-menu {
         button {
             padding: .5rem 1rem !important;
-
-            &.top {
-                border-top-left-radius: 0.5rem !important;
-                border-top-right-radius: 0.5rem !important;
-            }
-
-            &.bottom {
-                border-bottom-left-radius: 0.5rem !important;
-                border-bottom-right-radius: 0.5rem !important;
-            }
-            
-            &.top.bottom {
-                border-radius: 0.5rem !important;
-            }
         }
 
         .delete {

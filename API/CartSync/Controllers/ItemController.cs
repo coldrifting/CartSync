@@ -111,8 +111,8 @@ public class ItemController(CartSyncContext context) : ControllerCore(context)
             }
         }
         
-        Ulid? aisleId = itemEdit.AisleId;
-        if (aisleId is null)
+        ItemAisleEditRequest? newLocation = itemEdit.Location;
+        if (newLocation is null)
         {
             ItemAisle? itemAisle = await Db.ItemAisles.FindAsync(itemId, storeId);
             if (itemAisle != null)
@@ -122,24 +122,25 @@ public class ItemController(CartSyncContext context) : ControllerCore(context)
         }
         else
         {
-            Aisle? aisle = await Db.Aisles.FindAsync(aisleId);
+            Aisle? aisle = await Db.Aisles.FindAsync(newLocation.AisleId);
             if (aisle is null)
             {
-                return Aisle.NotFound(aisleId.Value);
+                return Aisle.NotFound(newLocation.AisleId);
             }
             
             Aisle? aisleInStore = await Db.Aisles
                 .Where(a => a.StoreId == storeId)
-                .FirstOrDefaultAsync(a => a.AisleId == aisleId.Value);
+                .FirstOrDefaultAsync(a => a.AisleId == newLocation.AisleId);
             if (aisleInStore is null)
             {
-                return Aisle.NotFoundUnderStore(aisleId.Value, storeId);
+                return Aisle.NotFoundUnderStore(newLocation.AisleId, storeId);
             }
             
             ItemAisle? itemAisle = await Db.ItemAisles.FindAsync(itemId, storeId);
             if (itemAisle is not null)
             {
-                itemAisle.AisleId = aisleId.Value;
+                itemAisle.AisleId = newLocation.AisleId;
+                itemAisle.Bay = newLocation.Bay;
             }
             else
             {
@@ -147,7 +148,8 @@ public class ItemController(CartSyncContext context) : ControllerCore(context)
                 {
                     ItemId = itemId,
                     StoreId = storeId,
-                    AisleId = aisleId.Value,
+                    AisleId = newLocation.AisleId,
+                    Bay = newLocation.Bay
                 });
             }
         }
