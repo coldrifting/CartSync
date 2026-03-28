@@ -182,7 +182,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         Assert.Equal(newItem.ItemName, result.item.ItemName);
         Assert.Equal(result.location.Split('/').Last().ToLower(), result.item.ItemId.ToString().ToLower());
 
-        ItemResponse fetch = await ItemController.Details(result.item.ItemId).ValueAsync();
+        ItemByStoreResponse fetch = await ItemController.Details(result.item.ItemId).ValueAsync();
         Assert.Equal(newItem.ItemName, fetch.ItemName);
 
         List<ItemByStoreResponse> results = await ItemController.All().ValueAsync();
@@ -260,15 +260,13 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
                 }
             }
         };
-        
-        await ItemController.Edit(itemId, jsonPatch, SeedData.Stores[1].StoreId).AssertIsSuccessful();
-        
-        ItemResponse item = await ItemController.Details(itemId).ValueAsync();
 
-        IEnumerable<Ulid> expected = [ SeedData.Aisles[4].AisleId, SeedData.Aisles[23].AisleId ];
-        IEnumerable<Ulid> actual = item.Locations.OrderBy(i => i.AisleId).Select(i => i.AisleId);
+        await StoreController.Select(SeedData.Stores[1].StoreId);
+        await ItemController.Edit(itemId, jsonPatch).AssertIsSuccessful();
         
-        Assert.Equal(expected, actual);
+        ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
+
+        Assert.Equal(aisleId, item.Location?.AisleId);
     }
 
     [Fact]
@@ -289,14 +287,11 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
             }
         };
         
-        await ItemController.Edit(itemId, jsonPatch, SeedData.Stores[0].StoreId).AssertIsSuccessful();
+        await ItemController.Edit(itemId, jsonPatch).AssertIsSuccessful();
         
-        ItemResponse item = await ItemController.Details(itemId).ValueAsync();
+        ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
 
-        IEnumerable<Ulid> expected = [ SeedData.Aisles[17].AisleId ];
-        IEnumerable<Ulid> actual = item.Locations.OrderBy(i => i.AisleId).Select(i => i.AisleId);
-        
-        Assert.Equal(expected, actual);
+        Assert.Equal(aisleId, item.Location?.AisleId);
     }
 
     [Fact]
@@ -317,14 +312,11 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
             }
         };
         
-        await ItemController.Edit(itemId, jsonPatch, SeedData.Stores[0].StoreId).AssertIsSuccessful();
+        await ItemController.Edit(itemId, jsonPatch).AssertIsSuccessful();
         
-        ItemResponse item = await ItemController.Details(itemId).ValueAsync();
+        ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
 
-        IEnumerable<Ulid> expected = [ SeedData.Aisles[23].AisleId, SeedData.Aisles[17].AisleId ];
-        IEnumerable<Ulid> actual = item.Locations.OrderBy(i => i.AisleId).Select(i => i.AisleId);
-        
-        Assert.Equal(expected, actual);
+        Assert.Equal(aisleId, item.Location?.AisleId);
     }
 
     [Fact]
@@ -345,45 +337,12 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
             }
         };
         
-        Error error = await ItemController.Edit(itemId, jsonPatch, SeedData.Stores[0].StoreId).ErrorAsync();
+        Error error = await ItemController.Edit(itemId, jsonPatch).ErrorAsync();
         error.AssertStatus(HttpStatusCode.NotFound);
         
-        ItemResponse item = await ItemController.Details(itemId).ValueAsync();
+        ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
 
-        IEnumerable<Ulid> expected = [ SeedData.Aisles[4].AisleId ];
-        IEnumerable<Ulid> actual = item.Locations.OrderBy(i => i.AisleId).Select(i => i.AisleId);
-        
-        Assert.Equal(expected, actual);
-    }
-
-    [Fact]
-    public async Task TestItemEdit_AddLocationWithStoreNotFound()
-    {
-        Ulid itemId = SeedData.Items[54].ItemId;
-        Ulid aisleId = SeedData.Aisles[4].AisleId;
-        Ulid storeId = Ulid.NotFound;
-        JsonPatchDocument<ItemEditRequest> jsonPatch = new()
-        {
-            Operations =
-            {
-                new Operation<ItemEditRequest>
-                {
-                    op = "replace",
-                    path = "/AisleId",
-                    value = $"{aisleId}"
-                }
-            }
-        };
-        
-        Error error = await ItemController.Edit(itemId, jsonPatch, storeId).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
-        
-        ItemResponse item = await ItemController.Details(itemId).ValueAsync();
-
-        IEnumerable<Ulid> expected = [ SeedData.Aisles[4].AisleId ];
-        IEnumerable<Ulid> actual = item.Locations.OrderBy(i => i.AisleId).Select(i => i.AisleId);
-        
-        Assert.Equal(expected, actual);
+        Assert.Equal(SeedData.Aisles[4].AisleId, item.Location?.AisleId);
     }
 
     [Fact]
@@ -391,7 +350,6 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         Ulid itemId = SeedData.Items[54].ItemId;
         Ulid aisleId = SeedData.Aisles[4].AisleId;
-        Ulid storeId = SeedData.Stores[1].StoreId;
         JsonPatchDocument<ItemEditRequest> jsonPatch = new()
         {
             Operations =
@@ -405,15 +363,14 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
             }
         };
         
-        Error error = await ItemController.Edit(itemId, jsonPatch, storeId).ErrorAsync();
+        await StoreController.Select(SeedData.Stores[1].StoreId);
+        
+        Error error = await ItemController.Edit(itemId, jsonPatch).ErrorAsync();
         error.AssertStatus(HttpStatusCode.NotFound);
         
-        ItemResponse item = await ItemController.Details(itemId).ValueAsync();
+        ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
 
-        IEnumerable<Ulid> expected = [ SeedData.Aisles[4].AisleId ];
-        IEnumerable<Ulid> actual = item.Locations.OrderBy(i => i.AisleId).Select(i => i.AisleId);
-        
-        Assert.Equal(expected, actual);
+        Assert.Null(item.Location?.AisleId);
     }
 
     [Fact]
@@ -433,14 +390,11 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
             }
         };
         
-        await ItemController.Edit(itemId, jsonPatch, SeedData.Stores[0].StoreId).AssertIsSuccessful();
+        await ItemController.Edit(itemId, jsonPatch).AssertIsSuccessful();
         
-        ItemResponse item = await ItemController.Details(itemId).ValueAsync();
+        ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
 
-        IEnumerable<Ulid> expected = [ ];
-        IEnumerable<Ulid> actual = item.Locations.OrderBy(i => i.AisleId).Select(i => i.AisleId);
-        
-        Assert.Equal(expected, actual);
+        Assert.Null(item.Location?.AisleId);
     }
 
     [Theory]
@@ -462,12 +416,13 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
             }
         };
         
-        await ItemController.Edit(itemId, jsonPatch, SeedData.Stores[storeIndex].StoreId).AssertIsSuccessful();
+        await StoreController.Select(SeedData.Stores[storeIndex].StoreId);
+        await ItemController.Edit(itemId, jsonPatch).AssertIsSuccessful();
         
-        ItemResponse item = await ItemController.Details(itemId).ValueAsync();
+        ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
 
-        IEnumerable<Ulid> expected = [ SeedData.Aisles[aisleIndex].AisleId ];
-        IEnumerable<Ulid> actual = item.Locations.OrderBy(i => i.AisleId).Select(i => i.AisleId);
+        Ulid? expected = null;
+        Ulid? actual = item.Location?.AisleId;
         
         Assert.Equal(expected, actual);
     }
@@ -492,7 +447,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
 
         await ItemController.Edit(itemId, jsonPatch).AssertIsSuccessful();
         
-        ItemResponse item = await ItemController.Details(itemId).ValueAsync();
+        ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
 
         IEnumerable<Ulid> expected = [ prepId ];
         IEnumerable<Ulid> actual = item.Preps.OrderBy(i => i.PrepName).ThenBy(i => i.PrepId).Select(i => i.PrepId);
@@ -520,7 +475,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
 
         await ItemController.Edit(itemId, jsonPatch).AssertIsSuccessful();
         
-        ItemResponse item = await ItemController.Details(itemId).ValueAsync();
+        ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
 
         IEnumerable<Ulid> expected = [ prepId, SeedData.Preps[3].PrepId, SeedData.Preps[4].PrepId ];
         IEnumerable<Ulid> actual = item.Preps.OrderBy(i => i.PrepName).ThenBy(i => i.PrepId).Select(i => i.PrepId);
@@ -549,7 +504,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         Error error = await ItemController.Edit(itemId, jsonPatch).ErrorAsync();
         error.AssertStatus(HttpStatusCode.NotFound);
         
-        ItemResponse item = await ItemController.Details(itemId).ValueAsync();
+        ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
 
         IEnumerable<Ulid> expected = [ SeedData.Preps[3].PrepId, SeedData.Preps[4].PrepId ];
         IEnumerable<Ulid> actual = item.Preps.OrderBy(i => i.PrepName).ThenBy(i => i.PrepId).Select(i => i.PrepId);
@@ -577,7 +532,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         
         await ItemController.Edit(itemId, jsonPatch).AssertIsSuccessful();
         
-        ItemResponse item = await ItemController.Details(itemId).ValueAsync();
+        ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
 
         IEnumerable<Ulid> expected = [ SeedData.Preps[prepIndex].PrepId ];
         IEnumerable<Ulid> actual = item.Preps.OrderBy(i => i.PrepName).ThenBy(i => i.PrepId).Select(i => i.PrepId);
@@ -604,7 +559,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         Error error = await ItemController.Edit(itemId, jsonPatch).ErrorAsync();
         error.AssertStatus(HttpStatusCode.BadRequest);
         
-        ItemResponse item = await ItemController.Details(itemId).ValueAsync();
+        ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
 
         IEnumerable<Ulid> expected = [ ];
         IEnumerable<Ulid> actual = item.Preps.OrderBy(i => i.PrepName).ThenBy(i => i.PrepId).Select(i => i.PrepId);
@@ -629,13 +584,13 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
             }
         };
         
-        Error error = await ItemController.Edit(itemId, jsonPatch, SeedData.Stores[0].StoreId).ErrorAsync();
+        Error error = await ItemController.Edit(itemId, jsonPatch).ErrorAsync();
         error.AssertStatus(HttpStatusCode.BadRequest);
         
-        ItemResponse item = await ItemController.Details(itemId).ValueAsync();
+        ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
 
-        IEnumerable<Ulid> expected = [ SeedData.Aisles[0].AisleId, SeedData.Aisles[23].AisleId ];
-        IEnumerable<Ulid> actual = item.Locations.OrderBy(i => i.AisleId).Select(i => i.AisleId);
+        Ulid expected = SeedData.Aisles[0].AisleId;
+        Ulid? actual = item.Location?.AisleId;
         
         Assert.Equal(expected, actual);
     }
@@ -643,21 +598,8 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     [Fact]
     public async Task TestItemEdit_ItemNotFound()
     {
-        Ulid storeId = SeedData.Stores[0].StoreId;
-        
         JsonPatchDocument<ItemEditRequest> jsonPatch = new();
         Error error = await ItemController.Edit(Ulid.NotFound, jsonPatch).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
-        
-        Error error2 = await ItemController.Edit(Ulid.NotFound, jsonPatch, storeId).ErrorAsync();
-        error2.AssertStatus(HttpStatusCode.NotFound);
-    }
-
-    [Fact]
-    public async Task TestItemEdit_StoreNotFound()
-    {
-        JsonPatchDocument<ItemEditRequest> jsonPatch = new();
-        Error error = await ItemController.Edit(Ulid.NotFound, jsonPatch, SeedData.Stores[0].StoreId).ErrorAsync();
         error.AssertStatus(HttpStatusCode.NotFound);
     }
 

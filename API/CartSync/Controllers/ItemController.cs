@@ -64,12 +64,14 @@ public class ItemController(CartSyncContext context) : ControllerCore(context)
     
     [HttpGet]
     [Route("/api/items/{itemId}")]
-    public async Task<Results<Ok<ItemResponse>, BadRequest<Error>, NotFound<Error>>> Details(Ulid itemId)
+    public async Task<Results<Ok<ItemByStoreResponse>, BadRequest<Error>, NotFound<Error>>> Details(Ulid itemId)
     {
-        ItemResponse? itemResponse = await Db.Items
+        Ulid currentStoreId = await GetSelectedStoreId();
+        
+        ItemByStoreResponse? itemResponse = await Db.Items
             .Include(i => i.Preps)
             .Include(i => i.Aisles)
-            .Select(Item.ToResponse)
+            .Select(Item.ToByStoreResponse(currentStoreId))
             .FirstOrDefaultAsync(i => i.ItemId == itemId);
 
         if (itemResponse == null)
@@ -83,7 +85,7 @@ public class ItemController(CartSyncContext context) : ControllerCore(context)
     [HttpPatch]
     [Route("/api/items/{itemId}/edit")]
     [Consumes("application/json-patch+json")]
-    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Edit(Ulid itemId, [FromBody] JsonPatchDocument<ItemEditRequest> itemPatch, Ulid? storeId = null)
+    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Edit(Ulid itemId, [FromBody] JsonPatchDocument<ItemEditRequest> itemPatch)
     {
         Item? item = await Db.Items
             .Include(i => i.Preps)
@@ -94,6 +96,7 @@ public class ItemController(CartSyncContext context) : ControllerCore(context)
             return Item.NotFound(itemId);
         }
         
+        Ulid storeId = await GetSelectedStoreId();
         if (!TryGetEditObject(item, itemPatch, out ItemEditRequest? itemEdit, storeId))
         {
             return Error.BadRequestPatchInvalid(ModelState);
@@ -108,55 +111,44 @@ public class ItemController(CartSyncContext context) : ControllerCore(context)
             }
         }
         
-        if (storeId is not null)
+        Ulid? aisleId = itemEdit.AisleId;
+        if (aisleId is null)
         {
-            Store? store = await Db.Stores
-                    .Include(s => s.Aisles)
-                    .FirstOrDefaultAsync(s => s.StoreId == storeId);
-            if (store == null)
+            ItemAisle? itemAisle = await Db.ItemAisles.FindAsync(itemId, storeId);
+            if (itemAisle != null)
             {
-                return Store.NotFound(storeId.Value);
+                Db.ItemAisles.Remove(itemAisle);
+            }
+        }
+        else
+        {
+            Aisle? aisle = await Db.Aisles.FindAsync(aisleId);
+            if (aisle is null)
+            {
+                return Aisle.NotFound(aisleId.Value);
             }
             
-            Ulid? aisleId = itemEdit.AisleId;
-            if (aisleId is null)
+            Aisle? aisleInStore = await Db.Aisles
+                .Where(a => a.StoreId == storeId)
+                .FirstOrDefaultAsync(a => a.AisleId == aisleId.Value);
+            if (aisleInStore is null)
             {
-                ItemAisle? itemAisle = await Db.ItemAisles.FindAsync(itemId, storeId);
-                if (itemAisle != null)
-                {
-                    Db.ItemAisles.Remove(itemAisle);
-                }
+                return Aisle.NotFoundUnderStore(aisleId.Value, storeId);
+            }
+            
+            ItemAisle? itemAisle = await Db.ItemAisles.FindAsync(itemId, storeId);
+            if (itemAisle is not null)
+            {
+                itemAisle.AisleId = aisleId.Value;
             }
             else
             {
-                Aisle? aisle = await Db.Aisles.FindAsync(aisleId);
-                if (aisle is null)
+                Db.ItemAisles.Add(new ItemAisle
                 {
-                    return Aisle.NotFound(aisleId.Value);
-                }
-                
-                Aisle? aisleInStore = await Db.Aisles
-                    .Where(a => a.StoreId == storeId)
-                    .FirstOrDefaultAsync(a => a.AisleId == aisleId.Value);
-                if (aisleInStore is null)
-                {
-                    return Aisle.NotFoundUnderStore(aisleId.Value, storeId.Value);
-                }
-                
-                ItemAisle? itemAisle = await Db.ItemAisles.FindAsync(itemId, storeId);
-                if (itemAisle is not null)
-                {
-                    itemAisle.AisleId = aisleId.Value;
-                }
-                else
-                {
-                    Db.ItemAisles.Add(new ItemAisle
-                    {
-                        ItemId = itemId,
-                        StoreId = storeId.Value,
-                        AisleId = aisleId.Value,
-                    });
-                }
+                    ItemId = itemId,
+                    StoreId = storeId,
+                    AisleId = aisleId.Value,
+                });
             }
         }
 
