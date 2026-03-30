@@ -169,7 +169,7 @@
 </ul>
 </form>
 
-<Button color="primary" onclick={() => {
+<Button color="primary mt-3 p-2" block onclick={() => {
                 newName = "";
                 showAddDialog = true;
 }}>

@@ -1,10 +1,11 @@
 import {fail, redirect} from '@sveltejs/kit';
 import type {Actions, PageServerLoad} from './$types';
+import {apiBaseUrl, cookieSettings, defaultUrl} from "$lib/requests/requests.js";
 
-export const load: PageServerLoad = async ({cookies, url}) => {
+export const load: PageServerLoad = async ({cookies}) => {
     const token: string = cookies.get('token') ?? "";
-    if (token != "") {
-        throw redirect(303, '/ingredients');
+    if (token !== "") {
+        throw redirect(303, defaultUrl);
     }
 };
 
@@ -14,9 +15,7 @@ export const actions: Actions = {
         const username = formData.get('username');
         const password = formData.get('password');
 
-        // **1. Authenticate with your backend API**
-        // (Example fetch, replace with your actual API call)
-        const apiResponse = await fetch('http://localhost:5164/api/user/login', {
+        const apiResponse = await fetch(`${apiBaseUrl}/user/login`, {
             method: 'POST',
             body: JSON.stringify({username, password}),
             headers: {'Content-Type': 'application/json'},
@@ -29,18 +28,11 @@ export const actions: Actions = {
             });
         }
 
-        const {token} = await apiResponse.json(); // Assume API returns { token: '...' }
+        const {token} = await apiResponse.json();
 
-        // **2. Set the JWT as an HttpOnly cookie**
-        cookies.set('token', token, {
-            path: '/', // Makes the cookie available across the entire site
-            httpOnly: true, // Prevents client-side JavaScript from reading the cookie
-            sameSite: 'lax', // Mitigates CSRF attacks
-            secure: false,
-            maxAge: 60 * 60 * 24 * 7, // Cookie expiration (e.g., 1 week)
-        });
+        cookies.set('token', token, cookieSettings);
 
-        // **3. Redirect the user**
-        throw redirect(303, '/ingredients');
+        throw redirect(303, defaultUrl);
     },
 };
+

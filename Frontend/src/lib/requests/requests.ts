@@ -16,15 +16,7 @@ export async function get(cookies: Cookies, url: string): Promise<Response> {
             'Authorization': `Bearer ${token}`
         }
     });
-    if (response.status === 401) {
-        console.error("Token expired. Redirecting to login page...");
-        throw redirect(307, '/login');
-    }
-    if (!response.ok) {
-        const error: ErrorResponse = Object.assign(new ErrorResponse(), await response.json());
-        const errorMsg = error.getErrorMsg();
-        throw new Error(errorMsg);
-    }
+    await handleResponse(cookies, response, token);
     return response;
 }
 
@@ -38,15 +30,7 @@ export async function post(cookies: Cookies, url: string, body: any): Promise<Re
             'Authorization': `Bearer ${token}`
         }
     });
-    if (response.status === 401) {
-        console.error("Token expired. Redirecting to login page...");
-        throw redirect(307, '/login');
-    }
-    if (!response.ok) {
-        const error: ErrorResponse = Object.assign(new ErrorResponse(), await response.json());
-        const errorMsg = error.getErrorMsg();
-        throw new Error(errorMsg);
-    }
+    await handleResponse(cookies, response, token);
     return response;
 }
 
@@ -69,15 +53,7 @@ export async function patch(cookies: Cookies, url: string, path: string, value: 
             'Authorization': `Bearer ${token}`
         }
     });
-    if (response.status === 401) {
-        console.error("Token expired. Redirecting to login page...");
-        throw redirect(307, '/login');
-    }
-    if (!response.ok) {
-        const error: ErrorResponse = Object.assign(new ErrorResponse(), await response.json());
-        const errorMsg = error.getErrorMsg();
-        throw new Error(errorMsg);
-    }
+    await handleResponse(cookies, response, token);
 }
 
 export async function del(cookies: Cookies, url: string): Promise<void> {
@@ -89,8 +65,14 @@ export async function del(cookies: Cookies, url: string): Promise<void> {
             'Authorization': `Bearer ${token}`
         }
     });
+    await handleResponse(cookies, response, token);
+}
+
+export async function handleResponse(cookies: Cookies, response: Response, token: string): Promise<void> {
     if (response.status === 401) {
         console.error("Token expired. Redirecting to login page...");
+        cookies.delete('token', cookieSettings);
+        
         throw redirect(307, '/login');
     }
     if (!response.ok) {
@@ -108,3 +90,13 @@ export async function getValue(formData: FormData, formElementName: string): Pro
     
     return elementValue.trim();
 }
+
+export const cookieSettings: any = {
+    path: '/', // Makes the cookie available across the entire site
+    httpOnly: true, // Prevents client-side JavaScript from reading the cookie
+    sameSite: 'lax', // Mitigates CSRF attacks
+    secure: false,
+    maxAge: 60 * 60 * 4, // Cookie expiration (4 hours)
+}
+
+export const defaultUrl: string = '/items';
