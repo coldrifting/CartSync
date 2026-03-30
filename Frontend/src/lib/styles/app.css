@@ -74,8 +74,8 @@ ul {
         }
     }
     
-    :first-child & :last-child {
-        .list-button {
+    :first-child:last-child {
+        .list-button, .context-menu-item {
             border-radius: 0.4em;
         }
     }

@@ -170,14 +170,13 @@
     <div>
         <ul>
             {#each filteredIngredients as ingredient, i}
-                <li>
-                    <ListItem name={ingredient.itemName}
-                              id={ingredient.itemId}
-                              subtitle={ingredient.location?.aisleName ?? "(No Location)"}
-                              link="/items/{ingredient.itemId}"
-                              actions={actions}
-                    />
-                </li>
+                <ListItem name={ingredient.itemName}
+                          id={ingredient.itemId}
+                          subtitle={ingredient.location?.aisleName ?? "(No Location)"}
+                          isSubtitleActive={ingredient.location?.aisleName !== undefined}
+                          link="/items/{ingredient.itemId}"
+                          actions={actions}
+                />
             {/each}
         </ul>
     </div>

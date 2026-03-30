@@ -77,14 +77,12 @@
 <h4>Preps</h4>
 
 <ul>
-    <li>
-        <ListItem 
-                name={prepText === "" ? "(None)" : prepText}
-                link="/items/{itemId}/preps" 
-                id="0"
-                subtitle="Edit" 
-                actions={[]} />
-    </li>
+    <ListItem 
+            name={prepText === "" ? "(None)" : prepText}
+            link="/items/{itemId}/preps" 
+            id="0"
+            subtitle="Edit" 
+            actions={[]} />
 </ul>
 
 <h4 class="pt-4">Location</h4>

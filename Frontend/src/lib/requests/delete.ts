@@ -10,3 +10,8 @@ export async function deletePrep(cookies: Cookies, prepId: string): Promise<void
     const url = `${apiBaseUrl}/preps/${prepId}/delete`;
     await del(cookies, url);
 }
+
+export async function deleteStore(cookies: Cookies, storeId: string): Promise<void> {
+    const url = `${apiBaseUrl}/stores/${storeId}/delete`;
+    await del(cookies, url);
+}

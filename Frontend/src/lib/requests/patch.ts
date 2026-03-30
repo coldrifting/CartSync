@@ -30,3 +30,8 @@ export async function editItemAisle(cookies: Cookies, itemId: string, location: 
     const url = `${apiBaseUrl}/items/${itemId}/edit`
     await patch(cookies, url, "/Location", location);
 }
+
+export async function editStoreName(cookies: Cookies, storeId: string, storeName: string): Promise<void> {
+    const url = `${apiBaseUrl}/stores/${storeId}/edit`;
+    await patch(cookies, url, "/StoreName", storeName);
+}
