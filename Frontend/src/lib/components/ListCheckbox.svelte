@@ -1,51 +1,30 @@
 <script lang="ts">
-    import {onMount} from 'svelte';
-    import ContextMenu, {Item} from "svelte-contextmenu";
     import {Input} from "@sveltestrap/sveltestrap";
+    import ContextMenuCustom from "$lib/components/contextMenu/ContextMenuCustom.svelte";
 
     let {
         id,
         label,
         isChecked,
         onchange,
-        actions = []
+        contextActions = []
     }: {
         id: string,
         label: string,
         isChecked: boolean,
         onchange: () => void,
-        actions: ContextAction[]
+        contextActions: ContextAction[]
     } = $props()
-
-    let myMenu: ContextMenu | null = $state(null)
-
-    let mounted = $derived(false);
-
-    onMount(() => {
-        mounted = true;
-    });
 </script>
 
-{#if mounted}
-    <ContextMenu bind:this={myMenu}>
-        {#each actions as action}
-            <Item on:click={() => {action.action(id, label)}} class={action.isDestructive ? 'delete' : ''}>
-                {action.label}
-            </Item>
-        {/each}
-    </ContextMenu>
-{/if}
 
-<li oncontextmenu={(e) => {
-                   if (!e.shiftKey) {
-                        myMenu?.show(e);
-                   }
-               }}>
-    <Input type="checkbox"
-           name={id}
-           label={label}
-           value={id}
-           checked={isChecked}
-           onchange={onchange}
-    />
-</li>
+<ContextMenuCustom actions={contextActions} id={id} name={label}>
+        <Input type="checkbox"
+               name={id}
+               label={label}
+               value={id}
+               class="list-item"
+               checked={isChecked}
+               onchange={onchange}
+        />
+</ContextMenuCustom>

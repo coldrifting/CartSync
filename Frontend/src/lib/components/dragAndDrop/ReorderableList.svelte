@@ -1,13 +1,14 @@
 <script lang="ts">
     import Droppable from './Droppable.svelte';
     import DraggableItem from './DraggableItem.svelte'
+    import ContextMenuCustom from '$lib/components/contextMenu/ContextMenuCustom.svelte'
     import {CollisionPriority} from '@dnd-kit/abstract';
     import {DragDropProvider, DragOverlay} from '@dnd-kit-svelte/svelte';
     import {move} from '@dnd-kit/helpers';
     import {RestrictToWindowEdges} from '@dnd-kit-svelte/svelte/modifiers';
     import {KeyboardSensor, PointerSensor} from '@dnd-kit-svelte/svelte';
 
-    const sensors = [KeyboardSensor, PointerSensor];
+    const sensors = [PointerSensor, KeyboardSensor];
 
     interface HasIndex {
         id: string;
@@ -18,6 +19,7 @@
         listName: string;
         items: SortableItem[];
         onReorder: (id: string, newIndex: number) => void;
+        contextActions: ContextAction[];
     }
 
     let currentDragIndex: number = $state(-1);
@@ -37,7 +39,7 @@
         }, 200);
     }
 
-    let {listName, items, onReorder}: Props = $props();
+    let {listName, items, onReorder, contextActions}: Props = $props();
 </script>
 
 <DragDropProvider
@@ -47,17 +49,20 @@
         onDragOver={onDragOver}
         onDragEnd={onDragEnd}>
     <Droppable id={listName}
-               class="reorderable-list"
+               class="list"
                type="column"
                accept="item"
                collisionPriority={CollisionPriority.Low}>
         {#each items as item, index (item.id)}
-            <DraggableItem {item}
-                           id={item.id}
-                           index={() => index}
-                           group={listName}
-                           data={{group: listName}}
-                           type="item"/>
+            
+            <ContextMenuCustom actions={contextActions} id={item.id} name={item.name}>
+                <DraggableItem {item}
+                               id={item.id}
+                               index={() => index}
+                               group={listName}
+                               data={{group: listName}}
+                               type="item"/>
+            </ContextMenuCustom>
         {/each}
     </Droppable>
 

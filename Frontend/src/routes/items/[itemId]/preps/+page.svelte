@@ -1,177 +1,90 @@
 <script lang="ts">
-    import type {PageProps} from './$types';
-    import LinkHeader from "$lib/components/LinkHeader.svelte";
-    import {Button, FormGroup, Input, Modal, ModalFooter} from "@sveltestrap/sveltestrap";
+    import type {PageProps, SubmitFunction} from './$types';
     import {enhance} from '$app/forms';
+    import {Button} from "@sveltestrap/sveltestrap";
+    import LinkHeader from "$lib/components/LinkHeader.svelte";
     import ListCheckbox from "$lib/components/ListCheckbox.svelte";
+    import ModalAdd from "$lib/components/modal/ModalAdd.svelte";
+    import ModalRename from "$lib/components/modal/ModalRename.svelte";
+    import ModalDelete from "$lib/components/modal/ModalDelete.svelte";
 
     let {data}: PageProps = $props();
-    
+
     let item: IngredientByStore = $derived(data.item);
     let itemId = $derived(item.itemId);
     let preps = $derived(data.preps);
+
+    let addDialog: ModalAdd
+    let renameDialog: ModalRename
+    let deleteDialog: ModalDelete
     
-    let prepForm: HTMLFormElement;
+    let editForm: HTMLFormElement;
+    let tryDeleteForm: HTMLFormElement;
     
-    let renameId = $state('');
-    let deleteId = $state('');
-    let newName = $state('');
-    let itemInUseText = $state('');
-    
-    let actions: ContextAction[] = [
-        {
-            label: "Rename",
-            isDestructive: false,
-            action: (val, name) => {
-                renameId = val;
-                newName = name ?? "";
-                showRenameDialog = true;
-            }
-        },
-        {
-            label: "Delete",
-            isDestructive: true,
-            action: (val, _) => {
-                deleteId = val;
-            }
+    let contextActions: ContextAction[] = [
+		{ label: "Rename", action: (id: string, value: string | undefined) => {renameDialog.show(id, value)} },
+		{ label: "Delete", action: (id: string, value: string | undefined) => {
+                deleteId = id;
+                deleteName = value ?? "";
+                tick().then(() => {
+                    tryDeleteForm.requestSubmit();
+                })
+            } 
         }
     ];
-
-    let showAddDialog = $state(false);
-    const toggleAddDialog = () => (showAddDialog = !showAddDialog);
-    const closeAddDialog = () => (showAddDialog = false);
-
-    let showRenameDialog = $state(false);
-    const toggleRenameDialog = () => (showRenameDialog = !showRenameDialog);
-    const closeRenameDialog = () => (showRenameDialog = false);
-
-    let showDeleteDialog = $state(false);
-    const toggleDeleteDialog = () => {
-        if (showDeleteDialog) {
-            deleteId = "";
-        }
-        return (showDeleteDialog = !showDeleteDialog);
-    };
-    const closeDeleteDialog = () => {
-        deleteId = "";
-        return (showDeleteDialog = false);
-    };
     
-    $effect(() => {
-        if (deleteId.length != 0) {
-            let tryDeleteForm = document.getElementById("tryDeleteForm") as HTMLFormElement;
-            if (tryDeleteForm) {
-                tryDeleteForm.requestSubmit();
+    let deleteId = $state('');
+    let deleteName = $state('');
+
+    const submitFunction: SubmitFunction = () => {
+        return async ({result, update}) => {
+            if (result.type === 'failure' && result.data) {
+                deleteDialog.show(deleteId, deleteName, result.data);
+            } else {
+                await update();
             }
-        }
-    });
+        };
+    };
 </script>
 
 <svelte:head>
     <title>{data.item.itemName} - Preps</title>
 </svelte:head>
 
-<Modal body header="Add Prep"
-       isOpen={showAddDialog}
-       toggle={toggleAddDialog}
-       centered={true}>
-    <form method="POST"
-          action="?/addPrep"
-          id="addForm"
-          use:enhance={() => {closeAddDialog()}}>
-        <div>
-            <FormGroup floating label="Prep Name">
-                <Input name="prepName" bind:value={newName} required/>
-            </FormGroup>
-        </div>
-        <ModalFooter>
-            <Button color="secondary" type="button" onclick={closeAddDialog}>Cancel</Button>
-            <Button color="primary" type="submit" disabled={newName.trim() === ""}>Add</Button>
-        </ModalFooter>
-    </form>
-</Modal>
-
-<Modal body header="Rename Prep"
-       isOpen={showRenameDialog}
-       toggle={toggleRenameDialog}
-       centered={true}>
-    <form method="POST"
-          action="?/renamePrep"
-          id="renameForm"
-          use:enhance={() => {closeRenameDialog()}}>
-        <div>
-            <input hidden name="id" bind:value={renameId}/>
-            <FormGroup floating label="Prep Name">
-                <Input name="prepName" bind:value={newName} required/>
-            </FormGroup>
-        </div>
-        <ModalFooter>
-            <Button color="secondary" type="button" onclick={closeRenameDialog}>Cancel</Button>
-            <Button color="primary" type="submit" disabled={newName.trim() === ""} >Rename</Button>
-        </ModalFooter>
-    </form>
-</Modal>
-
-<Modal body header="Delete Prep"
-       isOpen={showDeleteDialog}
-       toggle={toggleDeleteDialog}
-       centered={true}>
-    <form method="POST"
-          action="?/deletePrep"
-          id="deleteForm"
-          use:enhance={() => {closeDeleteDialog()}}>
-        <div>
-            <input hidden name="id" bind:value={deleteId}/>
-            <p class="whitespace-pre-line">{itemInUseText}</p>
-        </div>
-        <ModalFooter>
-            <Button color="secondary" type="button" onclick={closeDeleteDialog}>Cancel</Button>
-            <Button color="danger" type="submit">Delete</Button>
-        </ModalFooter>
-    </form>
-</Modal>
+<ModalAdd bind:this={addDialog} action="addPrep" header="Add Prep" labelAdd="Prep Name" />
+<ModalRename bind:this={renameDialog} action="renamePrep" header="Rename Prep" labelRename="Prep Name" />
+<ModalDelete bind:this={deleteDialog} action="deletePrep" header="Delete Prep" warning="The prep [Name] will be deleted!" />
 
 <form method="POST"
       action="?/tryDeletePrep"
-      id="tryDeleteForm"
-      use:enhance={() => {
-            return async ({ result, update }) => {
-                if (result.type === 'failure' && result.data) {
-                    itemInUseText = (result.data ?? "").toString()
-                    showDeleteDialog = true;
-                } else {
-                    await update();
-                }
-            };
-        }}>
+      bind:this={tryDeleteForm}
+      use:enhance={submitFunction}>
     <input hidden name="id" bind:value={deleteId}/>
     <input hidden type="submit"/>
 </form>
 
 <LinkHeader url="/items/{itemId}" title="Item"/>
-<h1>Preps</h1>
+<h1 class="text-center">{item.itemName}</h1>
+<h4>Preps</h4>
 
 <form method="POST"
       action="?/editPreps"
-      bind:this={prepForm}
+      bind:this={editForm}
       use:enhance>
     <input name="itemId" bind:value={itemId} hidden/>
-<ul>
-{#each preps as prep}
-    <ListCheckbox 
-            id={prep.prepId} 
-            label={prep.prepName} 
-            isChecked={prep.isSelected} 
-            onchange={() => prepForm.requestSubmit()}
-            actions={actions}
-    />
-{/each}
-</ul>
+    <div class="list">
+        {#each preps as prep}
+            <ListCheckbox
+                    id={prep.prepId}
+                    label={prep.prepName}
+                    isChecked={prep.isSelected}
+                    onchange={() => editForm.requestSubmit()}
+                    contextActions={contextActions}
+            />
+        {/each}
+    </div>
 </form>
 
-<Button color="primary mt-3 p-2" block onclick={() => {
-                newName = "";
-                showAddDialog = true;
-}}>
+<Button color="primary mt-3 p-2" block onclick={() => {addDialog.show()}}>
     Add Prep
 </Button>

@@ -15,13 +15,6 @@
         --bs-card-cap-bg: #eeeeee;
         --bs-modal-bg: #1e2938;
         
-        --ctx-menu-background: var(--bs-body-bg);
-        --ctx-menu-hover-bg: var(--bs-card-cap-bg);
-        
-        --sms-bg: #162028;
-        --sms-options-bg: #162028;
-        --sms-border: 1px solid #3a4451;
-        
         .form-control {
             --bs-body-bg: #162028;
         }

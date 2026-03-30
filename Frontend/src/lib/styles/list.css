@@ -1,0 +1,48 @@
+ .list-item {
+    color: var(--bs-dark);
+    stroke: var(--bs-dark);
+    background-color: var(--bs-card-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 0.5em;
+    width: 100%;
+    padding: 0.75em 1.5em 0.75em 1.5em;
+    font-size: 1em;
+    text-decoration: none;
+    -webkit-touch-callout: none;
+    
+    &:hover {
+        background-color: var(--bs-primary-border-subtle);
+        
+        .subtitle {
+            color: var(--bs-dark);
+        }
+    }
+    
+    &:focus {
+        background-color: var(--bs-card-bg);
+    }
+}
+
+.list {
+    :first-child:not(:only-child) {
+        .list-item {
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+            border-bottom: 0;
+        }
+    }
+    
+    :last-child:not(:only-child) {
+        .list-item {
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
+    }
+    
+    :not(:first-child):not(:last-child) {
+        .list-item {
+            border-radius: 0;
+            border-bottom: 0;
+        }
+    }
+}

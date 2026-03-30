@@ -21,13 +21,13 @@ export const actions: Actions = {
     },
     addStore: async ({request, cookies}) => {
         const data: FormData = await request.formData();
-        const storeName: string = await getValue(data, 'storeName');
+        const storeName: string = await getValue(data, 'inputAdd');
         await addStore(cookies, storeName);
     },
     renameStore: async ({request, cookies}) => {
         const data: FormData = await request.formData();
         const storeId: string = await getValue(data, 'id');
-        const storeName: string = await getValue(data, 'storeName');
+        const storeName: string = await getValue(data, 'inputRename');
         await editStoreName(cookies, storeId, storeName);
     },
     deleteStore: async ({request, cookies}) => {

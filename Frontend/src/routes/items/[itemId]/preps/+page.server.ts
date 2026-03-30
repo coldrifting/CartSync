@@ -25,26 +25,16 @@ export const load: PageServerLoad = async ({params, cookies}) => {
 };
 
 export const actions: Actions = {
-    editPreps: async ({request, cookies}) => {
-        const data: FormData = await request.formData();
-        const itemId: string = await getValue(data, 'itemId');
-        
-        const preps: string[] = Array.from(data.entries().map((entry) => entry[0]).filter(i => i !== 'itemId'));
-
-        console.log(itemId);
-        console.log(preps);
-        await editItemPreps(cookies, itemId, preps);
-    },
     addPrep: async ({request, cookies}) => {
         const data: FormData = await request.formData();
-        const prepName: string = await getValue(data, 'prepName');
+        const prepName: string = await getValue(data, 'inputAdd');
         
         await addPrep(cookies, prepName);
     },
     renamePrep: async ({request, cookies}) => {
         const data: FormData = await request.formData();
         const prepId: string = await getValue(data, 'id');
-        const prepName: string = await getValue(data, 'prepName');
+        const prepName: string = await getValue(data, 'inputRename');
         
         await editPrepName(cookies, prepId, prepName);
     },
@@ -53,7 +43,8 @@ export const actions: Actions = {
         const tryDeletePrepId = await getValue(data, 'id');
         const usages: PrepUsagesReport = await getPrepUsages(cookies, tryDeletePrepId);
         if (usages && (usages.items.length > 0 || usages.recipes.length > 0)) {
-            return fail(409, usages.toMessage());
+            const usageReport: Record<string, string[]> = usages.toUsages();
+            return fail(409, usageReport);
         }
         
         await deletePrep(cookies, tryDeletePrepId);
@@ -63,5 +54,13 @@ export const actions: Actions = {
         const prepId: string = await getValue(data, 'id');
         
         await deletePrep(cookies, prepId);
+    },
+    editPreps: async ({request, cookies}) => {
+        const data: FormData = await request.formData();
+        const itemId: string = await getValue(data, 'itemId');
+        
+        const preps: string[] = Array.from(data.entries().map((entry) => entry[0]).filter(i => i !== 'itemId'));
+
+        await editItemPreps(cookies, itemId, preps);
     }
 }

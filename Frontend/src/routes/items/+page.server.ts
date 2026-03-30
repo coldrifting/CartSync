@@ -15,31 +15,32 @@ export const load: PageServerLoad = async ({cookies}) => {
 };
 
 export const actions: Actions = {
-    addIngredient: async ({request, cookies}) => {
+    addItem: async ({request, cookies}) => {
         const data: FormData = await request.formData();
-        const itemName = await getValue(data, 'itemName');
+        const itemName = await getValue(data, 'inputAdd');
         await addItem(cookies, itemName)
     },
-    tryDelete: async ({request, cookies}) => {
+    renameItem: async ({request, cookies}) => {
+        const data: FormData = await request.formData();
+        const renameItemId = await getValue(data, 'id');
+        const renameItemName = await getValue(data, 'inputRename');
+        
+        await editItemName(cookies, renameItemId, renameItemName);
+    },
+    tryDeleteItem: async ({request, cookies}) => {
         const data: FormData = await request.formData();
         const tryDeleteItemId = await getValue(data, 'id');
         const usages: ItemUsagesReport = await getItemUsages(cookies, tryDeleteItemId);
         if (usages && (usages.preps.length > 0 || usages.recipes.length > 0)) {
-            return fail(409, usages.toMessage());
+            const usageReport: Record<string, string[]> = usages.toUsages();
+            return fail(409, usageReport);
         }
         
         await deleteItem(cookies, tryDeleteItemId);
     },
-    delete: async ({request, cookies}) => {
+    deleteItem: async ({request, cookies}) => {
         const data: FormData = await request.formData();
         const deleteItemId = await getValue(data, 'id');
         await deleteItem(cookies, deleteItemId);
-    },
-    rename: async ({request, cookies}) => {
-        const data: FormData = await request.formData();
-        const renameItemId = await getValue(data, 'id');
-        const renameItemName = await getValue(data, 'newName');
-        
-        await editItemName(cookies, renameItemId, renameItemName);
     }
 };

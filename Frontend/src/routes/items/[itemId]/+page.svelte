@@ -16,11 +16,11 @@
     let itemDefaultUnits: string = $derived(data.item.defaultUnitType);
 
     let prepText = $derived(data.item.preps
-        .map(p => p.prepName)
-        .slice(0, 3)
-        .join(", ") + 
+            .map(p => p.prepName)
+            .slice(0, 3)
+            .join(", ") +
         (data.item.preps.length > 3 ? ", ..." : ""));
-    
+
     let itemTempForm: HTMLFormElement;
     let itemDefaultUnitsForm: HTMLFormElement;
     let storeForm: HTMLFormElement;
@@ -39,7 +39,7 @@
 </svelte:head>
 
 <LinkHeader url="/items" title="Items"/>
-<h2 class="text-center">{item.itemName}</h2>
+<h1 class="text-center">{item.itemName}</h1>
 <h4>Details</h4>
 <form method="POST"
       action="?/editItemTemp"
@@ -76,14 +76,12 @@
 
 <h4>Preps</h4>
 
-<ul>
-    <ListItem 
-            name={prepText === "" ? "(None)" : prepText}
-            link="/items/{itemId}/preps" 
-            id="0"
-            subtitle="Edit" 
-            actions={[]} />
-</ul>
+<ListItem
+        name={prepText === "" ? "(None)" : prepText}
+        link="/items/{itemId}/preps"
+        id="0"
+        subtitle="Edit"
+        contextActions={[]}/>
 
 <h4 class="pt-4">Location</h4>
 <form method="POST"

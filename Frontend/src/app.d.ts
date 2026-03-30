@@ -13,7 +13,6 @@ declare global {
 		id: string;
 		name: string;
         subtitle: string;
-        contextActions: ContextAction[];
 	}
 	
 	class Store {
@@ -84,8 +83,7 @@ declare global {
 	
 	class ContextAction {
 		label: string;
-		isDestructive: boolean;
-		action: (val: string, data: string | null) => void;
+		action: (id: string, value: string | undefined) => void;
 	}
 	
 	class ItemMinimal {

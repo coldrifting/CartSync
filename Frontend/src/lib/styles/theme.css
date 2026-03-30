@@ -7,45 +7,6 @@
     --sidebar-width: 4rem;
     --sidebar-expanded-width: 12rem;
 
-    --ctx-menu-border: 0;
-    --ctx-menu-border-radius: 0.5rem;
-    --ctx-menu-font-size: 1rem;
-    --ctx-menu-padding: 0;
-
-    .context-menu {
-        button {
-            padding: .5rem 1rem !important;
-        }
-
-        .delete {
-            font-weight: 500 !important;
-            color: var(--bs-danger) !important;
-
-            &:hover {
-                color: white !important;
-                background-color: var(--bs-danger) !important;
-            }
-
-            &:active {
-                color: white !important;
-                background-color: var(--bs-danger-border-subtle) !important;
-            }
-        }
-    }
-    
-    .multiselect {
-        height: 3.75rem;
-        
-        .selected {
-            height: 3rem;
-        }
-        
-        .options {
-            border-top-left-radius: 0;
-            border-top-right-radius: 0;
-        }
-    }
-
     .modal-body {
         padding: 0;
     }
