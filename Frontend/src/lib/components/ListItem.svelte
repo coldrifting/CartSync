@@ -7,14 +7,12 @@
         id,
         link, 
         subtitle,
-        isSubtitleActive,
         actions = []
     } : {
         name: string,
         id: string,
         link: string,
         subtitle: string,
-        isSubtitleActive: boolean,
         actions: ContextAction[]
     } = $props()
     
@@ -47,7 +45,7 @@
             <div class="d-flex flex-row justify-content-between">
                 <span>{name}</span>
                 <div class="d-flex flex-row">
-                    <span class="{isSubtitleActive ? '' : 'text-secondary'}">{subtitle}</span>
+                    <span class='text-secondary'>{subtitle}</span>
                     <svg class="mt-1"
                          aria-hidden="true"
                          xmlns="http://www.w3.org/2000/svg"

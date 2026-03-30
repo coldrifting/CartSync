@@ -35,3 +35,13 @@ export async function editStoreName(cookies: Cookies, storeId: string, storeName
     const url = `${apiBaseUrl}/stores/${storeId}/edit`;
     await patch(cookies, url, "/StoreName", storeName);
 }
+
+export async function editAisleName(cookies: Cookies, storeId: string, aisleId: string, aisleName: string): Promise<void> {
+    const url = `${apiBaseUrl}/stores/${storeId}/aisles/${aisleId}/edit`;
+    await patch(cookies, url, "/AisleName", aisleName);
+}
+
+export async function editAisleOrder(cookies: Cookies, storeId: string, aisleId: string, sortOrder: number): Promise<void> {
+    const url = `${apiBaseUrl}/stores/${storeId}/aisles/${aisleId}/edit`;
+    await patch(cookies, url, "/SortOrder", sortOrder);
+}

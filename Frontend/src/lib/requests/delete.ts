@@ -15,3 +15,8 @@ export async function deleteStore(cookies: Cookies, storeId: string): Promise<vo
     const url = `${apiBaseUrl}/stores/${storeId}/delete`;
     await del(cookies, url);
 }
+
+export async function deleteAisle(cookies: Cookies, storeId: string, aisleId: string): Promise<void> {
+    const url = `${apiBaseUrl}/stores/${storeId}/aisles/${aisleId}/delete`;
+    await del(cookies, url);
+}

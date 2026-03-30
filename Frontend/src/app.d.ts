@@ -9,6 +9,13 @@ declare global {
 		// interface Platform {}
 	}
 		
+	interface SortableItem {
+		id: string;
+		name: string;
+        subtitle: string;
+        contextActions: ContextAction[];
+	}
+	
 	class Store {
 		storeId: string;
 		storeName: string;
@@ -20,6 +27,11 @@ declare global {
 		storeId: string;
 		aisleName: string;
 		sortOrder: number;
+	}
+	
+	class AisleDragAndDrop {
+		id: string;
+		label: string;
 	}
 	
 	class IngredientByStore {

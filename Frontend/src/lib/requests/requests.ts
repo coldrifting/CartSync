@@ -91,6 +91,15 @@ export async function getValue(formData: FormData, formElementName: string): Pro
     return elementValue.trim();
 }
 
+export async function getValueNumber(formData: FormData, formElementName: string): Promise<number> {
+    const elementValue: number = formData.get(formElementName) as number | null ?? -1
+    if (elementValue === -1) {
+        throw new Error(`Invalid Input: ${elementValue}`);
+    }
+    
+    return elementValue;
+}
+
 export const cookieSettings: any = {
     path: '/', // Makes the cookie available across the entire site
     httpOnly: true, // Prevents client-side JavaScript from reading the cookie
