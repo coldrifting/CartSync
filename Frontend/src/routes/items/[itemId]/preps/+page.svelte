@@ -72,7 +72,7 @@
       bind:this={editForm}
       use:enhance>
     <input name="itemId" bind:value={itemId} hidden/>
-    <div class="list">
+    <ul>
         {#each preps as prep}
             <ListCheckbox
                     id={prep.prepId}
@@ -82,7 +82,7 @@
                     contextActions={contextActions}
             />
         {/each}
-    </div>
+    </ul>
 </form>
 
 <Button color="primary mt-3 p-2" block onclick={() => {addDialog.show()}}>

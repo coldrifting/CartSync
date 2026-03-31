@@ -48,7 +48,7 @@
       bind:this={selectStoreForm}
       use:enhance>
     <h4>All Stores</h4>
-    <div class="list">
+    <ul>
         {#each stores as store}
             <ListRadioButton 
                     name="selectedStoreId"
@@ -58,7 +58,7 @@
                     group={selectedStoreId} 
                     onchange={() => selectStoreForm.requestSubmit()}/>
         {/each}
-    </div>
+    </ul>
 </form>
 
 <Button color="primary mt-3 p-2" block onclick={() => {addDialog.show()}}>

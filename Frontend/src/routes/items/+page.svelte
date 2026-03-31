@@ -81,7 +81,7 @@
     </Col>
 </Row>
 
-<div class="list">
+<ul>
     {#each filteredIngredients as ingredient}
         <ListItem name={ingredient.itemName}
                   id={ingredient.itemId}
@@ -90,4 +90,4 @@
                   contextActions={contextActions}
         />
     {/each}
-</div>
+</ul>
