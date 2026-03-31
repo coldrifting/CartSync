@@ -6,6 +6,10 @@
     
     --sidebar-width: 4rem;
     --sidebar-expanded-width: 12rem;
+    
+    @media (width >= 1024px) {
+        --sidebar-width: 12rem;
+    }
 
     .modal-body {
         padding: 0;

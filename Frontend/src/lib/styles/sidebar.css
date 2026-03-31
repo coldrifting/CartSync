@@ -67,7 +67,9 @@ nav {
     }
     
     span {
-        display: none;
+        @media (width < 1024px) {
+            display: none;
+        }
         padding-left: 0.5rem;
     }
     
