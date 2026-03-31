@@ -16,16 +16,16 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
     [Fact]
     public async Task TestRecipeAll()
     {
-        ReadOnlyList<RecipeResponse> expected = SeedData.Recipes
+        ReadOnlyList<RecipeMinimalResponse> expected = SeedData.Recipes
             .AsQueryable()
             .OrderBy(r => r.RecipeName)
             .ThenBy(r => r.RecipeId)
-            .Select(Recipe.ToResponse)
+            .Select(Recipe.ToMinimalResponse)
             .ToImmutableList()
             .WithValueSemantics();
         
-        List<RecipeResponse> result = await RecipeController.All().ValueAsync();
-        Assert.Equal(expected.Select(s => s.ToMinimalResponse), result.Select(s => s.ToMinimalResponse));
+        List<RecipeMinimalResponse> result = await RecipeController.All().ValueAsync();
+        Assert.Equal(expected, result);
     }
 
     [Fact]
@@ -56,7 +56,7 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
             .WithValueSemantics();
         
         RecipeResponse result2 = await RecipeController.Details(recipeId).ValueAsync();
-        Assert.Equal(expectedInstructions, result2.RecipeInstructionsResponse);
+        Assert.Equal(expectedInstructions, result2.Instructions);
         
         ReadOnlyList<RecipeSectionResponse> expectedSections = SeedData.RecipeSections
             .AsQueryable()
@@ -74,11 +74,11 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
             .Select(r => new RecipeSectionEntryMinimal(r.RecipeSectionEntryId, r.ItemId, r.PrepId))
             .ToImmutableList();
 
-        ImmutableList<RecipeSectionEntryMinimal> actualSectionEntries = result2.RecipeSectionsResponse[0].RecipeSectionEntries
+        ImmutableList<RecipeSectionEntryMinimal> actualSectionEntries = result2.Sections[0].Entries
             .Select(r => new RecipeSectionEntryMinimal(r.RecipeSectionEntryId, r.Item.ItemId, r.Prep?.PrepId))
             .ToImmutableList();
         
-        Assert.Single(result2.RecipeSectionsResponse);
+        Assert.Single(result2.Sections);
         Assert.Equal(expectedSectionEntries, actualSectionEntries);
         
         foreach (RecipeSectionEntryMinimal entry in expectedSectionEntries)
@@ -87,12 +87,12 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
             string? prepName = SeedData.Preps.Find(p => p.PrepId == entry.PrepId)?.PrepName;
 
             Assert.Contains(itemName,
-                result2.RecipeSectionsResponse[0].RecipeSectionEntries
+                result2.Sections[0].Entries
                     .Where(r => r.RecipeSectionEntryId == entry.EntryId)
                     .Select(r => r.Item.ItemName));
             
             Assert.Contains(prepName,
-                result2.RecipeSectionsResponse[0].RecipeSectionEntries
+                result2.Sections[0].Entries
                     .Where(r => r.RecipeSectionEntryId == entry.EntryId)
                     .Select(r => r.Prep?.PrepName));
         }
@@ -110,7 +110,7 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
         Assert.Equal(recipeAddRequest.RecipeName, result.recipe.RecipeName);
         Assert.Equal(result.location.Split('/').Last().ToLower(), result.recipe.RecipeId.ToString().ToLower());
         
-        List<RecipeResponse> results = await RecipeController.All().ValueAsync();
+        List<RecipeMinimalResponse> results = await RecipeController.All().ValueAsync();
         Assert.Equal(5, results.Count);
         Assert.Contains(recipeAddRequest.RecipeName, results.Select(r => r.RecipeName));
     }
@@ -137,7 +137,7 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
         RecipeResponse result = await RecipeController.Details(recipeId).ValueAsync();
         Assert.Equal("New Recipe Name", result.RecipeName);
         
-        List<RecipeResponse> results = await RecipeController.All().ValueAsync();
+        List<RecipeMinimalResponse> results = await RecipeController.All().ValueAsync();
         Assert.Equal(4, results.Count);
         Assert.Contains("New Recipe Name", results.Select(r => r.RecipeName));
         Assert.DoesNotContain(SeedData.Recipes[3].RecipeName, results.Select(r => r.RecipeName));
@@ -172,10 +172,8 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
         Assert.Equal("https://cartsync.app", result.Url);
         Assert.False(result.IsPinned);
         
-        List<RecipeResponse> results = await RecipeController.All().ValueAsync();
+        List<RecipeMinimalResponse> results = await RecipeController.All().ValueAsync();
         Assert.Equal(4, results.Count);
-        Assert.Contains("https://cartsync.app", results.Select(r => r.Url));
-        Assert.DoesNotContain(SeedData.Recipes[1].Url, results.Select(r => r.Url));
         Assert.DoesNotContain(true, results.Select(r => r.IsPinned));
     }
 
@@ -199,7 +197,7 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
         Error error = await RecipeController.Edit(recipeId, jsonPatch).ErrorAsync();
         error.AssertStatus(HttpStatusCode.NotFound);
 
-        List<RecipeResponse> results = await RecipeController.All().ValueAsync();
+        List<RecipeMinimalResponse> results = await RecipeController.All().ValueAsync();
         Assert.Equal(4, results.Count);
         Assert.DoesNotContain("New Recipe Name", results.Select(r => r.RecipeName));
     }
@@ -223,7 +221,7 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
         Error error = await RecipeController.Edit(recipeId, jsonPatch).ErrorAsync();
         error.AssertStatus(HttpStatusCode.BadRequest);
 
-        List<RecipeResponse> results = await RecipeController.All().ValueAsync();
+        List<RecipeMinimalResponse> results = await RecipeController.All().ValueAsync();
         Assert.Equal(4, results.Count);
         Assert.DoesNotContain("New Recipe Name", results.Select(r => r.RecipeName));
     }
@@ -238,7 +236,7 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
         Error error = await RecipeController.Details(recipeId).ErrorAsync();
         error.AssertStatus(HttpStatusCode.NotFound);
         
-        List<RecipeResponse> results = await RecipeController.All().ValueAsync();
+        List<RecipeMinimalResponse> results = await RecipeController.All().ValueAsync();
         Assert.Equal(3, results.Count);
         
         Error error2 = await RecipeController.Delete(recipeId).ErrorAsync();
@@ -246,7 +244,7 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
         
         await RecipeController.Delete(recipeId2).AssertIsSuccessful();
         
-        List<RecipeResponse> results2 = await RecipeController.All().ValueAsync();
+        List<RecipeMinimalResponse> results2 = await RecipeController.All().ValueAsync();
         Assert.Equal(2, results2.Count);
     }
 
@@ -257,7 +255,7 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
         Error error = await RecipeController.Delete(recipeId).ErrorAsync();
         error.AssertStatus(HttpStatusCode.NotFound);
         
-        List<RecipeResponse> results = await RecipeController.All().ValueAsync();
+        List<RecipeMinimalResponse> results = await RecipeController.All().ValueAsync();
         Assert.Equal(4, results.Count);
     }
 

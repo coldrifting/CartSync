@@ -40,13 +40,13 @@ public class Recipe : IEditable<RecipeEditRequest>, IResponse<Recipe, RecipeResp
                 RecipeName = recipe.RecipeName,
                 Url = recipe.Url,
                 IsPinned = recipe.IsPinned,
-                RecipeInstructionsResponse = recipe.RecipeInstructions
+                Instructions = recipe.RecipeInstructions
                     .AsQueryable()
                     .OrderBy(ri => ri.SortOrder)
                     .Select(RecipeInstruction.ToResponse)
                     .ToImmutableList()
                     .WithValueSemantics(),
-                RecipeSectionsResponse = recipe.RecipeSections
+                Sections = recipe.RecipeSections
                     .AsQueryable()
                     .OrderBy(rs => rs.SortOrder)
                     .Select(RecipeSection.ToResponse)
@@ -60,7 +60,6 @@ public class Recipe : IEditable<RecipeEditRequest>, IResponse<Recipe, RecipeResp
             {
                 RecipeId = recipe.RecipeId,
                 RecipeName = recipe.RecipeName,
-                Url = recipe.Url,
                 IsPinned = recipe.IsPinned
             };
     
@@ -72,8 +71,8 @@ public class Recipe : IEditable<RecipeEditRequest>, IResponse<Recipe, RecipeResp
             RecipeName = RecipeName,
             Url = Url,
             IsPinned = IsPinned,
-            RecipeInstructionsResponse = [],
-            RecipeSectionsResponse = [],
+            Instructions = [],
+            Sections = [],
         };
     
     // Conversion and Validation
@@ -109,15 +108,15 @@ public record RecipeResponse
     public required string Url { get; init; }
     public required bool IsPinned { get; init; }
 
-    public required ReadOnlyList<RecipeInstructionResponse> RecipeInstructionsResponse { get; init; }
-    public required ReadOnlyList<RecipeSectionResponse> RecipeSectionsResponse { get; init; }
+    public required ReadOnlyList<RecipeInstructionResponse> Instructions { get; init; }
+    public required ReadOnlyList<RecipeSectionResponse> Sections { get; init; }
 
+    [JsonIgnore] 
     public RecipeMinimalResponse ToMinimalResponse =>
         new()
         {
             RecipeId = RecipeId,
             RecipeName = RecipeName,
-            Url = Url,
             IsPinned = IsPinned,
         };
 }
@@ -127,7 +126,6 @@ public record RecipeMinimalResponse
     public required Ulid RecipeId { get; init; }
     
     public required string RecipeName { get; init; }
-    public required string Url { get; init; }
     public required bool IsPinned { get; init; }
 }
 

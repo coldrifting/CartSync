@@ -64,21 +64,18 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
                 {
                     RecipeId = SeedData.Recipes[2].RecipeId,
                     RecipeName = SeedData.Recipes[2].RecipeName,
-                    Url = SeedData.Recipes[2].Url,
                     IsPinned =  SeedData.Recipes[2].IsPinned,
                 },
                 new RecipeMinimalResponse
                 {
                     RecipeId = SeedData.Recipes[0].RecipeId,
                     RecipeName = SeedData.Recipes[0].RecipeName,
-                    Url = SeedData.Recipes[0].Url,
                     IsPinned =  SeedData.Recipes[0].IsPinned,
                 },
                 new RecipeMinimalResponse
                 {
                     RecipeId = SeedData.Recipes[3].RecipeId,
                     RecipeName = SeedData.Recipes[3].RecipeName,
-                    Url = SeedData.Recipes[3].Url,
                     IsPinned =  SeedData.Recipes[3].IsPinned,
                 }
             ],
@@ -124,14 +121,12 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
                 {
                     RecipeId = SeedData.Recipes[0].RecipeId,
                     RecipeName = SeedData.Recipes[0].RecipeName,
-                    Url = SeedData.Recipes[0].Url,
                     IsPinned =  SeedData.Recipes[0].IsPinned,
                 },
                 new RecipeMinimalResponse
                 {
                     RecipeId = SeedData.Recipes[3].RecipeId,
                     RecipeName = SeedData.Recipes[3].RecipeName,
-                    Url = SeedData.Recipes[3].Url,
                     IsPinned =  SeedData.Recipes[3].IsPinned,
                 }
             ],
@@ -247,7 +242,13 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     public async Task TestItemEdit_AddLocation()
     {
         Ulid itemId = SeedData.Items[54].ItemId;
-        Ulid aisleId = SeedData.Aisles[23].AisleId;
+        
+        ItemAisleEditRequest location = new()
+        {
+            AisleId = SeedData.Aisles[23].AisleId,
+            Bay = BayType.End
+        };
+        
         JsonPatchDocument<ItemEditRequest> jsonPatch = new()
         {
             Operations =
@@ -255,8 +256,8 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
                 new Operation<ItemEditRequest>
                 {
                     op = "replace",
-                    path = "/AisleId",
-                    value = $"{aisleId}"
+                    path = "/Location",
+                    value = location
                 }
             }
         };
@@ -266,14 +267,23 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         
         ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
 
-        Assert.Equal(aisleId, item.Location?.AisleId);
+        Assert.Equal(location.AisleId, item.Location?.AisleId);
+        Assert.Equal(location.Bay, item.Location?.Bay);
     }
 
-    [Fact]
-    public async Task TestItemEdit_UpdateLocation()
+    [Theory]
+    [InlineData(0)]
+    [InlineData(54)]
+    public async Task TestItemEdit_UpdateLocation(int itemIndex)
     {
-        Ulid itemId = SeedData.Items[54].ItemId;
-        Ulid aisleId = SeedData.Aisles[17].AisleId;
+        Ulid itemId = SeedData.Items[itemIndex].ItemId;
+        
+        ItemAisleEditRequest location = new()
+        {
+            AisleId = SeedData.Aisles[17].AisleId,
+            Bay = BayType.Start
+        };
+        
         JsonPatchDocument<ItemEditRequest> jsonPatch = new()
         {
             Operations =
@@ -281,8 +291,8 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
                 new Operation<ItemEditRequest>
                 {
                     op = "replace",
-                    path = "/AisleId",
-                    value = $"{aisleId}"
+                    path = "/Location",
+                    value = location
                 }
             }
         };
@@ -291,39 +301,21 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         
         ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
 
-        Assert.Equal(aisleId, item.Location?.AisleId);
-    }
-
-    [Fact]
-    public async Task TestItemEdit_UpdateLocation2()
-    {
-        Ulid itemId = SeedData.Items[0].ItemId;
-        Ulid aisleId = SeedData.Aisles[17].AisleId;
-        JsonPatchDocument<ItemEditRequest> jsonPatch = new()
-        {
-            Operations =
-            {
-                new Operation<ItemEditRequest>
-                {
-                    op = "replace",
-                    path = "/AisleId",
-                    value = $"{aisleId}"
-                }
-            }
-        };
-        
-        await ItemController.Edit(itemId, jsonPatch).AssertIsSuccessful();
-        
-        ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
-
-        Assert.Equal(aisleId, item.Location?.AisleId);
+        Assert.Equal(location.AisleId, item.Location?.AisleId);
+        Assert.Equal(location.Bay, item.Location?.Bay);
     }
 
     [Fact]
     public async Task TestItemEdit_AddInvalidLocation()
     {
         Ulid itemId = SeedData.Items[54].ItemId;
-        Ulid aisleId = Ulid.NotFound;
+        
+        ItemAisleEditRequest location = new()
+        {
+            AisleId = Ulid.NotFound,
+            Bay = BayType.End
+        };
+        
         JsonPatchDocument<ItemEditRequest> jsonPatch = new()
         {
             Operations =
@@ -331,8 +323,8 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
                 new Operation<ItemEditRequest>
                 {
                     op = "replace",
-                    path = "/AisleId",
-                    value = $"{aisleId}"
+                    path = "/Location",
+                    value = location
                 }
             }
         };
@@ -343,13 +335,20 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
 
         Assert.Equal(SeedData.Aisles[4].AisleId, item.Location?.AisleId);
+        Assert.Equal(BayType.Middle, item.Location?.Bay);
     }
 
     [Fact]
     public async Task TestItemEdit_AddLocationWithWrongStore()
     {
         Ulid itemId = SeedData.Items[54].ItemId;
-        Ulid aisleId = SeedData.Aisles[4].AisleId;
+
+        ItemAisleEditRequest location = new()
+        {
+            AisleId = SeedData.Aisles[4].AisleId,
+            Bay = BayType.End
+        };
+        
         JsonPatchDocument<ItemEditRequest> jsonPatch = new()
         {
             Operations =
@@ -357,8 +356,8 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
                 new Operation<ItemEditRequest>
                 {
                     op = "replace",
-                    path = "/AisleId",
-                    value = $"{aisleId}"
+                    path = "/Location",
+                    value = location
                 }
             }
         };
@@ -371,6 +370,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
 
         Assert.Null(item.Location?.AisleId);
+        Assert.Null(item.Location?.Bay);
     }
 
     [Fact]
@@ -384,7 +384,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
                 new Operation<ItemEditRequest>
                 {
                     op = "replace",
-                    path = "/AisleId",
+                    path = "/Location",
                     value = null
                 }
             }
@@ -398,9 +398,9 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     }
 
     [Theory]
-    [InlineData(0, 23)]
-    [InlineData(1, 0)]
-    public async Task TestItemEdit_RemoveLocation2(int storeIndex, int aisleIndex)
+    [InlineData(0)]
+    [InlineData(1)]
+    public async Task TestItemEdit_RemoveLocation2(int storeIndex)
     {
         Ulid itemId = SeedData.Items[0].ItemId;
         JsonPatchDocument<ItemEditRequest> jsonPatch = new()
@@ -410,7 +410,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
                 new Operation<ItemEditRequest>
                 {
                     op = "replace",
-                    path = "/AisleId",
+                    path = "/Location",
                     value = null
                 }
             }

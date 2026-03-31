@@ -77,14 +77,12 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
                 {
                     RecipeId = SeedData.Recipes[1].RecipeId,
                     RecipeName = SeedData.Recipes[1].RecipeName,
-                    Url = SeedData.Recipes[1].Url,
                     IsPinned =  SeedData.Recipes[1].IsPinned,
                 },
                 new RecipeMinimalResponse
                 {
                     RecipeId = SeedData.Recipes[3].RecipeId,
                     RecipeName = SeedData.Recipes[3].RecipeName,
-                    Url = SeedData.Recipes[3].Url,
                     IsPinned =  SeedData.Recipes[3].IsPinned,
                 }
             ]

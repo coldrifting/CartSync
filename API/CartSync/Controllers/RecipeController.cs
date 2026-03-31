@@ -13,14 +13,14 @@ public class RecipeController(CartSyncContext context) : ControllerCore(context)
 {
     [HttpGet]
     [Route("/api/recipes")]
-    public async Task<Ok<List<RecipeResponse>>> All()
+    public async Task<Ok<List<RecipeMinimalResponse>>> All()
     {
-        List<RecipeResponse> recipes = await Db.Recipes
+        List<RecipeMinimalResponse> recipes = await Db.Recipes
             .Include(r => r.RecipeInstructions)
             .Include(r => r.RecipeSections)
             .ThenInclude(rs => rs.RecipeSectionEntries)
             .ThenInclude(rs => rs.Prep)
-            .Select(Recipe.ToResponse)
+            .Select(Recipe.ToMinimalResponse)
             .OrderBy(r => r.RecipeName)
             .ToListAsync();
         
@@ -31,6 +31,8 @@ public class RecipeController(CartSyncContext context) : ControllerCore(context)
     [Route("/api/recipes/{recipeId}")]
     public async Task<Results<Ok<RecipeResponse>, BadRequest<Error>, NotFound<Error>>> Details(Ulid recipeId)
     {
+        var x = await Db.RecipeSectionEntries.FindAsync(Ulid.Parse("01KJA5YNH4AXKZZ555BB0954R4"));
+        
         RecipeResponse? recipe = await Db.Recipes
             .Include(r => r.RecipeInstructions)
             .Include(r => r.RecipeSections)

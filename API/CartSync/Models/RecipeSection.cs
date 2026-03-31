@@ -37,7 +37,7 @@ public class RecipeSection : ISortable, IEditable<RecipeSectionEditRequest>, IRe
             RecipeSectionId = recipeSection.RecipeSectionId,
             RecipeSectionName = recipeSection.RecipeSectionName,
             SortOrder = recipeSection.SortOrder,
-            RecipeSectionEntries = recipeSection.RecipeSectionEntries
+            Entries = recipeSection.RecipeSectionEntries
                 .AsQueryable()
                 .OrderBy(rse => rse.SortOrder)
                 .Select(RecipeSectionEntry.ToResponse)
@@ -51,7 +51,7 @@ public class RecipeSection : ISortable, IEditable<RecipeSectionEditRequest>, IRe
             RecipeSectionId = RecipeSectionId,
             RecipeSectionName = RecipeSectionName,
             SortOrder = SortOrder,
-            RecipeSectionEntries = []
+            Entries = []
         };
 
     
@@ -87,7 +87,7 @@ public record RecipeSectionResponse
     public required Ulid? RecipeSectionId { get; init; }
     public required string RecipeSectionName { get; init; }
     public required int SortOrder { get; init; }
-    public required ReadOnlyList<RecipeSectionEntryResponse> RecipeSectionEntries { get; init; }
+    public required ReadOnlyList<RecipeSectionEntryResponse> Entries { get; init; }
 }
 
 public record RecipeSectionEditRequest
