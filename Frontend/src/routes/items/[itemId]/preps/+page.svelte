@@ -64,7 +64,7 @@
 </form>
 
 <LinkHeader url="/items/{itemId}" title="Item"/>
-<h1 class="text-center">{item.itemName}</h1>
+<h2>{item.itemName} - Preps</h2>
 <h4>Preps</h4>
 
 <form method="POST"

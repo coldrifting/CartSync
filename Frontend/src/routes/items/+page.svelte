@@ -69,7 +69,7 @@
 </form>
 
 <h1>Items</h1>
-<Row>
+<Row class="mt-4">
     <Col class="input-group">
         <FormGroup class="mb-3" floating label="Search">
             <Input name="search" id="search" class="rounded-end-2" required bind:value={filterTerm}/>

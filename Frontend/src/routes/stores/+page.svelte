@@ -36,7 +36,7 @@
 
 <h1>Stores</h1>
 
-<h4 class="mt-4">Selected Store</h4>
+<h4>Selected Store</h4>
 <div>
     <ul>
         <ListItem name={selectedStoreName} id="" link="/stores/{selectedStoreId}" subtitle="Edit" contextActions={[]} />
@@ -47,7 +47,7 @@
       action="?/selectStore"
       bind:this={selectStoreForm}
       use:enhance>
-    <h4 class="mt-4">All Stores</h4>
+    <h4>All Stores</h4>
     <div class="list">
         {#each stores as store}
             <ListRadioButton 

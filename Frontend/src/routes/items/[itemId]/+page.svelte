@@ -39,7 +39,7 @@
 </svelte:head>
 
 <LinkHeader url="/items" title="Items"/>
-<h1 class="text-center">{item.itemName}</h1>
+<h2>{item.itemName}</h2>
 <h4>Details</h4>
 <form method="POST"
       action="?/editItemTemp"
@@ -83,7 +83,7 @@
         subtitle="Edit"
         contextActions={[]}/>
 
-<h4 class="pt-4">Location</h4>
+<h4>Location</h4>
 <form method="POST"
       action="?/editCurrentStore"
       bind:this={storeForm}

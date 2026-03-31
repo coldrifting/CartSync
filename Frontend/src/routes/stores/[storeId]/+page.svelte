@@ -54,9 +54,9 @@
 <ModalDelete bind:this={deleteDialog} action="deleteAisle" header="Delete Aisle" warning="All item locations for this aisle will be deleted!" />
 
 <LinkHeader url="/stores" title="Stores"/>
-<h1 class="text-center">{storeName}</h1>
+<h2>{storeName}</h2>
 
-<h4 class="mt-4">Aisles</h4>
+<h4>Aisles</h4>
 
 
 <ReorderableList listName='list' items={aisles} onReorder={onReorder} contextActions={contextActions} />
