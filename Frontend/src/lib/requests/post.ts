@@ -25,3 +25,8 @@ export async function setCurrentStore(cookies: Cookies, storeId: string): Promis
     const url = `${apiBaseUrl}/stores/${storeId}/select`;
     await post(cookies, url, {});
 }
+
+export async function addRecipe(cookies: Cookies, recipeName: string): Promise<void> {
+    const url = `${apiBaseUrl}/recipes/add`;
+    await post(cookies, url, { recipeName: recipeName });
+}

@@ -45,3 +45,13 @@ export async function editAisleOrder(cookies: Cookies, storeId: string, aisleId:
     const url = `${apiBaseUrl}/stores/${storeId}/aisles/${aisleId}/edit`;
     await patch(cookies, url, "/SortOrder", sortOrder);
 }
+
+export async function editRecipeName(cookies: Cookies, recipeId: string, recipeName: string): Promise<void> {
+    const url = `${apiBaseUrl}/recipes/${recipeId}/edit`;
+    await patch(cookies, url, "/RecipeName", recipeName);
+}
+
+export async function editRecipeIsPinned(cookies: Cookies, recipeId: string, isPinned: boolean): Promise<void> {
+    const url = `${apiBaseUrl}/recipes/${recipeId}/edit`;
+    await patch(cookies, url, "/IsPinned", isPinned);
+}

@@ -75,7 +75,7 @@
     {#each filteredIngredients as ingredient}
         <ListItem name={ingredient.itemName}
                   id={ingredient.itemId}
-                  subtitle={ingredient.location?.aisleName}
+                  subtitle={ingredient.location?.aisleName ?? "(Not Set)"}
                   link="/items/{ingredient.itemId}"
                   contextActions={contextActions}
         />

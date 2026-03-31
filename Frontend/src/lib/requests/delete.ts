@@ -20,3 +20,8 @@ export async function deleteAisle(cookies: Cookies, storeId: string, aisleId: st
     const url = `${apiBaseUrl}/stores/${storeId}/aisles/${aisleId}/delete`;
     await del(cookies, url);
 }
+
+export async function deleteRecipe(cookies: Cookies, recipeId: string): Promise<void> {
+    const url = `${apiBaseUrl}/recipes/${recipeId}/delete`;
+    await del(cookies, url);
+}

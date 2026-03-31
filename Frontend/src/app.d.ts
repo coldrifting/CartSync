@@ -104,6 +104,48 @@ declare global {
 		url: string;
 		isPinned: boolean;
 	}
+	
+	class Fraction {
+		num: number;
+		dem: number;
+	}
+	
+	class Amount {
+		fraction: Fraction;
+		unitType: string;
+	}
+	
+	class RecipeInstruction {
+		recipeInstructionId: string;
+		recipeInstructionContent: string;
+		isImage: boolean;
+		sortOrder: number;
+	}
+	
+	class RecipeSectionEntry {
+		recipeSectionEntryId: string;
+		recipeSectionId: string;
+		sortOrder: number;
+		item: ItemMinimal;
+		prep: Prep | null;
+		amount: Amount;
+	}
+	
+	class RecipeSection {
+		recipeSectionId: string;
+		recipeSectionName: string;
+		sortOrder: number;
+		entries: RecipeSectionEntry[];
+	}
+	
+	class Recipe {
+		recipeId: string;
+		recipeName: string;
+		url: string;
+		isPinned: boolean;
+		instructions: RecipeInstruction[];
+		sections: RecipeSection[];
+	}
 }
 
 export {};

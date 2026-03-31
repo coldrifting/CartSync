@@ -100,6 +100,11 @@ export async function getValueNumber(formData: FormData, formElementName: string
     return elementValue;
 }
 
+export async function getValueBoolean(formData: FormData, formElementName: string): Promise<boolean> {
+    const elementValue: string | null = formData.get(formElementName) as string | null
+    return elementValue === "on";
+}
+
 export const cookieSettings: any = {
     path: '/', // Makes the cookie available across the entire site
     httpOnly: true, // Prevents client-side JavaScript from reading the cookie

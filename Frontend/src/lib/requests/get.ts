@@ -31,7 +31,6 @@ export async function getItemUsages(cookies: Cookies, itemId: string): Promise<I
 }
 
 export async function getAllItems(cookies: Cookies): Promise<IngredientByStore[]> {
-    
     const url = `${apiBaseUrl}/items`;
     const response = await get(cookies, url);
     return await response.json();
@@ -50,4 +49,16 @@ export async function getPrepUsages(cookies: Cookies, prepId: string): Promise<P
     const result = new PrepUsagesReport();
     Object.assign(result, plainObj);
     return result;
+}
+
+export async function getAllRecipes(cookies: Cookies): Promise<RecipeMinimal[]> {
+    const url = `${apiBaseUrl}/recipes`;
+    const response = await get(cookies, url);
+    return await response.json();
+}
+
+export async function getRecipe(cookies: Cookies, recipeId: string): Promise<Recipe> {
+    const url = `${apiBaseUrl}/recipes/${recipeId}`;
+    const response = await get(cookies, url);
+    return await response.json();
 }
