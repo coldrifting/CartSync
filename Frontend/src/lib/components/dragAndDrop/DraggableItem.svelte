@@ -22,6 +22,6 @@
 	<!-- Original element - becomes invisible during drag but maintains dimensions -->
 	<div class={['d-flex', {invisible: isDragging.current && !isOverlay}]}>
         <span>{item.name}</span>
-        <span class="ms-auto subtitle">{item.subtitle}</span>
+        <span class='ms-auto subtitle'>{item.subtitle}</span>
 	</div>
 </div>

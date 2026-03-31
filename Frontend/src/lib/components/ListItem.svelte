@@ -1,19 +1,15 @@
 <script lang="ts">
     import ContextMenuCustom from "$lib/components/contextMenu/ContextMenuCustom.svelte";
 
-    let {
-        name,
-        id,
-        link,
-        subtitle,
-        contextActions = []
-    }: {
+    interface Props {
         name: string,
         id: string,
         link: string,
         subtitle: string | undefined,
         contextActions: ContextAction[]
-    } = $props()
+    }
+    
+    let {name, id, link, subtitle, contextActions = []}: Props = $props()
 </script>
 
 <ContextMenuCustom actions={contextActions} id={id} name={name}>
@@ -21,7 +17,7 @@
         <div class="d-flex flex-row justify-content-between">
             <span>{name}</span>
             <div class="d-flex flex-row">
-                <span class={subtitle ? '' : 'text-secondary'}>{subtitle ?? "(Not Set)"}</span>
+                <span class={subtitle && !Number.isInteger(subtitle) ? '' : 'text-secondary'}>{subtitle ?? "(Not Set)"}</span>
                 <svg class="mt-1"
                      aria-hidden="true"
                      xmlns="http://www.w3.org/2000/svg"

@@ -9,6 +9,14 @@
         preps: string[];
     }
     
+    interface Props {
+        action: string;
+        header: string;
+        warning: string;
+    }
+    
+    let {action, header, warning}: Props = $props();
+    
     const maxUsagesListed = 3;
     
     let id: string = $state('');
@@ -17,11 +25,8 @@
     let usages: Usages | undefined = $state(undefined);
     
     let isOpen: boolean = $state(false);
-    let {action, header, warning}: {
-        action: string;
-        header: string;
-        warning: string;
-    } = $props();
+    
+    let warningSplit = $derived(warning.split('[Name]'))
     
     const focus = () => {
         if (isOpen) {
@@ -39,7 +44,7 @@
         id = inputId;
         itemName = inputName;
         
-        usages = {
+        usages = inputUsages === undefined ? undefined : {
             recipes: truncateArray(inputUsages?.['Recipes'] ?? []),
             items: truncateArray(inputUsages?.['Items'] ?? []),
             preps: truncateArray(inputUsages?.['Preps'] ?? [])
@@ -84,7 +89,13 @@
                     {/if}
                 {/each}
             {:else}
-                {warning.replace('[Name]', itemName ?? '')}
+                {#if warningSplit.length === 2}
+                    {warningSplit[0]}
+                    <span class="text-warning">{itemName}</span>
+                    {warningSplit[1]}
+                {:else}
+                    {warning.replace('[Name]', itemName ?? '')}
+                {/if}
             {/if}
             <br>Are you sure?</p>
         </div>

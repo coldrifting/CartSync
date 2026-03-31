@@ -4,7 +4,6 @@
     import favicon from '$lib/assets/favicon.svg';
     import Appbar from "$lib/components/navigation/Appbar.svelte";
     import Sidebar from "$lib/components/navigation/Sidebar.svelte";
-    import {Container} from "@sveltestrap/sveltestrap";
 
     let {children} = $props();
 
@@ -28,18 +27,13 @@
 </svelte:head>
 
 {#if showNavigation}
-    <div id="app-container">
-        <Sidebar navLinks={navLinks} />
+    <Sidebar navLinks={navLinks} />
 
-        <main id="app-content">
-            <div id="content-container">
-                {@render children()}
-            </div>
-        </main>
+    <main>
+        {@render children()}
+    </main>
 
-        <Appbar navLinks={navLinks} />
-
-    </div>
+    <Appbar navLinks={navLinks} />
 {:else}
     {@render children()}
 {/if}

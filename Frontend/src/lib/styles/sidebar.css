@@ -5,6 +5,10 @@ nav {
     z-index: 1050;
     font-weight: 500;
     
+    @media (width < 576px) {
+        display: none;
+    }
+    
     &:hover {
         width: var(--sidebar-expanded-width);
         

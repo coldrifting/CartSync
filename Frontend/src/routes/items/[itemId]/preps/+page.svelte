@@ -1,12 +1,12 @@
 <script lang="ts">
     import type {PageProps, SubmitFunction} from './$types';
     import {enhance} from '$app/forms';
-    import {Button} from "@sveltestrap/sveltestrap";
-    import LinkHeader from "$lib/components/LinkHeader.svelte";
     import ListCheckbox from "$lib/components/ListCheckbox.svelte";
     import ModalAdd from "$lib/components/modal/ModalAdd.svelte";
     import ModalRename from "$lib/components/modal/ModalRename.svelte";
     import ModalDelete from "$lib/components/modal/ModalDelete.svelte";
+    import Header from "$lib/components/Header.svelte";
+    import {tick} from "svelte";
 
     let {data}: PageProps = $props();
 
@@ -63,9 +63,7 @@
     <input hidden type="submit"/>
 </form>
 
-<LinkHeader url="/items/{itemId}" title="Item"/>
-<h2>{item.itemName} - Preps</h2>
-<h4>Preps</h4>
+<Header back={[`/items/${itemId}`, 'Item']} title={item.itemName} subtitle="Preps" actions={[{label: "Add Prep", icon: "fa-plus", action: () => {addDialog.show()}}]} />
 
 <form method="POST"
       action="?/editPreps"
@@ -84,7 +82,3 @@
         {/each}
     </ul>
 </form>
-
-<Button color="primary mt-3 p-2" block onclick={() => {addDialog.show()}}>
-    Add Prep
-</Button>

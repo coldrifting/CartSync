@@ -1,4 +1,4 @@
- .list-item {
+.list-item {
     color: var(--bs-dark);
     stroke: var(--bs-dark);
     background-color: var(--bs-card-bg);
@@ -8,16 +8,21 @@
     padding: 0.75em 1.5em 0.75em 1.5em;
     font-size: 1em;
     text-decoration: none;
+    white-space: nowrap;
     -webkit-touch-callout: none;
-    
+
+    .subtitle {
+        color: var(--bs-secondary);
+    }
+
     &:hover {
         background-color: var(--bs-primary-border-subtle);
-        
+
         .subtitle {
             color: var(--bs-dark);
         }
     }
-    
+
     &:focus {
         background-color: var(--bs-card-bg);
         position: relative;
@@ -31,12 +36,12 @@ ol, ul, div.list {
         border-bottom-right-radius: 0;
         border-bottom: 0;
     }
-    
+
     :last-child:not(:only-child) > .list-item {
         border-top-left-radius: 0;
         border-top-right-radius: 0;
     }
-    
+
     :not(:first-child):not(:last-child) > .list-item {
         border-radius: 0;
         border-bottom: 0;

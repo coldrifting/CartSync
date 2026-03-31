@@ -15,6 +15,12 @@ declare global {
         subtitle: string;
 	}
 	
+	interface HeaderAction {
+		label: string;
+		icon: string;
+		action: () => void;
+	}
+	
 	class Store {
 		storeId: string;
 		storeName: string;

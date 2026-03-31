@@ -2,15 +2,20 @@
     import {enhance} from '$app/forms';
     import {Modal, ModalFooter, FormGroup, Input, Button} from "@sveltestrap/sveltestrap";
     import {tick} from "svelte";
-    
-    let isOpen: boolean = $state(false);
-    let inputAdd: string = $state('');
-    let {action, header, labelAdd}: {
+    import type {SubmitFunction} from "@sveltejs/kit";
+
+    interface Props {
         action: string;
         header: string;
         labelAdd: string;
-    } = $props();
-    
+        scrollOnAdd?: boolean;
+    }
+
+    let {action, header, labelAdd, scrollOnAdd = undefined}: Props = $props();
+
+    let isOpen: boolean = $state(false);
+    let inputAdd: string = $state('');
+
     const focus = () => {
         if (isOpen) {
             tick().then(() => {
@@ -18,16 +23,28 @@
             })
         }
     }
-    
+
     const toggle = () => {
         isOpen = !isOpen;
     }
-    
+
     export const show = () => {
         inputAdd = '';
         isOpen = true;
         focus();
     }
+
+    const submitFunction: SubmitFunction = () => {
+        return async ({update}) => {
+            isOpen = false
+            await update();
+            if (scrollOnAdd === true) {
+                tick().then(() => {
+                    window.scrollTo(0, document.body.scrollHeight);
+                });
+            }
+        };
+    };
 </script>
 
 <Modal body header={header}
@@ -37,7 +54,7 @@
     <form method="POST"
           action="?/{action}"
           id={action}
-          use:enhance={() => {isOpen = false}}>
+          use:enhance={submitFunction}>
         <div>
             <FormGroup floating label={labelAdd}>
                 <Input id="inputAdd" name="inputAdd" bind:value={inputAdd} required/>

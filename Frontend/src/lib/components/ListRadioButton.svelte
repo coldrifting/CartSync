@@ -2,21 +2,16 @@
     import {Input} from "@sveltestrap/sveltestrap";
     import ContextMenuCustom from "$lib/components/contextMenu/ContextMenuCustom.svelte";
 
-    let {
-        name,
-        value,
-        label,
-        group,
-        onchange,
-        contextActions = []
-    }: {
+    interface Props {
         name: string,
         value: string,
         label: string,
         group: string,
         onchange: () => void,
         contextActions: ContextAction[]
-    } = $props()
+    }
+    
+    let {name, value, label, group, onchange, contextActions = []}: Props = $props()
 </script>
 
 <ContextMenuCustom actions={contextActions} id={value} name={label}>

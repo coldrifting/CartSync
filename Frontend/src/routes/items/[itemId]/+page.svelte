@@ -3,10 +3,10 @@
     import ItemTemp from '$lib/types/ItemTemp.js'
     import UnitType from '$lib/types/UnitType.js'
     import BayType from "$lib/types/BayType.js";
-    import LinkHeader from "$lib/components/LinkHeader.svelte";
     import {FormGroup, Input} from "@sveltestrap/sveltestrap";
     import {enhance} from '$app/forms';
     import ListItem from "$lib/components/ListItem.svelte";
+    import Header from "$lib/components/Header.svelte";
 
     let {data}: PageProps = $props();
     let item: IngredientByStore = $derived(data.item);
@@ -38,8 +38,8 @@
     <title>{data.item.itemName}</title>
 </svelte:head>
 
-<LinkHeader url="/items" title="Items"/>
-<h2>{item.itemName}</h2>
+<Header back={['/items', 'Items']} title={item.itemName} />
+
 <h4>Details</h4>
 <form method="POST"
       action="?/editItemTemp"

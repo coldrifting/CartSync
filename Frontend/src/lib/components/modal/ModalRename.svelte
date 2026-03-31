@@ -3,14 +3,17 @@
     import {Modal, ModalFooter, FormGroup, Input, Button} from "@sveltestrap/sveltestrap";
     import {tick} from "svelte";
     
-    let id: string = $state('');
-    let isOpen: boolean = $state(false);
-    let inputRename: string = $state('');
-    let {action, header, labelRename}: {
+    interface Props {
         action: string;
         header: string;
         labelRename: string;
-    } = $props();
+    }
+    
+    let {action, header, labelRename}: Props = $props();
+    
+    let id: string = $state('');
+    let isOpen: boolean = $state(false);
+    let inputRename: string = $state('');
     
     const focus = () => {
         if (isOpen) {

@@ -3,10 +3,10 @@
     import type {PageProps} from './$types';
     import ListItem from "$lib/components/ListItem.svelte";
     import ListRadioButton from "$lib/components/ListRadioButton.svelte";
-    import {Button} from "@sveltestrap/sveltestrap";
     import ModalAdd from "$lib/components/modal/ModalAdd.svelte";
     import ModalRename from "$lib/components/modal/ModalRename.svelte";
     import ModalDelete from "$lib/components/modal/ModalDelete.svelte";
+    import Header from "$lib/components/Header.svelte";
     
     let {data}: PageProps = $props();
     
@@ -20,7 +20,7 @@
     
     let contextActions: ContextAction[] = [
 		{ label: "Rename", action: (id: string, value: string | undefined) => {renameDialog.show(id, value)} },
-		{ label: "Delete", action: (id: string, _: string | undefined) => {deleteDialog.show(id)} }
+		{ label: "Delete", action: (id: string, value: string | undefined) => {deleteDialog.show(id, value)} }
     ];
     
     let selectStoreForm: HTMLFormElement;
@@ -32,9 +32,9 @@
 
 <ModalAdd bind:this={addDialog} action="addStore" header="Add Store" labelAdd="Store Name" />
 <ModalRename bind:this={renameDialog} action="renameStore" header="Rename Store" labelRename="Store Name" />
-<ModalDelete bind:this={deleteDialog} action="deleteStore" header="Delete Store" warning="All item locations for this store will be deleted!" />
+<ModalDelete bind:this={deleteDialog} action="deleteStore" header="Delete Store" warning="All item locations for [Name] will be deleted!" />
 
-<h1>Stores</h1>
+<Header title="Stores" actions={[{label: "Add Store", icon: "fa-plus", action: () => {addDialog.show()}}]} />
 
 <h4>Selected Store</h4>
 <div>
@@ -60,7 +60,3 @@
         {/each}
     </ul>
 </form>
-
-<Button color="primary mt-3 p-2" block onclick={() => {addDialog.show()}}>
-    Add Store
-</Button>

@@ -2,11 +2,10 @@
     import {enhance} from '$app/forms';
     import type {PageProps} from './$types';
 	import ReorderableList from "$lib/components/dragAndDrop/ReorderableList.svelte";
-	import {Button} from "@sveltestrap/sveltestrap";
-    import LinkHeader from "$lib/components/LinkHeader.svelte";
     import ModalAdd from "$lib/components/modal/ModalAdd.svelte";
     import ModalRename from "$lib/components/modal/ModalRename.svelte";
     import ModalDelete from "$lib/components/modal/ModalDelete.svelte";
+	import Header from "$lib/components/Header.svelte";
     
     let {data}: PageProps = $props();
     
@@ -49,15 +48,11 @@
     <title>{storeName}</title>
 </svelte:head>
 
-<ModalAdd bind:this={addDialog} action="addAisle" header="Add Aisle" labelAdd="Aisle Name" />
+<ModalAdd bind:this={addDialog} action="addAisle" header="Add Aisle" labelAdd="Aisle Name" scrollOnAdd={true} />
 <ModalRename bind:this={renameDialog} action="renameAisle" header="Rename Aisle" labelRename="Aisle Name" />
 <ModalDelete bind:this={deleteDialog} action="deleteAisle" header="Delete Aisle" warning="All item locations for this aisle will be deleted!" />
 
-<LinkHeader url="/stores" title="Stores"/>
-<h2>{storeName}</h2>
-
-<h4>Aisles</h4>
-
+<Header back={['/stores', 'Stores']} title={storeName} subtitle="Aisles" actions={[{label: "Add Aisle", icon: "fa-plus", action: () => {addDialog.show()}}]} />
 
 <ReorderableList listName='list' items={aisles} onReorder={onReorder} contextActions={contextActions} />
 <form method="POST"
@@ -67,7 +62,3 @@
 	<input hidden name="id" bind:value={reorderId} />
 	<input hidden name="aisleSortOrder" bind:value={reorderIndex} />
 </form>
-
-<Button color="primary mt-3 p-2" block onclick={() => {addDialog.show()}}>
-    Add Aisle
-</Button>

@@ -1,20 +1,19 @@
 <script lang="ts">
     import {enhance} from '$app/forms';
     import type {SubmitFunction, PageProps} from './$types';
-    import {Button, Col, FormGroup, Input, Row} from "@sveltestrap/sveltestrap";
     import ListItem from '$lib/components/ListItem.svelte';
     import ModalAdd from "$lib/components/modal/ModalAdd.svelte";
     import ModalRename from "$lib/components/modal/ModalRename.svelte";
     import ModalDelete from "$lib/components/modal/ModalDelete.svelte";
     import {tick} from "svelte";
+    import Header from "$lib/components/Header.svelte";
 
     let {data}: PageProps = $props();
-
-    let filterTerm = $state('');
-
+    
+    let filterText: string = $state('');
     let filter = (items: IngredientByStore[]) => {
-        if (!filterTerm) return items;
-        let searchText = filterTerm.toLowerCase().trim();
+        if (!filterText) return items;
+        let searchText = filterText.toLowerCase().trim();
         return items.filter(i => i.itemName.toLowerCase().includes(searchText));
     }
 
@@ -68,18 +67,9 @@
     <input hidden type="submit"/>
 </form>
 
-<h1>Items</h1>
-<Row class="mt-4">
-    <Col class="input-group">
-        <FormGroup class="mb-3" floating label="Search">
-            <Input name="search" id="search" class="rounded-end-2" required bind:value={filterTerm}/>
-        </FormGroup>
-        <Button class="input-button mb-3 {filterTerm === '' ? 'd-none' : ''}" type="button" onclick={() => {filterTerm = ''}} >
-            <i class="fa fa-times"></i>
-        </Button>
-        <Button color="primary" class="input-side-button mb-3" type="button" onclick={() => {addDialog.show()}}>Add</Button>
-    </Col>
-</Row>
+<Header title="Items"
+        actions={[{label: "Add Item", icon: "fa-plus", action: () => {addDialog.show()}}]}
+        bind:filterText={filterText}/>
 
 <ul>
     {#each filteredIngredients as ingredient}
