@@ -90,10 +90,28 @@ public class Amount
         return Fraction + " " + UnitType.GetAbbreviation(Fraction.IsPlural);
     }
     
+    private string ToDbString()
+    {
+        return Fraction.Num + "/" + Fraction.Dem + "," + UnitType;
+    }
+
+    private static Amount FromDbString(string s)
+    {
+        string[] first = s.Split('/', 2);
+        int num = int.Parse(first[0]);
+
+        string[] second = first[1].Split(',');
+        int dem = int.Parse(second[0]);
+
+        UnitType unit = Enum.Parse<UnitType>(second[1]);
+        
+        return new Amount(new Fraction(num, dem), unit);
+    }
+    
 
     [UsedImplicitly]
     public class ValueConverter() : ValueConverter<Amount, string>(
-        v => v.Fraction + "," + v.UnitType,
-        v => new Amount()
+        v => v.ToDbString(),
+        v => FromDbString(v)
     );
 }
