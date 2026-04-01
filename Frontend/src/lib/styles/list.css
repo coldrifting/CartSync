@@ -1,32 +1,74 @@
 .list-item {
     color: var(--bs-dark);
-    stroke: var(--bs-dark);
+    stroke: var(--bs-secondary);
     background-color: var(--bs-card-bg);
     border: 1px solid var(--bs-border-color);
-    border-radius: 0.5em;
+    border-radius: 0.5rem;
     width: 100%;
-    padding: 0.75em 1.5em 0.75em 1.5em;
-    font-size: 1em;
+    padding: 0 1.5rem !important;
+    height: 3.5rem;
+    line-height: 3.5rem;
+    font-size: 1.1em;
     text-decoration: none;
     white-space: nowrap;
     -webkit-touch-callout: none;
-
-    .subtitle {
+    cursor: pointer;
+    user-select: none;
+    
+    label {
+        cursor: pointer;
+    }
+    
+    .info {
+        font-size: 1.05em;
+        line-height: 1.05em;
+    }
+    
+    .info-secondary {
         color: var(--bs-secondary);
+    }
+    
+    .info-sub {
+        color: var(--bs-warning);
+        padding-top: 0.5em;
+        font-size: 0.9em;
+        line-height: 0.9em;
+    }
+    
+    .form-check-input {
+        cursor: pointer;
+        margin: auto 0 !important;
+        margin-left: -0.75rem !important;
     }
 
     &:hover {
+        stroke: var(--bs-dark);
         background-color: var(--bs-primary-border-subtle);
 
-        .subtitle {
+        .info {
             color: var(--bs-dark);
         }
     }
 
     &:focus {
+        /* Raises the item above it's siblings for proper focus outlines */
+        z-index: 1;
         background-color: var(--bs-card-bg);
         position: relative;
-        z-index: 1;
+    }
+    
+    &.expanded {
+        height: auto;
+        white-space: wrap;
+        line-height: 2em;
+        padding: 1.5rem !important;
+        
+        img {
+            margin: auto;
+            max-height: 36rem;
+            max-width: 90%;
+            border-radius: 1rem;
+        }
     }
 }
 

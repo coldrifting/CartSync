@@ -31,3 +31,8 @@ h4 {
     margin-top: 1.25rem;
 }
 
+/* Keep context menu on top of focused list items */
+.context-menu {
+    z-index: 2 !important;
+}
+

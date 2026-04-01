@@ -5,6 +5,7 @@ header {
     width: 100%;
     padding: 1.5rem 0 0.5rem;
     border-bottom: 1px solid transparent;
+    z-index: 3;
     
     h1 {
         font-size: 2rem;

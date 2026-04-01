@@ -1,3 +1,7 @@
+button {
+    white-space: nowrap;
+}
+
 .input-button {
     z-index: 1200 !important;
     border: none;

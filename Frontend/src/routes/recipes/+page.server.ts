@@ -1,12 +1,13 @@
 import type {Actions, PageServerLoad} from './$types';
-import {getAllRecipes} from "$lib/requests/get.js";
-import {getValue, getValueBoolean} from "$lib/requests/requests.js";
-import {addRecipe} from "$lib/requests/post.js";
-import {deleteRecipe} from "$lib/requests/delete.js";
-import {editRecipeName, editRecipeIsPinned} from "$lib/requests/patch.js";
+import {getAllRecipes} from "$lib/scripts/requests/get.js";
+import {getValue, getValueBoolean} from "$lib/scripts/requests/common.js";
+import {addRecipe} from "$lib/scripts/requests/post.js";
+import {deleteRecipe} from "$lib/scripts/requests/delete.js";
+import {editRecipeName, editRecipeIsPinned} from "$lib/scripts/requests/patch.js";
+import type Recipe from "$lib/scripts/classes/Recipe.ts";
 
 export const load: PageServerLoad = async ({cookies}) => {
-    const recipes: RecipeMinimal[] = await getAllRecipes(cookies);
+    const recipes: Recipe[] = await getAllRecipes(cookies);
     return {
         allRecipes: recipes,
         pinnedRecipes: recipes.filter(r => r.isPinned),

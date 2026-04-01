@@ -55,7 +55,7 @@
                collisionPriority={CollisionPriority.Low}>
         {#each items as item, index (item.id)}
             
-            <ContextMenuCustom actions={contextActions} id={item.id} name={item.name}>
+            <ContextMenuCustom contextActions={contextActions} id={item.id} name={item.name}>
                 <DraggableItem {item}
                                id={item.id}
                                index={() => index}

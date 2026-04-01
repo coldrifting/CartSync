@@ -1,12 +1,12 @@
 <script lang="ts">
+    import {tick} from "svelte";
     import {enhance} from '$app/forms';
     import type {PageProps} from './$types';
     import Header from "$lib/components/Header.svelte";
     import ModalAdd from "$lib/components/modal/ModalAdd.svelte";
     import ModalRename from "$lib/components/modal/ModalRename.svelte";
     import ModalDelete from "$lib/components/modal/ModalDelete.svelte";
-    import ListItem from "$lib/components/ListItem.svelte";
-    import {tick} from "svelte";
+    import ListElementLink from "$lib/components/ListElementLink.svelte";
     let {data}: PageProps = $props();
     
     let recipeId: string = $state('');
@@ -21,21 +21,28 @@
         });
     };
     
-    let pinnedContextActions: ContextAction[] = [
-		{ label: "Unpin", action: togglePinAction},
-		{ label: "Rename", action: (id: string, value: string | undefined) => {renameDialog.show(id, value)} },
+    const commonContextActions: ContextAction[] = [
+        { label: "Rename", action: (id: string, value: string | undefined) => {renameDialog.show(id, value)} },
 		{ label: "Delete", action: (id: string, value: string | undefined) => {deleteDialog.show(id, value)} },
     ];
     
-    let unpinnedContextActions: ContextAction[] = [
+    const pinnedContextActions: ContextAction[] = [
+		{ label: "Unpin", action: togglePinAction},
+        ...commonContextActions
+    ];
+    
+    const unpinnedContextActions: ContextAction[] = [
 		{ label: "Pin", action: togglePinAction},
-		{ label: "Rename", action: (id: string, value: string | undefined) => {renameDialog.show(id, value)} },
-		{ label: "Delete", action: (id: string, value: string | undefined) => {deleteDialog.show(id, value)} },
+        ...commonContextActions
     ];
     
     let addDialog: ModalAdd
     let renameDialog: ModalRename
     let deleteDialog: ModalDelete
+    
+    const headerActions: HeaderAction[] = [
+        {label: "Add Recipe", icon: "fa-plus", action: () => {addDialog.show()}}
+    ];
 </script>
 
 <svelte:head>
@@ -46,7 +53,7 @@
 <ModalRename bind:this={renameDialog} action="renameRecipe" header="Rename Recipe" labelRename="Recipe Name" />
 <ModalDelete bind:this={deleteDialog} action="deleteRecipe" header="Delete Recipe" warning="The recipe [Name] will be deleted!" />
 
-<Header title="Recipes" actions={[{label: "Add Recipe", icon: "fa-plus", action: () => {addDialog.show()}}]} />
+<Header title="Recipes" headerActions={headerActions} />
 
 <form method="POST"
       action="?/toggleRecipePin"
@@ -60,10 +67,10 @@
 <h4>Pinned</h4>
 <ul>
     {#each data.pinnedRecipes as recipe}
-        <ListItem name={recipe.recipeName}
-                  id={recipe.recipeId}
-                  link="/recipes/{recipe.recipeId}"
-                  contextActions={pinnedContextActions}
+        <ListElementLink id={recipe.recipeId}
+                         label={recipe.recipeName}
+                          link="/recipes/{recipe.recipeId}"
+                          contextActions={pinnedContextActions}
         />
     {/each}
 </ul>
@@ -71,10 +78,10 @@
 <h4>Unpinned</h4>
 <ul>
     {#each data.unPinnedRecipes as recipe}
-        <ListItem name={recipe.recipeName}
-                  id={recipe.recipeId}
-                  link="/recipes/{recipe.recipeId}"
-                  contextActions={unpinnedContextActions}
+        <ListElementLink id={recipe.recipeId}
+                         label={recipe.recipeName}
+                          link="/recipes/{recipe.recipeId}"
+                          contextActions={unpinnedContextActions}
         />
     {/each}
 </ul>

@@ -2,8 +2,8 @@ nav {
     position: fixed;
     width: var(--sidebar-width);
     height: 100dvh;
-    z-index: 1050;
     font-weight: 500;
+    z-index: 4;
     
     @media (width < 576px) {
         display: none;

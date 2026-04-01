@@ -1,15 +1,16 @@
 <script lang="ts">
-    import type {PageProps} from './$types';
-    import ItemTemp from '$lib/types/ItemTemp.js'
-    import UnitType from '$lib/types/UnitType.js'
-    import BayType from "$lib/types/BayType.js";
-    import {FormGroup, Input} from "@sveltestrap/sveltestrap";
     import {enhance} from '$app/forms';
-    import ListItem from "$lib/components/ListItem.svelte";
+    import type {PageProps} from './$types';
+    import {FormGroup, Input} from "@sveltestrap/sveltestrap";
+    import type ItemDetails from "$lib/scripts/classes/ItemDetails.ts";
+    import ItemTemp from "$lib/scripts/classes/ItemTemp.js";
+    import BayType from "$lib/scripts/classes/BayType.js";
+    import UnitType from "$lib/scripts/classes/UnitType.js";
     import Header from "$lib/components/Header.svelte";
+    import ListElementLink from "$lib/components/ListElementLink.svelte";
 
     let {data}: PageProps = $props();
-    let item: IngredientByStore = $derived(data.item);
+    let item: ItemDetails = $derived(data.item);
 
     let itemId: string = $derived(data.item.itemId);
     let itemTemp: string = $derived(data.item.itemTemp);
@@ -30,7 +31,7 @@
     let stores = $derived(data.stores);
     let selectedStoreId = $derived(data.selectedStore.storeId);
     let aisles = $derived(data.aisles.sort((a, b) => a.aisleName > b.aisleName ? 1 : -1));
-    let aisleId = $derived(item.location?.aisleId);
+    let aisleId = $derived(item.location?.aisleId ?? "");
     let bay = $derived(item.location?.bay ?? BayType.Types[1]);
 </script>
 
@@ -38,7 +39,7 @@
     <title>{data.item.itemName}</title>
 </svelte:head>
 
-<Header back={['/items', 'Items']} title={item.itemName} />
+<Header back={['/items', 'Items']} title={item.itemName}/>
 
 <h4>Details</h4>
 <form method="POST"
@@ -68,7 +69,7 @@
                bind:value={itemDefaultUnits}
                onchange={() => itemDefaultUnitsForm.requestSubmit()}>
             {#each UnitType.Types as type}
-                <option value="{type}">{UnitType.ToDisplay(type)}</option>
+                <option value="{type}">{UnitType.asString(type)}</option>
             {/each}
         </Input>
     </FormGroup>
@@ -76,12 +77,10 @@
 
 <h4>Preps</h4>
 
-<ListItem
-        name={prepText === "" ? "(None)" : prepText}
-        link="/items/{itemId}/preps"
-        id="0"
-        subtitle="Edit"
-        contextActions={[]}/>
+<ListElementLink id="Preps"
+                 label={prepText === "" ? "(None)" : prepText}
+                 link="/items/{itemId}/preps"
+                 info="Edit"/>
 
 <h4>Location</h4>
 <form method="POST"

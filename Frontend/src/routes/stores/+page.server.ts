@@ -1,9 +1,9 @@
 import type {Actions, PageServerLoad} from "./$types";
-import {getAllStores} from "$lib/requests/get.js";
-import {deleteStore} from "$lib/requests/delete.js";
-import {getValue} from "$lib/requests/requests.js";
-import {addStore, setCurrentStore} from "$lib/requests/post.js";
-import {editStoreName} from "$lib/requests/patch.js";
+import {getAllStores} from "$lib/scripts/requests/get.js";
+import {deleteStore} from "$lib/scripts/requests/delete.js";
+import {getValue} from "$lib/scripts/requests/common.js";
+import {addStore, setCurrentStore} from "$lib/scripts/requests/post.js";
+import {editStoreName} from "$lib/scripts/requests/patch.js";
 
 export const load: PageServerLoad = async ({cookies}) => {
     const stores = await getAllStores(cookies);

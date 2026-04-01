@@ -15,7 +15,7 @@
             id: a.aisleId,
 			name: a.aisleName,
 			subtitle: (a.sortOrder + 1).toString()
-        }
+        } as SortableItem;
     }));
     
     let addDialog: ModalAdd
@@ -52,7 +52,7 @@
 <ModalRename bind:this={renameDialog} action="renameAisle" header="Rename Aisle" labelRename="Aisle Name" />
 <ModalDelete bind:this={deleteDialog} action="deleteAisle" header="Delete Aisle" warning="All item locations for this aisle will be deleted!" />
 
-<Header back={['/stores', 'Stores']} title={storeName} subtitle="Aisles" actions={[{label: "Add Aisle", icon: "fa-plus", action: () => {addDialog.show()}}]} />
+<Header back={['/stores', 'Stores']} title={storeName} subtitle="Aisles" headerActions={[{label: "Add Aisle", icon: "fa-plus", action: () => {addDialog.show()}}]} />
 
 <ReorderableList listName='list' items={aisles} onReorder={onReorder} contextActions={contextActions} />
 <form method="POST"

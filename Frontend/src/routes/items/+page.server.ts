@@ -1,14 +1,15 @@
 import type {Actions, PageServerLoad} from './$types';
-import ItemUsagesReport from "$lib/types/ItemUsagesReport.js";
 import {fail} from "@sveltejs/kit";
-import {getAllItems, getItemUsages} from "$lib/requests/get.js";
-import {getValue} from "$lib/requests/requests.js";
-import {addItem} from "$lib/requests/post.js";
-import {deleteItem} from "$lib/requests/delete.js";
-import {editItemName} from "$lib/requests/patch.js";
+import {getAllItems, getItemUsages} from "$lib/scripts/requests/get.js";
+import {getValue} from "$lib/scripts/requests/common.js";
+import {addItem} from "$lib/scripts/requests/post.js";
+import {deleteItem} from "$lib/scripts/requests/delete.js";
+import {editItemName} from "$lib/scripts/requests/patch.js";
+import ItemUsagesReport from "$lib/scripts/classes/ItemUsagesReport.js";
+import type ItemDetails from "$lib/scripts/classes/ItemDetails.ts";
 
 export const load: PageServerLoad = async ({cookies}) => {
-    const ingredients: IngredientByStore[] = await getAllItems(cookies);
+    const ingredients: ItemDetails[] = await getAllItems(cookies);
     return {
         ingredients: ingredients
     }
@@ -32,7 +33,7 @@ export const actions: Actions = {
         const tryDeleteItemId = await getValue(data, 'id');
         const usages: ItemUsagesReport = await getItemUsages(cookies, tryDeleteItemId);
         if (usages && (usages.preps.length > 0 || usages.recipes.length > 0)) {
-            const usageReport: Record<string, string[]> = usages.toUsages();
+            const usageReport: Record<string, string[]> = ItemUsagesReport.getUsages(usages);
             return fail(409, usageReport);
         }
         

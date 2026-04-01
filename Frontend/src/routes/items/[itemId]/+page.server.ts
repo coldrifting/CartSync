@@ -1,12 +1,13 @@
 import type {Actions, PageServerLoad} from './$types';
-import {getAllAisles, getAllPreps, getAllStores, getItem} from "$lib/requests/get.js";
-import {getValue} from "$lib/requests/requests.js";
-import {editItemAisle, editItemDefaultUnits, editItemTemp} from "$lib/requests/patch.js";
-import {setCurrentStore} from "$lib/requests/post.js";
+import {getAllAisles, getAllStores, getItem} from "$lib/scripts/requests/get.js";
+import {getValue} from "$lib/scripts/requests/common.js";
+import {editItemAisle, editItemDefaultUnits, editItemTemp} from "$lib/scripts/requests/patch.js";
+import {setCurrentStore} from "$lib/scripts/requests/post.js";
+import type Store from "$lib/scripts/classes/Store.ts";
 
 export const load: PageServerLoad = async ({params, cookies}) => {
-    const stores = await getAllStores(cookies);
-    const selectedStore = stores.filter(s => s.isSelected)[0];
+    const stores: Store[] = await getAllStores(cookies);
+    const selectedStore: Store = stores.filter((s: Store): boolean => s.isSelected)[0];
     
     const [aisles, item] = await Promise.all([
         getAllAisles(cookies, selectedStore.storeId),
@@ -21,7 +22,6 @@ export const load: PageServerLoad = async ({params, cookies}) => {
         item: item
     }
 };
-
 
 export const actions: Actions = {
     editItemTemp: async ({request, cookies}) => {

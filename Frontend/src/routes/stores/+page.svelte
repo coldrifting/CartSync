@@ -1,12 +1,12 @@
 <script lang="ts">
     import {enhance} from '$app/forms';
     import type {PageProps} from './$types';
-    import ListItem from "$lib/components/ListItem.svelte";
-    import ListRadioButton from "$lib/components/ListRadioButton.svelte";
     import ModalAdd from "$lib/components/modal/ModalAdd.svelte";
     import ModalRename from "$lib/components/modal/ModalRename.svelte";
     import ModalDelete from "$lib/components/modal/ModalDelete.svelte";
     import Header from "$lib/components/Header.svelte";
+    import ListElementLink from "$lib/components/ListElementLink.svelte";
+    import ListElementRadio from "$lib/components/ListElementRadio.svelte";
     
     let {data}: PageProps = $props();
     
@@ -24,6 +24,10 @@
     ];
     
     let selectStoreForm: HTMLFormElement;
+    
+    const headerActions: HeaderAction[] = [
+        {label: "Add Store", icon: "fa-plus", action: () => {addDialog.show()}}
+    ];
 </script>
 
 <svelte:head>
@@ -34,12 +38,12 @@
 <ModalRename bind:this={renameDialog} action="renameStore" header="Rename Store" labelRename="Store Name" />
 <ModalDelete bind:this={deleteDialog} action="deleteStore" header="Delete Store" warning="All item locations for [Name] will be deleted!" />
 
-<Header title="Stores" actions={[{label: "Add Store", icon: "fa-plus", action: () => {addDialog.show()}}]} />
+<Header title="Stores" headerActions={headerActions} />
 
 <h4>Selected Store</h4>
 <div>
     <ul>
-        <ListItem name={selectedStoreName} id="" link="/stores/{selectedStoreId}" subtitle="Edit" contextActions={[]} />
+        <ListElementLink id={selectedStoreId} label={selectedStoreName} link="/stores/{selectedStoreId}" info="Aisles"/>
     </ul>
 </div>
 
@@ -50,13 +54,12 @@
     <h4>All Stores</h4>
     <ul>
         {#each stores as store}
-            <ListRadioButton 
-                    name="selectedStoreId"
+            <ListElementRadio 
+                    id={store.storeId}
                     label={store.storeName} 
-                    value={store.storeId}
                     contextActions={contextActions.filter(a => a.label !== "Delete" || !store.isSelected)}
-                    group={selectedStoreId} 
-                    onchange={() => selectStoreForm.requestSubmit()}/>
+                    group="selectedStoreId"
+                    selectedValue={selectedStoreId} />
         {/each}
     </ul>
 </form>

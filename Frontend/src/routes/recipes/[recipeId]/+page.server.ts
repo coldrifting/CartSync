@@ -1,8 +1,10 @@
 import type {Actions, PageServerLoad} from './$types';
-import {getRecipe} from "$lib/requests/get.js";
+import {getRecipe} from "$lib/scripts/requests/get.js";
+import RecipeDetails from "$lib/scripts/classes/RecipeDetails.js";
 
 export const load: PageServerLoad = async ({cookies, params}) => {
-    const recipe: Recipe = await getRecipe(cookies, params.recipeId);
+    const recipe: RecipeDetails = await getRecipe(cookies, params.recipeId);
+    
     return {
         recipe: recipe
     }

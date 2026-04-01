@@ -1,24 +1,22 @@
 <script lang="ts">
-    import type {PageProps, SubmitFunction} from './$types';
+    import {tick} from "svelte";
     import {enhance} from '$app/forms';
-    import ListCheckbox from "$lib/components/ListCheckbox.svelte";
+    import type {PageProps, SubmitFunction} from './$types';
     import ModalAdd from "$lib/components/modal/ModalAdd.svelte";
     import ModalRename from "$lib/components/modal/ModalRename.svelte";
     import ModalDelete from "$lib/components/modal/ModalDelete.svelte";
     import Header from "$lib/components/Header.svelte";
-    import {tick} from "svelte";
+    import ListElementCheckbox from "$lib/components/ListElementCheckbox.svelte";
 
     let {data}: PageProps = $props();
-
-    let item: IngredientByStore = $derived(data.item);
-    let itemId = $derived(item.itemId);
+    let itemId: string = $derived(data.item.itemId);
+    
     let preps = $derived(data.preps);
-
+    
     let addDialog: ModalAdd
     let renameDialog: ModalRename
     let deleteDialog: ModalDelete
     
-    let editForm: HTMLFormElement;
     let tryDeleteForm: HTMLFormElement;
     
     let contextActions: ContextAction[] = [
@@ -45,6 +43,10 @@
             }
         };
     };
+    
+    const headerActions: HeaderAction[] = [
+        {label: "Add Prep", icon: "fa-plus", action: () => {addDialog.show()}}
+    ];
 </script>
 
 <svelte:head>
@@ -63,20 +65,23 @@
     <input hidden type="submit"/>
 </form>
 
-<Header back={[`/items/${itemId}`, 'Item']} title={item.itemName} subtitle="Preps" actions={[{label: "Add Prep", icon: "fa-plus", action: () => {addDialog.show()}}]} />
+<Header back={[`/items/${itemId}`, 'Item']} 
+        title={data.item.itemName} 
+        subtitle="Preps" 
+        headerActions={headerActions} />
 
 <form method="POST"
       action="?/editPreps"
-      bind:this={editForm}
+      id="editPrepForm"
       use:enhance>
     <input name="itemId" bind:value={itemId} hidden/>
     <ul>
         {#each preps as prep}
-            <ListCheckbox
+            <ListElementCheckbox
                     id={prep.prepId}
                     label={prep.prepName}
-                    isChecked={prep.isSelected}
-                    onchange={() => editForm.requestSubmit()}
+                    name="selectedPrepIds"
+                    checked={prep.isSelected}
                     contextActions={contextActions}
             />
         {/each}

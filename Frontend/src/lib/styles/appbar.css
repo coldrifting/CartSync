@@ -10,6 +10,7 @@ footer {
     justify-content: space-around;
     position: fixed;
     bottom: 0;
+    z-index: 3;
     
     @media (width >= 576px) {
         display: none;

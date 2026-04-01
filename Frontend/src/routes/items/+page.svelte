@@ -1,42 +1,48 @@
 <script lang="ts">
+    import {tick} from "svelte";
     import {enhance} from '$app/forms';
     import type {SubmitFunction, PageProps} from './$types';
-    import ListItem from '$lib/components/ListItem.svelte';
+    import type ItemDetails from "$lib/scripts/classes/ItemDetails.ts";
     import ModalAdd from "$lib/components/modal/ModalAdd.svelte";
     import ModalRename from "$lib/components/modal/ModalRename.svelte";
     import ModalDelete from "$lib/components/modal/ModalDelete.svelte";
-    import {tick} from "svelte";
     import Header from "$lib/components/Header.svelte";
+    import ListElementLink from "$lib/components/ListElementLink.svelte";
 
     let {data}: PageProps = $props();
-    
+
     let filterText: string = $state('');
-    let filter = (items: IngredientByStore[]) => {
+    let filter = (items: ItemDetails[]) => {
         if (!filterText) return items;
         let searchText = filterText.toLowerCase().trim();
         return items.filter(i => i.itemName.toLowerCase().includes(searchText));
     }
 
-    let filteredIngredients: IngredientByStore[] = $derived(filter(data.ingredients));
-    
+    let filteredIngredients: ItemDetails[] = $derived(filter(data.ingredients));
+
     let addDialog: ModalAdd
     let renameDialog: ModalRename
     let deleteDialog: ModalDelete
-    
+
     let tryDeleteForm: HTMLFormElement;
-    
+
     let contextActions: ContextAction[] = [
-		{ label: "Rename", action: (id: string, value: string | undefined) => {renameDialog.show(id, value)} },
-		{ label: "Delete", action: (id: string, value: string | undefined) => {
+        {
+            label: "Rename", action: (id: string, value: string | undefined) => {
+                renameDialog.show(id, value)
+            }
+        },
+        {
+            label: "Delete", action: (id: string, value: string | undefined) => {
                 deleteId = id;
                 deleteName = value ?? "";
                 tick().then(() => {
                     tryDeleteForm.requestSubmit();
                 })
-            } 
+            }
         }
     ];
-    
+
     let deleteId = $state('');
     let deleteName = $state('');
 
@@ -49,15 +55,24 @@
             }
         };
     };
+
+    const headerActions: HeaderAction[] = [
+        {
+            label: "Add Item", icon: "fa-plus", action: () => {
+                addDialog.show()
+            }
+        }
+    ];
 </script>
 
 <svelte:head>
     <title>Ingredients</title>
 </svelte:head>
 
-<ModalAdd bind:this={addDialog} action="addItem" header="Add Item" labelAdd="Item Name" />
-<ModalRename bind:this={renameDialog} action="renameItem" header="Rename Item" labelRename="Item Name" />
-<ModalDelete bind:this={deleteDialog} action="deleteItem" header="Delete Item" warning="The item [Name] will be deleted!" />
+<ModalAdd bind:this={addDialog} action="addItem" header="Add Item" labelAdd="Item Name"/>
+<ModalRename bind:this={renameDialog} action="renameItem" header="Rename Item" labelRename="Item Name"/>
+<ModalDelete bind:this={deleteDialog} action="deleteItem" header="Delete Item"
+             warning="The item [Name] will be deleted!"/>
 
 <form method="POST"
       action="?/tryDeleteItem"
@@ -68,16 +83,16 @@
 </form>
 
 <Header title="Items"
-        actions={[{label: "Add Item", icon: "fa-plus", action: () => {addDialog.show()}}]}
+        headerActions={headerActions}
         bind:filterText={filterText}/>
 
 <ul>
     {#each filteredIngredients as ingredient}
-        <ListItem name={ingredient.itemName}
-                  id={ingredient.itemId}
-                  subtitle={ingredient.location?.aisleName ?? "(Not Set)"}
-                  link="/items/{ingredient.itemId}"
-                  contextActions={contextActions}
+        <ListElementLink id={ingredient.itemId}
+                         label={ingredient.itemName}
+                         info={ingredient.location?.aisleName ?? "(Not Set)"}
+                         link="/items/{ingredient.itemId}"
+                         contextActions={contextActions}
         />
     {/each}
 </ul>

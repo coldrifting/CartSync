@@ -1,9 +1,11 @@
 import type {Actions, PageServerLoad} from "./$types";
-import {getAllAisles, getAllStores} from "$lib/requests/get.js";
-import {getValue, getValueNumber} from "$lib/requests/requests.js";
-import {addAisle} from "$lib/requests/post.js";
-import {editAisleName, editAisleOrder} from "$lib/requests/patch.js";
-import {deleteAisle} from "$lib/requests/delete.js";
+import {getAllAisles, getAllStores} from "$lib/scripts/requests/get.js";
+import {getValue, getValueNumber} from "$lib/scripts/requests/common.js";
+import {addAisle} from "$lib/scripts/requests/post.js";
+import {editAisleName, editAisleOrder} from "$lib/scripts/requests/patch.js";
+import {deleteAisle} from "$lib/scripts/requests/delete.js";
+import type Store from "$lib/scripts/classes/Store.ts";
+import type Aisle from "$lib/scripts/classes/Aisle.ts";
 
 let storeId: string = '';
 

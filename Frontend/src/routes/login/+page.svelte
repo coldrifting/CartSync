@@ -1,20 +1,7 @@
 <script lang='ts'>
     import favicon from '$lib/assets/favicon.svg';
-    import '$lib/styles/app.css';
-    import {
-        Button,
-        Col,
-        Row,
-        Container,
-        Card,
-        CardBody, CardFooter,
-        CardTitle,
-        FormGroup,
-        Input
-    } from '@sveltestrap/sveltestrap';
-
+    import {Button, Col, Row, Container, Card, CardBody, CardFooter, CardTitle, FormGroup, Input} from '@sveltestrap/sveltestrap';
     import {enhance} from '$app/forms';
-
     let {form} = $props();
 </script>
 

@@ -1,15 +1,17 @@
 import type {Actions, PageServerLoad} from './$types';
-import PrepUsagesReport from "$lib/types/PrepUsagesReport.js";
-import {getAllPreps, getItem, getPrepUsages} from "$lib/requests/get.js";
-import {getValue} from "$lib/requests/requests.js";
-import {editItemPreps, editPrepName} from "$lib/requests/patch.js";
-import {addPrep} from "$lib/requests/post.js";
-import {deletePrep} from "$lib/requests/delete.js";
 import {fail} from "@sveltejs/kit";
+import {getAllPreps, getItem, getPrepUsages} from "$lib/scripts/requests/get.js";
+import {getValue, getValueArray} from "$lib/scripts/requests/common.js";
+import {addPrep} from "$lib/scripts/requests/post.js";
+import {editItemPreps, editPrepName} from "$lib/scripts/requests/patch.js";
+import {deletePrep} from "$lib/scripts/requests/delete.js";
+import PrepUsagesReport from "$lib/scripts/classes/PrepUsagesReport.js";
+import type ItemDetails from "$lib/scripts/classes/ItemDetails.ts";
+import type Prep from "$lib/scripts/classes/Prep.ts";
 
 export const load: PageServerLoad = async ({params, cookies}) => {
-    const item = await getItem(cookies, params.itemId);
-    const preps = await getAllPreps(cookies);
+    const item: ItemDetails = await getItem(cookies, params.itemId);
+    const preps: Prep[] = await getAllPreps(cookies);
     const selectedPreps: PrepSelect[] = preps.map(p => {
         return {
             prepId: p.prepId,
@@ -20,7 +22,7 @@ export const load: PageServerLoad = async ({params, cookies}) => {
     
     return {
         item: item,
-        preps: selectedPreps,
+        preps: selectedPreps
     }
 };
 
@@ -43,7 +45,7 @@ export const actions: Actions = {
         const tryDeletePrepId = await getValue(data, 'id');
         const usages: PrepUsagesReport = await getPrepUsages(cookies, tryDeletePrepId);
         if (usages && (usages.items.length > 0 || usages.recipes.length > 0)) {
-            const usageReport: Record<string, string[]> = usages.toUsages();
+            const usageReport: Record<string, string[]> = PrepUsagesReport.getUsages(usages);
             return fail(409, usageReport);
         }
         
@@ -58,9 +60,8 @@ export const actions: Actions = {
     editPreps: async ({request, cookies}) => {
         const data: FormData = await request.formData();
         const itemId: string = await getValue(data, 'itemId');
+        const selectedPrepIds: string[] = await getValueArray(data, 'selectedPrepIds');
         
-        const preps: string[] = Array.from(data.entries().map((entry) => entry[0]).filter(i => i !== 'itemId'));
-
-        await editItemPreps(cookies, itemId, preps);
+        await editItemPreps(cookies, itemId, selectedPrepIds);
     }
 }

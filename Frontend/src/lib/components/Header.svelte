@@ -5,12 +5,12 @@
     interface Props {
         title: string;
         subtitle?: string | undefined;
-        actions?: HeaderAction[] | undefined;
+        headerActions?: HeaderAction[] | undefined;
         filterText?: string | undefined;
         back?: string[] | undefined;
     }
 
-    let {title, subtitle = undefined, actions = undefined, filterText = $bindable(undefined), back}: Props = $props();
+    let {title, subtitle = undefined, headerActions = undefined, filterText = $bindable(undefined), back}: Props = $props();
 
     let header: HTMLElement;
 
@@ -53,7 +53,7 @@
 
             <div class="end">
                 <div>
-                    {#each actions as action}
+                    {#each headerActions as action}
                         <div>
                             <Button color="primary" block type="button" aria-label={action.label}
                                     onclick={action.action}>
