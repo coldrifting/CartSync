@@ -62,10 +62,9 @@ public class RecipeInstruction : ISortable, IEditable<RecipeInstructionEditReque
     {
         RecipeInstructionContent = editRequest.RecipeInstructionContent;
         IsImage = editRequest.IsImage;
-        SortOrder = editRequest.SortOrder;
         
         int oldIndex = SortOrder;
-        Recipe.RecipeSections.Reorder(oldIndex, editRequest.SortOrder);
+        Recipe.RecipeInstructions.Reorder(oldIndex, editRequest.SortOrder);
     }
     
     // Errors

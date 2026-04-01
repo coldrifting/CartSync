@@ -37,7 +37,7 @@ public class RecipeInstructionController(CartSyncContext context) : ControllerCo
         return TypedResults.Created($"/api/recipes/{recipe.RecipeId}/instructions/{recipeInstruction.RecipeInstructionId}", recipeInstruction.ToNewResponse);
     }
     
-    [HttpPut]
+    [HttpPatch]
     [Route("/api/recipes/{recipeId}/instructions/{recipeInstructionId}/edit")]
     public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Edit(Ulid recipeId, Ulid recipeInstructionId, [FromBody] JsonPatchDocument<RecipeInstructionEditRequest> recipeInstructionPatch)
     {
