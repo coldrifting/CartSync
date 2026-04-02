@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using CartSync.Controllers.Core;
 using CartSync.Models;
-using CartSync.Utils;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc;
@@ -121,14 +120,18 @@ public class RecipeSectionEntryController(CartSyncContext context) : ControllerC
             }
         }
 
-        RecipeSectionEntry? existing = await Db.RecipeSectionEntries.FirstOrDefaultAsync(r =>
-            r.RecipeSectionId == recipeSectionEntry.RecipeSectionId &&
-            r.ItemId == recipeSectionEntry.ItemId &&
-            r.PrepId == recipeSectionEntryEdit.PrepId);
-
-        if (existing is not null)
+        // Verify that changing part of the composite key will still be valid
+        if (recipeSectionEntryEdit.PrepId != recipeSectionEntry.PrepId)
         {
-            return RecipeSectionEntry.AlreadyExists(recipeSectionEntry.ItemId, recipeSectionEntryEdit.PrepId);
+            RecipeSectionEntry? existing = await Db.RecipeSectionEntries.FirstOrDefaultAsync(r =>
+                r.RecipeSectionId == recipeSectionEntry.RecipeSectionId &&
+                r.ItemId == recipeSectionEntry.ItemId &&
+                r.PrepId == recipeSectionEntryEdit.PrepId);
+
+            if (existing is not null)
+            {
+                return RecipeSectionEntry.AlreadyExists(recipeSectionEntry.ItemId, recipeSectionEntryEdit.PrepId);
+            }
         }
         
         recipeSectionEntry.UpdateFromEditRequest(recipeSectionEntryEdit);
@@ -160,7 +163,15 @@ public class RecipeSectionEntryController(CartSyncContext context) : ControllerC
             return RecipeSectionEntry.NotFoundUnderRecipe(recipeSectionEntryId, recipeId);
         }
         
-        Db.RecipeSectionEntries.Remove(recipeSectionEntry);
+        if (recipeSectionEntry.RecipeSection.RecipeSectionEntries.Count == 1)
+        {
+            // Remove section when deleting last item
+            Db.RecipeSections.Remove(recipeSectionEntry.RecipeSection);
+        }
+        else
+        {
+            Db.RecipeSectionEntries.Remove(recipeSectionEntry);
+        }
 
         await Db.SaveChangesAsync();
         
