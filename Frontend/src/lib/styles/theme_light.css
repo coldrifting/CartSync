@@ -15,6 +15,10 @@
         --bs-card-cap-bg: #eeeeee;
         --bs-modal-bg: #1e2938;
         
+        --body-bg: #ffffff;
+        --border-color: #9aaaaa;
+        --form-bg: #162028;
+        
         .form-control {
             --bs-body-bg: #162028;
         }

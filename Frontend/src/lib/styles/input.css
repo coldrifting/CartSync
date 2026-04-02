@@ -43,3 +43,106 @@ button {
         background-color: var(--bs-primary-border-subtle);
     }
 }
+
+.form-link {
+    background-color: var(--form-bg);
+    border: 1px solid var(--border-color);
+    stroke: var(--bs-dark);
+    border-radius: 6px;
+    height: 58px;
+    width: 100%;
+    overflow: hidden;
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    position: relative;
+    
+    &:hover {
+        background-color: var(--bs-primary-border-subtle);
+        border-color: var(--bs-primary);
+    }
+    
+    &:active {
+        background-color: var(--bs-primary);
+        border-color: var(--bs-primary-text-emphasis);
+    }
+    
+    .form-link-text {
+        position: absolute;
+        top: 22px;
+        left: 0.75rem;
+        
+        &.centered {
+            position: relative;
+            top: 0;
+            left: 0.5rem;
+        }
+    }
+    
+    .secondary {
+        color: rgba(var(--bs-body-color-rgb), .75);
+    }
+
+    .form-link-label {
+        position: absolute;
+        top: 4px;
+        left: 0.75rem;
+        font-size: 0.85rem;
+        color: rgba(var(--bs-body-color-rgb), .65);
+    }
+    
+    svg {
+        position: absolute;
+        right: 1rem;
+    }
+}
+
+.list-select-modal {
+    .modal-body > div:first-child {
+        padding: 0 !important;
+        
+        .form-floating {
+            margin: 1rem;
+        }
+    }
+    
+    ul {
+        height: 20rem;
+        overflow-y: scroll;
+        padding: 0.5rem 1rem 1rem;
+        
+        .form-link {
+            margin: 0;
+            height: 48px;
+            border-radius: 0;
+            border-bottom: 1px solid transparent;
+            
+            &:hover {
+                border-bottom: 1px solid var(--bs-primary);
+            }
+            
+            &:first-child:not(:only-child) {
+                border-top-left-radius: 0.5rem;
+                border-top-right-radius: 0.5rem;
+            }
+            
+            &:last-child:not(:only-child) {
+                border-bottom-left-radius: 0.5rem;
+                border-bottom-right-radius: 0.5rem;
+                border-bottom: 1px solid var(--border-color);
+                &:hover {
+                    border-bottom: 1px solid var(--bs-primary);
+                }
+            }
+            
+            &:only-child {
+                border-radius: 0.5rem;
+                border-bottom: 1px solid var(--border-color);
+                &:hover {
+                    border-bottom: 1px solid var(--bs-primary);
+                }
+            }
+        }
+    }
+}

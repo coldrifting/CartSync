@@ -5,7 +5,6 @@ import Amount from "$lib/scripts/classes/Amount.js";
 class RecipeSectionEntry {
     recipeSectionEntryId: string = "";
     recipeSectionId: string = "";
-    sortOrder: number = 0;
     item: Item = new Item();
     prep: Prep | null = null;
     amount: Amount = new Amount();

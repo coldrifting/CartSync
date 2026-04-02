@@ -25,6 +25,10 @@ export async function deleteRecipeInstruction(cookies: Cookies, recipeId: string
     await del(cookies, `/recipes/${recipeId}/instructions/${instructionId}/delete`);
 }
 
+export async function deleteRecipeEntry(cookies: Cookies, recipeId: string, sectionId: string, entryId: string): Promise<void> {
+    await del(cookies, `/recipes/${recipeId}/sections/${sectionId}/entries/${entryId}/delete`);
+}
+
 async function del(cookies: Cookies, url: string): Promise<void> {
     const token = getToken(cookies);
     const response = await fetch(apiBaseUrl + url, {

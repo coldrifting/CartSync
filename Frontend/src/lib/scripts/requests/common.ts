@@ -27,12 +27,21 @@ export async function checkForErrors(cookies: Cookies, response: Response): Prom
 }
 
 export async function getValue(formData: FormData, formElementName: string): Promise<string> {
-    const elementValue: string = formData.get(formElementName) as string | null ?? ""
-    if (elementValue === '') {
-        throw new Error(`Invalid Input: ${elementValue}`);
+    const elementValue: string | undefined = formData.get(formElementName) as string | undefined
+    if (elementValue === undefined) {
+        throw new Error(`Invalid Input for ${formElementName}: '${elementValue}'`);
     }
     
     return elementValue.trim();
+}
+
+export async function getValueOrUndefined(formData: FormData, formElementName: string): Promise<string | undefined> {
+    return formData.get(formElementName) as string | undefined;
+}
+
+export async function getValueOrNull(formData: FormData, formElementName: string): Promise<string | null> {
+    let val: string | null = formData.get(formElementName) as string | null;
+    return val === "" ? null : val;
 }
 
 export async function getValueArray(formData: FormData, formElementName: string): Promise<string[]> {
