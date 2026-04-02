@@ -1,13 +1,16 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace CartSync.Objects;
 
+// Needed for deserialization
+[SuppressMessage("ReSharper", "AutoPropertyCanBeMadeGetOnly.Global")]
 public class Fraction
 {
-    public int Num { get; }
-    public int Dem { get; } = 1;
+    public int Num { get; init; }
+    public int Dem { get; init; } = 1;
 
     [JsonIgnore]
     public int AsInt => Num / Dem;
@@ -78,6 +81,11 @@ public class Fraction
         Dem = 1000;
     }
 
+    public Fraction()
+    {
+        Num = 1;
+    }
+    
     public Fraction(string input)
     {
         Fraction frac = new(new FixedPoint(input));

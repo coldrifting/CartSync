@@ -1,13 +1,17 @@
+using System.Diagnostics.CodeAnalysis;
 using CartSync.Objects.Enums;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace CartSync.Objects;
 
+// Needed for deserialization
+[SuppressMessage("ReSharper", "AutoPropertyCanBeMadeGetOnly.Global")]
+[SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
 public class Amount
 {
-    public Fraction Fraction { get; }
-    public UnitType UnitType { get; }
+    public Fraction Fraction { get; init; }
+    public UnitType UnitType { get; init; }
 
     public static readonly Amount None = new(0, UnitType.None);
     
