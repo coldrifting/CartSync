@@ -70,6 +70,8 @@ public class RecipeSection : ISortable, IEditable<RecipeSectionEditRequest>, IRe
     /// Requires RecipeSection.Recipe.RecipeSections navigation to work
     public void UpdateFromEditRequest(RecipeSectionEditRequest editRequest)
     {
+        RecipeSectionName = editRequest.RecipeSectionName;
+        
         int oldIndex = SortOrder;
         Recipe.RecipeSections.Reorder(oldIndex, editRequest.SortOrder);
     }
@@ -90,6 +92,12 @@ public record RecipeSectionResponse
     public required string RecipeSectionName { get; init; }
     public required int SortOrder { get; init; }
     public required ReadOnlyList<RecipeSectionEntryResponse> Entries { get; init; }
+}
+
+public record RecipeSectionAddRequest
+{
+    [StringLength(255, MinimumLength = 1)] 
+    public required string RecipeSectionName { get; init; }
 }
 
 public record RecipeSectionEditRequest

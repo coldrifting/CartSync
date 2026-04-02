@@ -14,7 +14,7 @@ public class RecipeSectionController(CartSyncContext context) : ControllerCore(c
 {
     [HttpPost]
     [Route("/api/recipes/{recipeId}/sections/add")]
-    public async Task<Results<Created<RecipeSectionResponse>, BadRequest<Error>, NotFound<Error>>> Add(Ulid recipeId, [Required] string recipeSectionName)
+    public async Task<Results<Created<RecipeSectionResponse>, BadRequest<Error>, NotFound<Error>>> Add(Ulid recipeId, [FromBody] RecipeSectionAddRequest recipeSectionAddRequest)
     {
         Recipe? recipe = await Db.Recipes
             .Include(r => r.RecipeSections)
@@ -27,7 +27,7 @@ public class RecipeSectionController(CartSyncContext context) : ControllerCore(c
         RecipeSection recipeSection = new()
         {
             RecipeId = recipeId,
-            RecipeSectionName = recipeSectionName,
+            RecipeSectionName = recipeSectionAddRequest.RecipeSectionName,
             SortOrder = recipe.RecipeSections.Count
         };
         
