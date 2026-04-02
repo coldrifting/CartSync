@@ -192,7 +192,6 @@ namespace CartSync._Migrations
                 {
                     RecipeSectionEntryId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
                     RecipeSectionId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
-                    SortOrder = table.Column<int>(type: "integer", nullable: false),
                     ItemId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
                     PrepId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: true),
                     Amount = table.Column<string>(type: "text", nullable: false)
@@ -288,9 +287,10 @@ namespace CartSync._Migrations
                 column: "PrepId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RecipeSectionEntries_RecipeSectionId",
+                name: "IX_RecipeSectionEntries_RecipeSectionId_ItemId_PrepId",
                 table: "RecipeSectionEntries",
-                column: "RecipeSectionId");
+                columns: new[] { "RecipeSectionId", "ItemId", "PrepId" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_RecipeSections_RecipeId",

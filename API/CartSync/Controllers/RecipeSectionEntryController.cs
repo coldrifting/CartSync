@@ -14,7 +14,7 @@ public class RecipeSectionEntryController(CartSyncContext context) : ControllerC
 {
     [HttpPost]
     [Route("/api/recipes/{recipeId}/sections/{recipeSectionId}/entries/add")]
-    public async Task<Results<Created<RecipeSectionEntryResponse>, BadRequest<Error>, NotFound<Error>>> Add(Ulid recipeId, Ulid recipeSectionId, [Required] RecipeSectionEntryAddRequest recipeSectionEntryAddRequest)
+    public async Task<Results<Created<RecipeSectionEntryResponse>, BadRequest<Error>, NotFound<Error>, Conflict<Error>>> Add(Ulid recipeId, Ulid recipeSectionId, [Required] RecipeSectionEntryAddRequest recipeSectionEntryAddRequest)
     {
         RecipeSection? recipeSection = await Db.RecipeSections
             .Include(rs => rs.RecipeSectionEntries)
@@ -44,6 +44,11 @@ public class RecipeSectionEntryController(CartSyncContext context) : ControllerC
             {
                 return Prep.NotFound(prepId);
             }
+            List<Prep> itemPreps = Db.ItemPreps.Where(ip => ip.ItemId == itemId).Select(ip => ip.Prep).ToList();
+            if (!itemPreps.Contains(prep))
+            {
+                return Prep.NotFoundUnder(prepId, itemId);
+            }
         }
         else
         {
@@ -53,11 +58,21 @@ public class RecipeSectionEntryController(CartSyncContext context) : ControllerC
         RecipeSectionEntry recipeSectionEntry = new()
         {
             RecipeSectionId = recipeSection.RecipeSectionId,
-            Item = item,
-            Prep = prep,
+            ItemId = item.ItemId,
+            PrepId = prep?.PrepId,
             Amount = recipeSectionEntryAddRequest.Amount
         };
 
+        RecipeSectionEntry? existing = await Db.RecipeSectionEntries.FirstOrDefaultAsync(r =>
+            r.RecipeSectionId == recipeSectionEntry.RecipeSectionId &&
+            r.ItemId == recipeSectionEntry.ItemId &&
+            r.PrepId == recipeSectionEntry.PrepId);
+
+        if (existing is not null)
+        {
+            return RecipeSectionEntry.AlreadyExists(recipeSectionEntry.ItemId, recipeSectionEntry.PrepId);
+        }
+        
         Db.Add(recipeSectionEntry);
         await Db.SaveChangesAsync();
         
@@ -67,7 +82,7 @@ public class RecipeSectionEntryController(CartSyncContext context) : ControllerC
     [HttpPatch]
     [Route("/api/recipes/{recipeId}/sections/{recipeSectionId}/entries/{recipeSectionEntryId}/edit")]
     [Consumes("application/json-patch+json")]
-    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Edit(Ulid recipeId, Ulid recipeSectionId, Ulid recipeSectionEntryId, [FromBody] JsonPatchDocument<RecipeSectionEntryEditRequest> recipeSectionEntryPatch)
+    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>, Conflict<Error>>> Edit(Ulid recipeId, Ulid recipeSectionId, Ulid recipeSectionEntryId, [FromBody] JsonPatchDocument<RecipeSectionEntryEditRequest> recipeSectionEntryPatch)
     {
         RecipeSectionEntry? recipeSectionEntry = await Db.RecipeSectionEntries
             .Include(recipeSectionEntry => recipeSectionEntry.RecipeSection)
@@ -93,17 +108,27 @@ public class RecipeSectionEntryController(CartSyncContext context) : ControllerC
             return Error.BadRequestPatchInvalid(ModelState);
         }
 
-        if (await Db.Items.FindAsync(recipeSectionEntry.ItemId) == null)
-        {
-            return Item.NotFound(recipeSectionEntry.ItemId);
-        }
-
         if (recipeSectionEntryEdit.PrepId is { } prepId)
         {
             if (await Db.Preps.FindAsync(prepId) == null)
             {
                 return Prep.NotFound(prepId);
             }
+            List<Ulid> itemPreps = Db.ItemPreps.Where(ip => ip.ItemId == recipeSectionEntry.ItemId).Select(ip => ip.Prep).Select(p => p.PrepId).ToList();
+            if (!itemPreps.Contains(prepId))
+            {
+                return Prep.NotFoundUnder(prepId, recipeSectionEntry.ItemId);
+            }
+        }
+
+        RecipeSectionEntry? existing = await Db.RecipeSectionEntries.FirstOrDefaultAsync(r =>
+            r.RecipeSectionId == recipeSectionEntry.RecipeSectionId &&
+            r.ItemId == recipeSectionEntry.ItemId &&
+            r.PrepId == recipeSectionEntryEdit.PrepId);
+
+        if (existing is not null)
+        {
+            return RecipeSectionEntry.AlreadyExists(recipeSectionEntry.ItemId, recipeSectionEntryEdit.PrepId);
         }
         
         recipeSectionEntry.UpdateFromEditRequest(recipeSectionEntryEdit);

@@ -276,16 +276,14 @@ namespace CartSync._Migrations
                         .IsUnicode(false)
                         .HasColumnType("character varying(26)");
 
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("integer");
-
                     b.HasKey("RecipeSectionEntryId");
 
                     b.HasIndex("ItemId");
 
                     b.HasIndex("PrepId");
 
-                    b.HasIndex("RecipeSectionId");
+                    b.HasIndex("RecipeSectionId", "ItemId", "PrepId")
+                        .IsUnique();
 
                     b.ToTable("RecipeSectionEntries");
                 });
@@ -355,7 +353,7 @@ namespace CartSync._Migrations
                         .IsRequired();
 
                     b.HasOne("CartSync.Models.Item", "Item")
-                        .WithMany()
+                        .WithMany("ItemAisles")
                         .HasForeignKey("ItemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -461,6 +459,8 @@ namespace CartSync._Migrations
 
             modelBuilder.Entity("CartSync.Models.Item", b =>
                 {
+                    b.Navigation("ItemAisles");
+
                     b.Navigation("ItemPreps");
 
                     b.Navigation("RecipeSectionEntries");

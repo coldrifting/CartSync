@@ -44,6 +44,10 @@ public class CartSyncContext(DbContextOptions options) : DbContext(options)
             .WithMany(i => i.Aisles)
             .UsingEntity<ItemAisle>();
         
+        modelBuilder.Entity<RecipeSectionEntry>()
+            .HasIndex(r => new {r.RecipeSectionId, r.ItemId, r.PrepId})
+            .IsUnique();
+        
         foreach (IMutableForeignKey relationship in modelBuilder.Model.GetEntityTypes().SelectMany(mutableEntryType => mutableEntryType.GetForeignKeys()))
         {
             relationship.DeleteBehavior = DeleteBehavior.Cascade;

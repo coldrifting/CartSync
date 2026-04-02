@@ -46,6 +46,12 @@ public static class Extensions
         public async Task<Error>       ErrorAsync() => GetValue<Error>((await results).Result);
     }
 
+    extension<T>(Task<Results<Created<T>, BadRequest<Error>, NotFound<Error>, Conflict<Error>>> results)
+    {
+        public async Task<(T, string)> ValueAsync() => GetValueCreated<T>((await results).Result);
+        public async Task<Error>       ErrorAsync() => GetValue<Error>((await results).Result);
+    }
+
     extension(Task<Results<NoContent, BadRequest<Error>>> results)
     {
         public async Task AssertIsSuccessful() => AssertIsNoContent((await results).Result);

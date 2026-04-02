@@ -75,6 +75,9 @@ public class Prep : IEditable<PrepEditRequest>, IResponse<Prep, PrepResponse>
     public static NotFound<Error> NotFound(Ulid prepId) => 
         Error.NotFound(prepId, "Prep");
     
+    public static NotFound<Error> NotFoundUnder(Ulid prepId, Ulid itemId) => 
+        Error.NotFoundUnder(prepId, "Prep", itemId, "Item");
+    
     public static InvalidOperationException NotLoaded => new("Prep Navigation Property was not loaded");
 }
 

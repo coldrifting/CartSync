@@ -86,4 +86,13 @@ public record Error
             Message = $"NotFound: {itemName1} matching id {id1} was not found under {itemName2} with Id {id2}"
         });
     }
+
+    public static Conflict<Error> AlreadyExists(string parentItem, Ulid id1, string itemName1, Ulid? id2, string itemName2)
+    {
+        return TypedResults.Conflict(new Error
+        {
+            StatusCode = StatusCodes.Status409Conflict,
+            Message = $"Conflict: Can not add or edit {parentItem} with {itemName1} id of {id1} and {itemName2} id of {id2}. The composite key already exists"
+        });
+    }
 }

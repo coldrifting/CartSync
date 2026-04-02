@@ -4,7 +4,6 @@ using System.Text.Json.Serialization;
 using CartSync.Controllers.Core;
 using CartSync.Models.Interfaces;
 using CartSync.Objects;
-using CartSync.Utils;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 
@@ -61,7 +60,6 @@ public class RecipeSectionEntry : IEditable<RecipeSectionEntryEditRequest>, IRes
     {
         return new RecipeSectionEntryEditRequest
         {
-            ItemId = ItemId,
             PrepId = PrepId,
             Amount = Amount
         };
@@ -70,7 +68,6 @@ public class RecipeSectionEntry : IEditable<RecipeSectionEntryEditRequest>, IRes
     /// Requires RecipeSectionEntry.RecipeSection.RecipeSectionEntries Navigation to work
     public void UpdateFromEditRequest(RecipeSectionEntryEditRequest editRequest)
     {
-        ItemId = editRequest.ItemId;
         PrepId = editRequest.PrepId;
         Amount = editRequest.Amount;
     }
@@ -84,6 +81,9 @@ public class RecipeSectionEntry : IEditable<RecipeSectionEntryEditRequest>, IRes
     
     public static NotFound<Error> NotFoundUnderRecipe(Ulid recipeSectionEntryId, Ulid recipeId) => 
         Error.NotFoundUnder(recipeSectionEntryId, "Recipe Section Entry", recipeId, "Recipe");
+    
+    public static Conflict<Error> AlreadyExists(Ulid itemId, Ulid? prepId) => 
+        Error.AlreadyExists("Recipe Section Entry", itemId, "Item", prepId, "Prep");
 }
 
 public record RecipeSectionEntryResponse
@@ -97,7 +97,6 @@ public record RecipeSectionEntryResponse
 
 public record RecipeSectionEntryAddRequest
 {
-    public required Ulid RecipeSectionId { get; init; }
     public required Ulid ItemId { get; init; }
     public required Ulid? PrepId { get; init; }
     public required Amount Amount { get; init; }
@@ -105,7 +104,6 @@ public record RecipeSectionEntryAddRequest
 
 public record RecipeSectionEntryEditRequest
 {
-    public required Ulid ItemId { get; init; }
     public required Ulid? PrepId { get; init; }
     public required Amount Amount { get; init; }
 }
