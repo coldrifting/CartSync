@@ -39,7 +39,9 @@ public class RecipeSection : ISortable, IEditable<RecipeSectionEditRequest>, IRe
             SortOrder = recipeSection.SortOrder,
             Entries = recipeSection.RecipeSectionEntries
                 .AsQueryable()
-                .OrderBy(rse => rse.SortOrder)
+                .OrderBy(rse => rse.Item.ItemTemp)
+                .ThenBy(rse => rse.Item.ItemName)
+                .ThenBy(rse => rse.Item.ItemId)
                 .Select(RecipeSectionEntry.ToResponse)
                 .ToImmutableList()
                 .WithValueSemantics()

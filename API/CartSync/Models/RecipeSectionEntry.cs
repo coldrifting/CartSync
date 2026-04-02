@@ -11,12 +11,11 @@ using Microsoft.EntityFrameworkCore;
 namespace CartSync.Models;
 
 [PrimaryKey(nameof(RecipeSectionEntryId))]
-public class RecipeSectionEntry : ISortable, IEditable<RecipeSectionEntryEditRequest>, IResponse<RecipeSectionEntry, RecipeSectionEntryResponse>
+public class RecipeSectionEntry : IEditable<RecipeSectionEntryEditRequest>, IResponse<RecipeSectionEntry, RecipeSectionEntryResponse>
 {
     public Ulid RecipeSectionEntryId { get; init; } = Ulid.NewUlid();
     
     public Ulid RecipeSectionId { get; init; }
-    public int SortOrder { get; set; }
     public Ulid ItemId { get; set; }
     public Ulid? PrepId { get; set; }
     public Amount Amount { get; set; } = new();
@@ -40,7 +39,6 @@ public class RecipeSectionEntry : ISortable, IEditable<RecipeSectionEntryEditReq
         {
             RecipeSectionEntryId = RecipeSectionEntryId,
             RecipeSectionId = RecipeSectionId,
-            SortOrder = SortOrder,
             Amount = Amount,
             Item = Item.ToMinimalResponse.Compile()(Item),
             Prep = Prep != null ? Prep.ToResponse.Compile()(Prep) : null
@@ -51,7 +49,6 @@ public class RecipeSectionEntry : ISortable, IEditable<RecipeSectionEntryEditReq
         {
             RecipeSectionEntryId = recipeSectionEntry.RecipeSectionEntryId,
             RecipeSectionId = recipeSectionEntry.RecipeSectionId,
-            SortOrder = recipeSectionEntry.SortOrder,
             Item = Item.ToMinimalResponse.Compile()(recipeSectionEntry.Item),
             Prep = recipeSectionEntry.Prep != null 
                 ? Prep.ToResponse.Compile()(recipeSectionEntry.Prep) 
@@ -66,8 +63,7 @@ public class RecipeSectionEntry : ISortable, IEditable<RecipeSectionEntryEditReq
         {
             ItemId = ItemId,
             PrepId = PrepId,
-            Amount = Amount,
-            SortOrder = SortOrder
+            Amount = Amount
         };
     }
     
@@ -77,9 +73,6 @@ public class RecipeSectionEntry : ISortable, IEditable<RecipeSectionEntryEditReq
         ItemId = editRequest.ItemId;
         PrepId = editRequest.PrepId;
         Amount = editRequest.Amount;
-        
-        int oldIndex = SortOrder;
-        RecipeSection.RecipeSectionEntries.Reorder(oldIndex, editRequest.SortOrder);
     }
     
     // Errors
@@ -97,7 +90,6 @@ public record RecipeSectionEntryResponse
 {
     public required Ulid RecipeSectionEntryId { get; init; }
     public required Ulid RecipeSectionId { get; init; }
-    public required int SortOrder { get; set; }
     public required ItemMinimalResponse Item { get; init; }
     public required PrepResponse? Prep { get; init; }
     public required Amount Amount { get; init; }
@@ -113,7 +105,6 @@ public record RecipeSectionEntryAddRequest
 
 public record RecipeSectionEntryEditRequest
 {
-    public required int SortOrder { get; init; }
     public required Ulid ItemId { get; init; }
     public required Ulid? PrepId { get; init; }
     public required Amount Amount { get; init; }

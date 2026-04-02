@@ -70,7 +70,9 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
         ImmutableList<RecipeSectionEntryMinimal> expectedSectionEntries = SeedData.RecipeSectionEntries
             .AsQueryable()
             .Where(r => r.RecipeSectionId == recipeSectionId)
-            .OrderBy(r => r.SortOrder)
+            .OrderBy(r => SeedData.Items.First(i => i.ItemId == r.ItemId).ItemTemp)
+            .ThenBy(r => SeedData.Items.First(i => i.ItemId == r.ItemId).ItemName)
+            .ThenBy(r => r.ItemId)
             .Select(r => new RecipeSectionEntryMinimal(r.RecipeSectionEntryId, r.ItemId, r.PrepId))
             .ToImmutableList();
 

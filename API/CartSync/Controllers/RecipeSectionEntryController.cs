@@ -53,7 +53,6 @@ public class RecipeSectionEntryController(CartSyncContext context) : ControllerC
         RecipeSectionEntry recipeSectionEntry = new()
         {
             RecipeSectionId = recipeSection.RecipeSectionId,
-            SortOrder = recipeSection.RecipeSectionEntries.Count,
             Item = item,
             Prep = prep,
             Amount = recipeSectionEntryAddRequest.Amount
@@ -137,9 +136,6 @@ public class RecipeSectionEntryController(CartSyncContext context) : ControllerC
         }
         
         Db.RecipeSectionEntries.Remove(recipeSectionEntry);
-        
-        // Refresh Sort Order
-        recipeSectionEntry.RecipeSection.RecipeSectionEntries.RefreshOrder();
 
         await Db.SaveChangesAsync();
         
