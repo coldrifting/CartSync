@@ -11,8 +11,18 @@
     import ModalEditIngredient from "$lib/components/modal/ingredients/ModalEditIngredient.svelte";
     import type Prep from "$lib/scripts/classes/Prep.ts";
 
+    function getHost(url: string): string {
+        return url.toLowerCase()
+            .replace("http://", "")
+            .replace("https://", "")
+            .replace("www.", "")
+            .split('/', 2)[0];
+    }
+    
     let {data}: PageProps = $props();
 
+    let urlHost: string = $derived(getHost(data.recipe.url));
+    
     let entryMappings: Record<string, any> = $derived.by(() => {
         let mapping: Record<string, any> = {};
         data.recipe.sections.forEach(section => {
@@ -62,6 +72,12 @@
         }
     ];
 
+    let urlContextActions: ContextAction[] = [
+        { label: "Edit", action: (id: string, _: string | undefined) => {
+            urlEditDialog.show(id, data.recipe.url);
+        }}
+    ]
+    
     let headerActions: HeaderAction[] = [
         {
             label: "Add Ingredient", icon: 'fa-plus', action: () => {
@@ -75,6 +91,8 @@
     let addDialog: ModalAddIngredient;
     let editDialog: ModalEditIngredient;
     let renameDialog: ModalRename;
+    
+    let urlEditDialog: ModalRename;
     
     let deleteEntryId = $state('');
     let deleteSectionId = $state('');
@@ -93,11 +111,17 @@
 <ModalRename bind:this={renameDialog} action="renameRecipeSection" labelRename="New Section Name"
              header="Rename Recipe Section"/>
 
+<ModalRename bind:this={urlEditDialog} action="editRecipeUrl" labelRename="Recipe URL"
+             header="Edit Recipe URL"/>
+
 <Header back={['/recipes', 'Recipes']} title={data.recipe.recipeName} subtitle="Recipe Ingredients"
         headerActions={headerActions}/>
 
 <h4>Details</h4>
-<ListElementLink id="Steps" label="Steps" link="/recipes/{data.recipe.recipeId}/steps"/>
+<ul>
+    <ListElementLink id="Steps" label="Steps" link="/recipes/{data.recipe.recipeId}/steps"/>
+    <ListElementLink id="Url" label="Url" info={urlHost} link={data.recipe.url} isExternalLink={true} contextActions={urlContextActions} />
+</ul>
 
 {#if data.recipe.sections.length === 1}
     <h4>Ingredients</h4>

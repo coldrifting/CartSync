@@ -61,6 +61,10 @@ export async function editRecipeEntry(cookies: Cookies, recipeId: string, recipe
         "/Amount": amount
     });
 }
+
+export async function editRecipeUrl(cookies: Cookies, recipeId: string, url: string): Promise<void> {
+    await patch(cookies, `/recipes/${recipeId}/edit`, { "/Url": url });
+}
     
 async function patch(cookies: Cookies, url: string, pathValuePairs: Record<string, any>): Promise<void> {
     const token = getToken(cookies);

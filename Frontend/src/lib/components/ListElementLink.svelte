@@ -8,6 +8,7 @@
         subInfo?: string | undefined;
         contextActions?: ContextAction[] | undefined;
         link: string;
+        isExternalLink?: boolean;
     }
 
     let {
@@ -16,12 +17,13 @@
         info = undefined,
         subInfo = undefined,
         contextActions = undefined,
-        link
+        link,
+        isExternalLink = undefined,
     }: Props = $props()
 </script>
 
 <ContextMenuCustom contextActions={contextActions} id={id} name={label}>
-    <a href="{link}" class="btn btn-primary list-item" role="button">
+    <a href="{link}" target={isExternalLink ? "_blank" : ""} class="btn btn-primary list-item" role={isExternalLink ? "button" : "link"}>
         <div class="d-flex flex-row justify-content-between align-items-center">
             <span>{label}</span>
             <div class="d-flex flex-row justify-content-between align-items-center">

@@ -8,7 +8,7 @@ import Fraction from "$lib/scripts/classes/Fraction.js";
 import {ItemsAndPrepsBySection} from "$lib/scripts/classes/ValidItemsAndPreps.js";
 import {addRecipeEntry, addRecipeSection} from "$lib/scripts/requests/post.js";
 import {deleteRecipeEntry} from "$lib/scripts/requests/delete.js";
-import {editRecipeEntry, editRecipeSectionName} from "$lib/scripts/requests/patch.js";
+import {editRecipeEntry, editRecipeSectionName, editRecipeUrl} from "$lib/scripts/requests/patch.js";
 
 let recipeId: string;
 
@@ -75,5 +75,11 @@ export const actions: Actions = {
         const entryId: string = await getValue(data, "entryId");
         
         await deleteRecipeEntry(cookies, recipeId, sectionId, entryId);
+    },
+    editRecipeUrl: async ({request, cookies}) => {
+        const data: FormData = await request.formData();
+        const newUrl: string = await getValue(data, "inputRename");
+        
+        await editRecipeUrl(cookies, recipeId, newUrl);
     }
 }
