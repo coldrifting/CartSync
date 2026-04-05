@@ -29,7 +29,7 @@
             section.entries.forEach(entry => {
                 let preps: (Prep | null)[] = (data.validItemsAndPreps.sections.at(-1)?.validItems.find(i => i.itemId === entry.item.itemId)?.preps) ?? [];
                 
-                mapping[entry.recipeSectionEntryId] = {
+                mapping[entry.recipeEntryId] = {
                     sectionId: section.recipeSectionId,
                     item: entry.item,
                     prep: entry.prep,
@@ -61,12 +61,7 @@
         },
         {
             label: "Delete", action: (id: string, _: string | undefined) => {
-                let mapping = entryMappings[id];
-                
                 deleteEntryId = id;
-                
-                // TODO - Change API route conventions to avoid this extra variable
-                deleteSectionId = mapping.sectionId;
                 tick().then(() => deleteForm.requestSubmit());
             }
         }
@@ -95,7 +90,6 @@
     let urlEditDialog: ModalRename;
     
     let deleteEntryId = $state('');
-    let deleteSectionId = $state('');
     let deleteForm: HTMLFormElement;
 </script>
 
@@ -127,7 +121,7 @@
     <h4>Ingredients</h4>
     <ul>
         {#each data.recipe.sections[0].entries as entry, i}
-            <ListElementCheckbox id={entry.recipeSectionEntryId}
+            <ListElementCheckbox id={entry.recipeEntryId}
                                  label={entry.item.itemName}
                                  info={Amount.asString(entry.amount)}
                                  subInfo={entry.prep?.prepName}
@@ -144,7 +138,7 @@
         </button>
         <ul>
             {#each section.entries as entry, j}
-                <ListElementCheckbox id={entry.recipeSectionEntryId}
+                <ListElementCheckbox id={entry.recipeEntryId}
                                      label={entry.item.itemName}
                                      info={Amount.asString(entry.amount)}
                                      subInfo={entry.prep?.prepName}
@@ -161,5 +155,4 @@
       bind:this={deleteForm}
       use:enhance>
     <input hidden name="entryId" bind:value={deleteEntryId}/>
-    <input hidden name="sectionId" bind:value={deleteSectionId}/>
 </form>

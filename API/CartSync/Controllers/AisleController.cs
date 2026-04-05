@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using CartSync.Controllers.Core;
 using CartSync.Models;
 using CartSync.Utils;
@@ -12,8 +13,8 @@ namespace CartSync.Controllers;
 public class AisleController(CartSyncContext context) : ControllerCore(context)
 {
     [HttpGet]
-    [Route("/api/stores/{storeId}/aisles")]
-    public async Task<Results<Ok<List<AisleResponse>>, BadRequest<Error>, NotFound<Error>>> All(Ulid storeId)
+    [Route("/api/aisles")]
+    public async Task<Results<Ok<List<AisleResponse>>, BadRequest<Error>, NotFound<Error>>> All([Required] Ulid storeId)
     {
         Store? s = await Db.Stores
             .Include(s => s.Aisles)
@@ -34,8 +35,8 @@ public class AisleController(CartSyncContext context) : ControllerCore(context)
     }
 
     [HttpPost]
-    [Route("/api/stores/{storeId}/aisles/add")]
-    public async Task<Results<Created<AisleResponse>, BadRequest<Error>, NotFound<Error>>> Add(Ulid storeId, AisleAddRequest aisleAddRequest)
+    [Route("/api/aisles/add")]
+    public async Task<Results<Created<AisleResponse>, BadRequest<Error>, NotFound<Error>>> Add([Required] Ulid storeId, AisleAddRequest aisleAddRequest)
     {
         Store? s = await Db.Stores
             .Include(store => store.Aisles)
@@ -59,9 +60,9 @@ public class AisleController(CartSyncContext context) : ControllerCore(context)
     }
 
     [HttpPatch]
-    [Route("/api/stores/{storeId}/aisles/{aisleId}/edit")]
+    [Route("/api/aisles/{aisleId}/edit")]
     [Consumes("application/json-patch+json")]
-    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Edit(Ulid storeId, Ulid aisleId, JsonPatchDocument<AisleEditRequest> aislePatch)
+    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Edit(Ulid aisleId, JsonPatchDocument<AisleEditRequest> aislePatch)
     {
         Aisle? aisle = await Db.Aisles
             .Include(aisle => aisle.Store)
@@ -84,8 +85,8 @@ public class AisleController(CartSyncContext context) : ControllerCore(context)
     }
     
     [HttpDelete]
-    [Route("/api/stores/{storeId}/aisles/{aisleId}/delete")]
-    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Delete(Ulid storeId, Ulid aisleId)
+    [Route("/api/aisles/{aisleId}/delete")]
+    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Delete(Ulid aisleId)
     {
         Aisle? aisle = await Db.Aisles
             .Include(aisle => aisle.Store)
@@ -94,11 +95,6 @@ public class AisleController(CartSyncContext context) : ControllerCore(context)
         if (aisle == null)
         {
             return Aisle.NotFound(aisleId);
-        }
-
-        if (aisle.StoreId != storeId)
-        {
-            return Aisle.NotFoundUnderStore(aisleId, storeId);
         }
 
         Db.Aisles.Remove(aisle);

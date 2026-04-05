@@ -8,7 +8,7 @@ export async function addStore(cookies: Cookies, storeName: string): Promise<voi
 }
 
 export async function addAisle(cookies: Cookies, storeId: string, aisleName: string): Promise<void> {
-    await post(cookies, `/stores/${storeId}/aisles/add`, { aisleName: aisleName });
+    await post(cookies, `/aisles/add?storeId=${storeId}`, { aisleName: aisleName });
 }
 
 export async function addItem(cookies: Cookies, itemName: string): Promise<void> {
@@ -28,24 +28,24 @@ export async function addRecipe(cookies: Cookies, recipeName: string): Promise<v
 }
 
 export async function addRecipeSection(cookies: Cookies, recipeId: string, recipeSectionName: string): Promise<string> {
-    let recipeSection: RecipeSection = await postResults<RecipeSection>(cookies, `/recipes/${recipeId}/sections/add`, { 
+    let recipeSection: RecipeSection = await postResults<RecipeSection>(cookies, `/recipes/sections/add?recipeId=${recipeId}`, { 
         recipeSectionName: recipeSectionName
     });
     
     return recipeSection.recipeSectionId;
 }
 
-export async function addRecipeEntry(cookies: Cookies, recipeId: string, recipeSectionId: string, itemId: string, prepId: string | null, amount: Amount): Promise<void> {
-    await post(cookies, `/recipes/${recipeId}/sections/${recipeSectionId}/entries/add`, { 
+export async function addRecipeEntry(cookies: Cookies, recipeSectionId: string, itemId: string, prepId: string | null, amount: Amount): Promise<void> {
+    await post(cookies, `/recipes/entries/add?recipeSectionId=${recipeSectionId}`, { 
         itemId: itemId,
         prepId: prepId,
         amount: amount
     });
 }
 
-export async function addRecipeInstruction(cookies: Cookies, recipeId: string, content: string): Promise<void> {
-    await post(cookies, `/recipes/${recipeId}/instructions/add`, { 
-        recipeInstructionContent: content,
+export async function addRecipeStep(cookies: Cookies, recipeId: string, content: string): Promise<void> {
+    await post(cookies, `/recipes/steps/add?recipeId=${recipeId}`, { 
+        recipeStepContent: content,
         isImage: isContentImage(content)
     });
 }

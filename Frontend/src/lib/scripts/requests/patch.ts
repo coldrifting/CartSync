@@ -30,12 +30,12 @@ export async function editStoreName(cookies: Cookies, storeId: string, storeName
     await patch(cookies, `/stores/${storeId}/edit`, { "/StoreName": storeName });
 }
 
-export async function editAisleName(cookies: Cookies, storeId: string, aisleId: string, aisleName: string): Promise<void> {
-    await patch(cookies, `/stores/${storeId}/aisles/${aisleId}/edit`, { "/AisleName": aisleName });
+export async function editAisleName(cookies: Cookies, aisleId: string, aisleName: string): Promise<void> {
+    await patch(cookies, `/aisles/${aisleId}/edit`, { "/AisleName": aisleName });
 }
 
-export async function editAisleOrder(cookies: Cookies, storeId: string, aisleId: string, sortOrder: number): Promise<void> {
-    await patch(cookies, `/stores/${storeId}/aisles/${aisleId}/edit`, { "/SortOrder": sortOrder });
+export async function editAisleOrder(cookies: Cookies, aisleId: string, sortOrder: number): Promise<void> {
+    await patch(cookies, `/aisles/${aisleId}/edit`, { "/SortOrder": sortOrder });
 }
 
 export async function editRecipeName(cookies: Cookies, recipeId: string, recipeName: string): Promise<void> {
@@ -46,16 +46,16 @@ export async function editRecipeIsPinned(cookies: Cookies, recipeId: string, isP
     await patch(cookies, `/recipes/${recipeId}/edit`, { "/IsPinned": isPinned });
 }
 
-export async function editRecipeInstructionOrder(cookies: Cookies, recipeId: string, instructionId: string, sortOrder: number): Promise<void> {
-    await patch(cookies, `/recipes/${recipeId}/instructions/${instructionId}/edit`, { "/SortOrder": sortOrder });
+export async function editRecipeStepOrder(cookies: Cookies, stepId: string, sortOrder: number): Promise<void> {
+    await patch(cookies, `/recipes/steps/${stepId}/edit`, { "/SortOrder": sortOrder });
 }
 
-export async function editRecipeSectionName(cookies: Cookies, recipeId: string, recipeSectionId: string, sectionName: string): Promise<void> {
-    await patch(cookies, `/recipes/${recipeId}/sections/${recipeSectionId}/edit`, { "/RecipeSectionName": sectionName });
+export async function editRecipeSectionName(cookies: Cookies, recipeSectionId: string, sectionName: string): Promise<void> {
+    await patch(cookies, `/recipes/sections/${recipeSectionId}/edit`, { "/RecipeSectionName": sectionName });
 }
 
-export async function editRecipeEntry(cookies: Cookies, recipeId: string, recipeSectionId: string, recipeSectionEntryId: string, prepId: string | null, amount: Amount): Promise<void> {
-    const url: string = `/recipes/${recipeId}/sections/${recipeSectionId}/entries/${recipeSectionEntryId}/edit`;
+export async function editRecipeEntry(cookies: Cookies, recipeEntryId: string, prepId: string | null, amount: Amount): Promise<void> {
+    const url: string = `/recipes/entries/${recipeEntryId}/edit`;
     await patch(cookies, url, {
         "/PrepId": prepId,
         "/Amount": amount
@@ -66,13 +66,14 @@ export async function editRecipeUrl(cookies: Cookies, recipeId: string, url: str
     await patch(cookies, `/recipes/${recipeId}/edit`, { "/Url": url });
 }
 
-export async function editRecipeInstruction(cookies: Cookies, recipeId: string, recipeInstructionId: string, content: string): Promise<void> {
-    await patch(cookies, `/recipes/${recipeId}/instructions/${recipeInstructionId}/edit`, { 
-        recipeInstructionContent: content,
+export async function editRecipeStep(cookies: Cookies, recipeStepId: string, content: string): Promise<void> {
+    await patch(cookies, `/recipes/steps/${recipeStepId}/edit`, { 
+        recipeStepContent: content,
         isImage: isContentImage(content)
     });
 }
-    
+
+
 async function patch(cookies: Cookies, url: string, pathValuePairs: Record<string, any>): Promise<void> {
     const token = getToken(cookies);
             

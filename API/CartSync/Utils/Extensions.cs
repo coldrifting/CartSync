@@ -7,14 +7,6 @@ namespace CartSync.Utils;
 
 public static class Extensions
 {
-    extension(string str)
-    {
-        private string Pluralize()
-        {
-            return str.EndsWith('y') ? string.Concat(str.AsSpan(0, str.Length - 1), "ies") : str + "s";
-        }
-    }
-
     extension(ClaimsPrincipal user)
     {
         public string? Username => 

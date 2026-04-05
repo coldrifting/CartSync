@@ -25,7 +25,7 @@ public class Item : IEditable<ItemEditRequest>, IResponse<Item, ItemResponse>
     // Navigation
     public List<Prep> Preps { get; init; } = [];
     public List<ItemPrep> ItemPreps { get; init; } = [];
-    public List<RecipeSectionEntry> RecipeSectionEntries { get; init; } = [];
+    public List<RecipeEntry> RecipeSectionEntries { get; init; } = [];
     
     // Enforce max of 1 linked aisle per store
     public List<Aisle> Aisles { get; init; } = [];

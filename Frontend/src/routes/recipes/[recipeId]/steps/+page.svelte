@@ -31,10 +31,10 @@
         }
     ];
 
-    let items: SortableItem[] = $derived(data.recipe.instructions.map(i => {
+    let items: SortableItem[] = $derived(data.recipe.steps.map(i => {
         return {
-            id: i.recipeInstructionId,
-            name: i.recipeInstructionContent,
+            id: i.recipeStepId,
+            name: i.recipeStepContent,
             subtitle: i.sortOrder.toString(),
             isContent: true,
             isImage: i.isImage
@@ -65,26 +65,26 @@
 </script>
 
 <svelte:head>
-    <title>Recipes - {data.recipe.recipeName} - Instructions</title>
+    <title>Recipes - {data.recipe.recipeName} - Steps</title>
 </svelte:head>
 
-<ModalAddStep bind:this={modalAddStep} action="addInstruction"/>
-<ModalEditStep bind:this={modalEditStep} action="editInstruction"/>
+<ModalAddStep bind:this={modalAddStep} action="addStep"/>
+<ModalEditStep bind:this={modalEditStep} action="editStep"/>
 
 <Header back={[`/recipes/${data.recipe.recipeId}`, 'Recipe']} title={data.recipe.recipeName} subtitle="Recipe Steps"
         headerActions={headerActions}/>
 
-<ReorderableList listName="RecipeInstructions" items={items} onReorder={onReorder} contextActions={contextActions}/>
+<ReorderableList listName="RecipeSteps" items={items} onReorder={onReorder} contextActions={contextActions}/>
 <form method="POST"
-      action="?/reorderInstruction"
+      action="?/reorderStep"
       bind:this={reorderForm}
       use:enhance>
     <input hidden name="id" bind:value={reorderId}/>
-    <input hidden name="instructionSortOrder" bind:value={reorderIndex}/>
+    <input hidden name="stepSortOrder" bind:value={reorderIndex}/>
 </form>
 
 <form method="POST"
-      action="?/deleteInstruction"
+      action="?/deleteStep"
       bind:this={deleteForm}
       use:enhance>
     <input hidden name="id" bind:value={deleteId}/>

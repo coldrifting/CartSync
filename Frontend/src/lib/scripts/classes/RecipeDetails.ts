@@ -1,4 +1,4 @@
-import type RecipeInstruction from "$lib/scripts/classes/RecipeInstruction.ts";
+import type RecipeStep from "$lib/scripts/classes/RecipeStep.ts";
 import type RecipeSection from "$lib/scripts/classes/RecipeSection.ts";
 
 class RecipeDetails {
@@ -6,7 +6,7 @@ class RecipeDetails {
     recipeName: string = "";
     url: string = "";
     isPinned: boolean = false;
-    instructions: RecipeInstruction[] = [];
+    steps: RecipeStep[] = [];
     sections: RecipeSection[] = [];
 }
 

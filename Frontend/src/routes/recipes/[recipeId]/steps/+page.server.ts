@@ -2,9 +2,9 @@ import type {Actions, PageServerLoad} from './$types';
 import {getRecipe} from "$lib/scripts/requests/get.js";
 import RecipeDetails from "$lib/scripts/classes/RecipeDetails.js";
 import {getValue, getValueNumber} from "$lib/scripts/requests/common.js";
-import {editRecipeInstruction, editRecipeInstructionOrder} from "$lib/scripts/requests/patch.js";
-import {deleteRecipeInstruction} from "$lib/scripts/requests/delete.js";
-import {addRecipeInstruction} from "$lib/scripts/requests/post.js";
+import {editRecipeStep, editRecipeStepOrder} from "$lib/scripts/requests/patch.js";
+import {deleteRecipeStep} from "$lib/scripts/requests/delete.js";
+import {addRecipeStep} from "$lib/scripts/requests/post.js";
 
 let recipeId: string;
 
@@ -19,26 +19,26 @@ export const load: PageServerLoad = async ({cookies, params}) => {
 };
 
 export const actions: Actions = {
-    addInstruction: async ({request, cookies}) => {
+    addStep: async ({request, cookies}) => {
         const data: FormData = await request.formData();
         const contents: string = await getValue(data, 'stepContents');
-        await addRecipeInstruction(cookies, recipeId, contents);
+        await addRecipeStep(cookies, recipeId, contents);
     },
-    editInstruction: async ({request, cookies}) => {
+    editStep: async ({request, cookies}) => {
         const data: FormData = await request.formData();
         const contents: string = await getValue(data, 'stepContents');
         const stepId: string = await getValue(data, 'stepId');
-        await editRecipeInstruction(cookies, recipeId, stepId, contents);
+        await editRecipeStep(cookies, stepId, contents);
     },
-    deleteInstruction: async ({request, cookies}) => {
+    deleteStep: async ({request, cookies}) => {
         const data: FormData = await request.formData();
-        const instructionId: string = await getValue(data, 'id');
-        await deleteRecipeInstruction(cookies, recipeId, instructionId);
+        const stepId: string = await getValue(data, 'id');
+        await deleteRecipeStep(cookies, stepId);
     },
-    reorderInstruction: async ({request, cookies}) => {
+    reorderStep: async ({request, cookies}) => {
         const data: FormData = await request.formData();
-        const instructionId: string = await getValue(data, 'id');
-        const instructionSortOrder: number = await getValueNumber(data, 'instructionSortOrder');
-        await editRecipeInstructionOrder(cookies, recipeId, instructionId, instructionSortOrder);
+        const stepId: string = await getValue(data, 'id');
+        const stepSortOrder: number = await getValueNumber(data, 'stepSortOrder');
+        await editRecipeStepOrder(cookies, stepId, stepSortOrder);
     }
 }

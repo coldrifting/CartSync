@@ -13,7 +13,7 @@ public class AisleControllerEndpointTests(AppSetupFactory<Program> setupFactory)
     [Fact]
     public async Task TestAislesAll_StoreIdInvalid()
     {
-        string url = $"api/stores/{BadIdString}/aisles";
+        string url = $"api/aisles?storeId={BadIdString}";
         HttpResponseMessage response = await GetAsync(url);
         
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -35,7 +35,7 @@ public class AisleControllerEndpointTests(AppSetupFactory<Program> setupFactory)
             }
         };
         
-        string url = $"api/stores/{SeedData.Stores[0].StoreId}/aisles/{SeedData.Aisles[0].AisleId}/edit";
+        string url = $"api/aisles/{SeedData.Aisles[0].AisleId}/edit?storeId={SeedData.Stores[0].StoreId}";
         HttpResponseMessage response = await PatchAsync(url, jsonPatch);
         
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -46,7 +46,7 @@ public class AisleControllerEndpointTests(AppSetupFactory<Program> setupFactory)
     public async Task TestAisleDelete_BadAisleId()
     {
         Ulid storeId = SeedData.Stores[0].StoreId;
-        string url = $"api/stores/{storeId}/aisles/{storeId}/delete";
+        string url = $"api/aisles/{storeId}/delete?storeId={storeId}";
         HttpResponseMessage response = await DeleteAsync(url.ToLower());
         
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);

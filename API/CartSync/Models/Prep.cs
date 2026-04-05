@@ -21,7 +21,7 @@ public class Prep : IEditable<PrepEditRequest>, IResponse<Prep, PrepResponse>
     // Navigation
     public List<Item> Items { get; init; } = [];
     public List<ItemPrep> ItemPreps { get; init; } = [];
-    public List<RecipeSectionEntry> RecipeSectionEntries { get; init; } = [];
+    public List<RecipeEntry> RecipeSectionEntries { get; init; } = [];
     
     // Projections
     public static Expression<Func<Prep, PrepResponse>> ToResponse =>

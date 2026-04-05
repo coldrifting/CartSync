@@ -11,7 +11,9 @@ internal sealed class BearerSecuritySchemeTransformer(IAuthenticationSchemeProvi
     {
         IEnumerable<AuthenticationScheme> authenticationSchemes = await authenticationSchemeProvider.GetAllSchemesAsync();
         if (authenticationSchemes.All(a => a.Name != "Bearer"))
+        {
             return;
+        }
 
         OpenApiSecurityScheme bearerScheme = new()
         {

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 namespace CartSyncTests.ControllerTests;
 
 [Collection("DatabaseTests")]
-public class RecipeSectionEntryControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixture)
+public class RecipeEntryControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixture)
 {
     [Fact]
     public async Task TestAdd_NoPrep()
@@ -20,20 +20,20 @@ public class RecipeSectionEntryControllerTests(DatabaseSetup fixture) : Database
         Ulid recipeId = SeedData.RecipeSections[0].RecipeId;
         Ulid sectionId = SeedData.RecipeSections[0].RecipeSectionId;
 
-        RecipeSectionEntryAddRequest recipeEntryAddRequest = new()
+        RecipeEntryAddRequest recipeEntryAddRequest = new()
         {
             Amount = new Amount(3, UnitType.VolumeCups),
             ItemId = SeedData.Items[35].ItemId,
             PrepId = null
         };
         
-        (RecipeSectionEntryResponse response, string location) result = await RecipeSectionEntryController.Add(recipeId, sectionId, recipeEntryAddRequest).ValueAsync();
+        (RecipeEntryResponse response, string location) result = await RecipeEntryController.Add(sectionId, recipeEntryAddRequest).ValueAsync();
         Assert.NotNull(result.location);
         Assert.NotNull(result.response);
 
-        RecipeSectionEntry? entry = await Context.RecipeSectionEntries
+        RecipeEntry? entry = await Context.RecipeEntries
             .Include(r => r.RecipeSection)
-            .FirstOrDefaultAsync(r => r.RecipeSectionEntryId == Ulid.Parse(result.location.Split('/').Last()));
+            .FirstOrDefaultAsync(r => r.RecipeEntryId == Ulid.Parse(result.location.Split('/').Last()));
         
         Assert.NotNull(entry);
         Assert.Equal(sectionId, entry.RecipeSectionId);
@@ -49,20 +49,20 @@ public class RecipeSectionEntryControllerTests(DatabaseSetup fixture) : Database
         Ulid recipeId = SeedData.RecipeSections[0].RecipeId;
         Ulid sectionId = SeedData.RecipeSections[0].RecipeSectionId;
 
-        RecipeSectionEntryAddRequest recipeEntryAddRequest = new()
+        RecipeEntryAddRequest recipeEntryAddRequest = new()
         {
             Amount = new Amount(3, UnitType.VolumeCups),
             ItemId = SeedData.Items[182].ItemId,
             PrepId = SeedData.Preps[4].PrepId
         };
         
-        (RecipeSectionEntryResponse response, string location) result = await RecipeSectionEntryController.Add(recipeId, sectionId, recipeEntryAddRequest).ValueAsync();
+        (RecipeEntryResponse response, string location) result = await RecipeEntryController.Add(sectionId, recipeEntryAddRequest).ValueAsync();
         Assert.NotNull(result.location);
         Assert.NotNull(result.response);
 
-        RecipeSectionEntry? entry = await Context.RecipeSectionEntries
+        RecipeEntry? entry = await Context.RecipeEntries
             .Include(r => r.RecipeSection)
-            .FirstOrDefaultAsync(r => r.RecipeSectionEntryId == Ulid.Parse(result.location.Split('/').Last()));
+            .FirstOrDefaultAsync(r => r.RecipeEntryId == Ulid.Parse(result.location.Split('/').Last()));
         
         Assert.NotNull(entry);
         Assert.Equal(sectionId, entry.RecipeSectionId);
@@ -78,20 +78,20 @@ public class RecipeSectionEntryControllerTests(DatabaseSetup fixture) : Database
         Ulid recipeId = SeedData.RecipeSections[1].RecipeId;
         Ulid sectionId = SeedData.RecipeSections[1].RecipeSectionId;
 
-        RecipeSectionEntryAddRequest recipeEntryAddRequest = new()
+        RecipeEntryAddRequest recipeEntryAddRequest = new()
         {
             Amount = new Amount(3, UnitType.VolumeCups),
             ItemId = SeedData.Items[180].ItemId,
             PrepId = SeedData.Preps[4].PrepId
         };
         
-        (RecipeSectionEntryResponse response, string location) result = await RecipeSectionEntryController.Add(recipeId, sectionId, recipeEntryAddRequest).ValueAsync();
+        (RecipeEntryResponse response, string location) result = await RecipeEntryController.Add(sectionId, recipeEntryAddRequest).ValueAsync();
         Assert.NotNull(result.location);
         Assert.NotNull(result.response);
 
-        RecipeSectionEntry? entry = await Context.RecipeSectionEntries
+        RecipeEntry? entry = await Context.RecipeEntries
             .Include(r => r.RecipeSection)
-            .FirstOrDefaultAsync(r => r.RecipeSectionEntryId == Ulid.Parse(result.location.Split('/').Last()));
+            .FirstOrDefaultAsync(r => r.RecipeEntryId == Ulid.Parse(result.location.Split('/').Last()));
         
         Assert.NotNull(entry);
         Assert.Equal(sectionId, entry.RecipeSectionId);
@@ -104,20 +104,19 @@ public class RecipeSectionEntryControllerTests(DatabaseSetup fixture) : Database
     [Fact]
     public async Task TestAdd_DuplicateItem_SamePrep_ShouldError()
     {
-        Ulid recipeId = SeedData.RecipeSections[1].RecipeId;
         Ulid sectionId = SeedData.RecipeSections[1].RecipeSectionId;
 
-        RecipeSectionEntryAddRequest recipeEntryAddRequest = new()
+        RecipeEntryAddRequest recipeEntryAddRequest = new()
         {
             Amount = new Amount(3, UnitType.VolumeCups),
             ItemId = SeedData.Items[180].ItemId,
             PrepId = SeedData.Preps[3].PrepId
         };
         
-        Error error = await RecipeSectionEntryController.Add(recipeId, sectionId, recipeEntryAddRequest).ErrorAsync();
+        Error error = await RecipeEntryController.Add(sectionId, recipeEntryAddRequest).ErrorAsync();
         error.AssertStatus(HttpStatusCode.Conflict);
 
-        RecipeSectionEntry entry = await Context.RecipeSectionEntries
+        RecipeEntry entry = await Context.RecipeEntries
             .SingleAsync(rse => 
                 rse.RecipeSectionId == sectionId &&
                 rse.ItemId == recipeEntryAddRequest.ItemId &&
@@ -131,20 +130,19 @@ public class RecipeSectionEntryControllerTests(DatabaseSetup fixture) : Database
     [Fact]
     public async Task TestAdd_WithInvalidPrep_ShouldError()
     {
-        Ulid recipeId = SeedData.RecipeSections[0].RecipeId;
         Ulid sectionId = SeedData.RecipeSections[0].RecipeSectionId;
 
-        RecipeSectionEntryAddRequest recipeEntryAddRequest = new()
+        RecipeEntryAddRequest recipeEntryAddRequest = new()
         {
             Amount = new Amount(3, UnitType.VolumeCups),
             ItemId = SeedData.Items[182].ItemId,
             PrepId = SeedData.Preps[0].PrepId
         };
         
-        Error error = await RecipeSectionEntryController.Add(recipeId, sectionId, recipeEntryAddRequest).ErrorAsync();
+        Error error = await RecipeEntryController.Add(sectionId, recipeEntryAddRequest).ErrorAsync();
         error.AssertStatus(HttpStatusCode.NotFound);
 
-        RecipeSectionEntry? entry = await Context.RecipeSectionEntries
+        RecipeEntry? entry = await Context.RecipeEntries
             .FirstOrDefaultAsync(rse => rse.ItemId == recipeEntryAddRequest.ItemId &&
                                         rse.PrepId == recipeEntryAddRequest.PrepId);
         
@@ -154,16 +152,15 @@ public class RecipeSectionEntryControllerTests(DatabaseSetup fixture) : Database
     [Fact]
     public async Task TestEdit_RemovePrep()
     {
-        Ulid recipeId = SeedData.RecipeSections[0].RecipeId;
         Ulid sectionId = SeedData.RecipeSections[0].RecipeSectionId;
-        Ulid recipeSectionEntryId = SeedData.RecipeSectionEntries[3].RecipeSectionEntryId;
+        Ulid recipeEntryId = SeedData.RecipeEntries[3].RecipeEntryId;
         Ulid itemId = SeedData.Items[207].ItemId;
 
-        JsonPatchDocument<RecipeSectionEntryEditRequest> jsonPatch = new()
+        JsonPatchDocument<RecipeEntryEditRequest> jsonPatch = new()
         {
             Operations =
             {
-                new Operation<RecipeSectionEntryEditRequest>
+                new Operation<RecipeEntryEditRequest>
                 {
                     op = "replace",
                     path = "/PrepId",
@@ -172,13 +169,13 @@ public class RecipeSectionEntryControllerTests(DatabaseSetup fixture) : Database
             }
         };
         
-        await RecipeSectionEntryController.Edit(recipeId, sectionId, recipeSectionEntryId, jsonPatch).AssertIsSuccessful();
+        await RecipeEntryController.Edit(recipeEntryId, jsonPatch).AssertIsSuccessful();
 
-        RecipeSectionEntry? entry = await Context.RecipeSectionEntries.FindAsync(recipeSectionEntryId);
+        RecipeEntry? entry = await Context.RecipeEntries.FindAsync(recipeEntryId);
         
         Assert.NotNull(entry);
         Assert.Equal(sectionId, entry.RecipeSectionId);
-        Assert.Equal(recipeSectionEntryId, entry.RecipeSectionEntryId);
+        Assert.Equal(recipeEntryId, entry.RecipeEntryId);
         Assert.Equal(itemId, entry.ItemId);
         Assert.Null(entry.PrepId);
     }
@@ -186,16 +183,15 @@ public class RecipeSectionEntryControllerTests(DatabaseSetup fixture) : Database
     [Fact]
     public async Task TestEdit_AddPrep()
     {
-        Ulid recipeId = SeedData.RecipeSections[0].RecipeId;
         Ulid sectionId = SeedData.RecipeSections[0].RecipeSectionId;
         Ulid itemId = SeedData.Items[184].ItemId;
         Ulid prepId = SeedData.Preps[4].PrepId;
 
-        JsonPatchDocument<RecipeSectionEntryEditRequest> jsonPatch = new()
+        JsonPatchDocument<RecipeEntryEditRequest> jsonPatch = new()
         {
             Operations =
             {
-                new Operation<RecipeSectionEntryEditRequest>
+                new Operation<RecipeEntryEditRequest>
                 {
                     op = "replace",
                     path = "/PrepId",
@@ -204,20 +200,20 @@ public class RecipeSectionEntryControllerTests(DatabaseSetup fixture) : Database
             }
         };
         
-        Ulid entryId = Ulid.Parse((await RecipeSectionEntryController.Add(recipeId, sectionId, new RecipeSectionEntryAddRequest
+        Ulid recipeEntryId = Ulid.Parse((await RecipeEntryController.Add(sectionId, new RecipeEntryAddRequest
         {
             Amount = new Amount(3, UnitType.VolumeCups),
             ItemId = itemId,
             PrepId = null
         }).ValueAsync()).Item2.Split('/').Last());
         
-        await RecipeSectionEntryController.Edit(recipeId, sectionId, entryId, jsonPatch).AssertIsSuccessful();
+        await RecipeEntryController.Edit(recipeEntryId, jsonPatch).AssertIsSuccessful();
 
-        RecipeSectionEntry? entry = await Context.RecipeSectionEntries.FindAsync(entryId);
+        RecipeEntry? entry = await Context.RecipeEntries.FindAsync(recipeEntryId);
         
         Assert.NotNull(entry);
         Assert.Equal(sectionId, entry.RecipeSectionId);
-        Assert.Equal(entryId, entry.RecipeSectionEntryId);
+        Assert.Equal(recipeEntryId, entry.RecipeEntryId);
         Assert.Equal(itemId, entry.ItemId);
         Assert.Equal(prepId, entry.PrepId);
     }
@@ -225,16 +221,15 @@ public class RecipeSectionEntryControllerTests(DatabaseSetup fixture) : Database
     [Fact]
     public async Task TestEdit_RemovePrep_NoPrepAlreadyExists_ShouldError()
     {
-        Ulid recipeId = SeedData.RecipeSections[0].RecipeId;
         Ulid sectionId = SeedData.RecipeSections[0].RecipeSectionId;
-        Ulid recipeSectionEntryId = SeedData.RecipeSectionEntries[3].RecipeSectionEntryId;
+        Ulid recipeEntryId = SeedData.RecipeEntries[3].RecipeEntryId;
         Ulid itemId = SeedData.Items[207].ItemId;
 
-        JsonPatchDocument<RecipeSectionEntryEditRequest> jsonPatch = new()
+        JsonPatchDocument<RecipeEntryEditRequest> jsonPatch = new()
         {
             Operations =
             {
-                new Operation<RecipeSectionEntryEditRequest>
+                new Operation<RecipeEntryEditRequest>
                 {
                     op = "replace",
                     path = "/PrepId",
@@ -243,17 +238,17 @@ public class RecipeSectionEntryControllerTests(DatabaseSetup fixture) : Database
             }
         };
         
-        await RecipeSectionEntryController.Add(recipeId, sectionId, new RecipeSectionEntryAddRequest
+        await RecipeEntryController.Add(sectionId, new RecipeEntryAddRequest
         {
             Amount = new Amount(3, UnitType.VolumeCups),
             ItemId = itemId,
             PrepId = null
         });
         
-        Error error = await RecipeSectionEntryController.Edit(recipeId, sectionId, recipeSectionEntryId, jsonPatch).ErrorAsync();
+        Error error = await RecipeEntryController.Edit(recipeEntryId, jsonPatch).ErrorAsync();
         error.AssertStatus(HttpStatusCode.Conflict);
         
-        RecipeSectionEntry entry = await Context.RecipeSectionEntries
+        RecipeEntry entry = await Context.RecipeEntries
             .SingleAsync(r => r.RecipeSectionId == sectionId && r.ItemId == itemId && r.PrepId == null);
         
         Assert.Equal(sectionId, entry.RecipeSectionId);

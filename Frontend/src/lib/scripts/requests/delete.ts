@@ -13,20 +13,20 @@ export async function deleteStore(cookies: Cookies, storeId: string): Promise<vo
     await del(cookies, `/stores/${storeId}/delete`);
 }
 
-export async function deleteAisle(cookies: Cookies, storeId: string, aisleId: string): Promise<void> {
-    await del(cookies, `/stores/${storeId}/aisles/${aisleId}/delete`);
+export async function deleteAisle(cookies: Cookies, aisleId: string): Promise<void> {
+    await del(cookies, `/aisles/${aisleId}/delete`);
 }
 
 export async function deleteRecipe(cookies: Cookies, recipeId: string): Promise<void> {
     await del(cookies, `/recipes/${recipeId}/delete`);
 }
 
-export async function deleteRecipeInstruction(cookies: Cookies, recipeId: string, instructionId: string): Promise<void> {
-    await del(cookies, `/recipes/${recipeId}/instructions/${instructionId}/delete`);
+export async function deleteRecipeStep(cookies: Cookies, stepId: string): Promise<void> {
+    await del(cookies, `/recipes/steps/${stepId}/delete`);
 }
 
-export async function deleteRecipeEntry(cookies: Cookies, recipeId: string, sectionId: string, entryId: string): Promise<void> {
-    await del(cookies, `/recipes/${recipeId}/sections/${sectionId}/entries/${entryId}/delete`);
+export async function deleteRecipeEntry(cookies: Cookies, entryId: string): Promise<void> {
+    await del(cookies, `/recipes/entries/${entryId}/delete`);
 }
 
 async function del(cookies: Cookies, url: string): Promise<void> {

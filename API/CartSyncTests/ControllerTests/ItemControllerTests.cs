@@ -26,13 +26,13 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         Assert.Equal(SeedData.Items.Count, items.Count);
         
         Assert.Contains(items, ir => ir.ItemId == SeedData.Items[0].ItemId);
-        AssertItemEqual(items.Single(i => i.ItemId == SeedData.Items[0].ItemId), 0, [aisleIndex1], 0);
+        AssertItemEqual(items.Single(i => i.ItemId == SeedData.Items[0].ItemId), 0, [aisleIndex1]);
         
         Assert.Contains(items, ir => ir.ItemId == SeedData.Items[180].ItemId);
-        AssertItemEqual(items.Single(i => i.ItemId == SeedData.Items[180].ItemId), 180, [aisleIndex2], 0);
+        AssertItemEqual(items.Single(i => i.ItemId == SeedData.Items[180].ItemId), 180, [aisleIndex2]);
         
         Assert.Contains(items, ir => ir.ItemId == SeedData.Items[209].ItemId);
-        AssertItemEqual(items.Single(i => i.ItemId == SeedData.Items[209].ItemId), 209, [aisleIndex3], 0);
+        AssertItemEqual(items.Single(i => i.ItemId == SeedData.Items[209].ItemId), 209, [aisleIndex3]);
     }
 
     [Fact]
@@ -622,7 +622,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     }
 
     // Helper function
-    private static void AssertItemEqual(ItemByStoreResponse itemResponse, int itemIndex, int[]? aisleIndices = null, int? storeIndex = null)
+    private static void AssertItemEqual(ItemByStoreResponse itemResponse, int itemIndex, int[]? aisleIndices = null)
     {
         ItemResponse item = new()
         {
@@ -633,10 +633,10 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
             Preps = itemResponse.Preps,
             Locations = itemResponse.Location != null ? [itemResponse.Location] : [],
         };
-        AssertItemEqual(item, itemIndex, aisleIndices, storeIndex);
+        AssertItemEqual(item, itemIndex, aisleIndices);
     }
 
-    private static void AssertItemEqual(ItemResponse itemResponse, int itemIndex, int[]? aisleIndices = null, int? storeIndex = null)
+    private static void AssertItemEqual(ItemResponse itemResponse, int itemIndex, int[]? aisleIndices = null)
     {
         Assert.Equal(SeedData.Items[itemIndex].ItemId, itemResponse.ItemId);
         Assert.Equal(SeedData.Items[itemIndex].ItemName, itemResponse.ItemName);
@@ -662,46 +662,6 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         if (aisleIndices is null || aisleIndices.Length == 0 || aisleIndices is [-1])
         {
             Assert.Empty(itemResponse.Locations);
-        }
-        else
-        {
-            HashSet<Ulid> aisleIds = [];
-            foreach (ItemAisle itemAisle in SeedData.ItemAisles)
-            {
-                foreach (int aisleIndex in aisleIndices)
-                {
-                    if (itemAisle.AisleId != SeedData.Aisles[aisleIndex].AisleId)
-                    {
-                        continue;
-                    }
-
-                    if (storeIndex == null || itemAisle.StoreId == SeedData.Stores[storeIndex.Value].StoreId)
-                    {
-                        aisleIds.Add(itemAisle.AisleId);
-                    }
-                }
-            }
-            
-            // TODO - Test item locations in a better way
-            /*
-            List<ItemAisleResponse> expectedAisles = aisleIds
-                .Select(aisleId => SeedData.Aisles.Single(aisle => aisle.AisleId == aisleId))
-                .AsQueryable()
-                .Select(Aisle.ToResponse)
-                .Select(a => new ItemAisleResponse
-                {
-                    AisleId = a.AisleId,
-                    AisleName = a.AisleName,
-                    StoreId = a.StoreId,
-                    SortOrder = a.SortOrder,
-                    Bay = BayType.Middle
-                })
-                .OrderBy(a => a.AisleName)
-                .ThenBy(a => a.AisleId)
-                .ToList();
-
-            Assert.Equal(expectedAisles, itemResponse.Locations);
-            */
         }
     }
 }

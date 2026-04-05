@@ -28,7 +28,7 @@ public class RecipeSection : ISortable, IEditable<RecipeSectionEditRequest>, IRe
     [ForeignKey(nameof(RecipeId))]
     public Recipe Recipe { set; get => field ?? throw Recipe.NotLoaded; }
 
-    public List<RecipeSectionEntry> RecipeSectionEntries { get; init; } = [];
+    public List<RecipeEntry> Entries { get; init; } = [];
     
     // Projections
     public static Expression<Func<RecipeSection, RecipeSectionResponse>> ToResponse =>
@@ -37,12 +37,12 @@ public class RecipeSection : ISortable, IEditable<RecipeSectionEditRequest>, IRe
             RecipeSectionId = recipeSection.RecipeSectionId,
             RecipeSectionName = recipeSection.RecipeSectionName,
             SortOrder = recipeSection.SortOrder,
-            Entries = recipeSection.RecipeSectionEntries
+            Entries = recipeSection.Entries
                 .AsQueryable()
                 .OrderBy(rse => rse.Item.ItemTemp)
                 .ThenBy(rse => rse.Item.ItemName)
                 .ThenBy(rse => rse.Item.ItemId)
-                .Select(RecipeSectionEntry.ToResponse)
+                .Select(RecipeEntry.ToResponse)
                 .ToImmutableList()
                 .WithValueSemantics()
         };
@@ -73,7 +73,7 @@ public class RecipeSection : ISortable, IEditable<RecipeSectionEditRequest>, IRe
         RecipeSectionName = editRequest.RecipeSectionName;
         
         int oldIndex = SortOrder;
-        Recipe.RecipeSections.Reorder(oldIndex, editRequest.SortOrder);
+        Recipe.Sections.Reorder(oldIndex, editRequest.SortOrder);
     }
     
     // Errors
@@ -91,7 +91,7 @@ public record RecipeSectionResponse
     public required Ulid? RecipeSectionId { get; init; }
     public required string RecipeSectionName { get; init; }
     public required int SortOrder { get; init; }
-    public required ReadOnlyList<RecipeSectionEntryResponse> Entries { get; init; }
+    public required ReadOnlyList<RecipeEntryResponse> Entries { get; init; }
 }
 
 public record RecipeSectionAddRequest

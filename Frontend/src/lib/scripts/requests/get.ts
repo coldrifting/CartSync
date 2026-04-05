@@ -14,7 +14,7 @@ export async function getAllStores(cookies: Cookies): Promise<Store[]> {
 }
 
 export async function getAllAisles(cookies: Cookies, storeId: string): Promise<Aisle[]> {
-    return await get<Aisle[]>(cookies, `/stores/${storeId}/aisles`);
+    return await get<Aisle[]>(cookies, `/aisles?storeId=${storeId}`);
 }
 
 export async function getItem(cookies: Cookies, itemId: string): Promise<ItemDetails> {

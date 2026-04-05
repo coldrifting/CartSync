@@ -20,9 +20,9 @@ public class CartSyncContext(DbContextOptions options) : DbContext(options)
     public DbSet<ItemPrep> ItemPreps { get; set; }
 
     public DbSet<Recipe> Recipes { get; set; }
-    public DbSet<RecipeInstruction> RecipeInstructions { get; set; }
+    public DbSet<RecipeStep> RecipeSteps { get; set; }
     public DbSet<RecipeSection> RecipeSections { get; set; }
-    public DbSet<RecipeSectionEntry> RecipeSectionEntries { get; set; }
+    public DbSet<RecipeEntry> RecipeEntries { get; set; }
     
     public DbSet<SelectedStore> SelectedStores { get; set; }
 
@@ -44,7 +44,7 @@ public class CartSyncContext(DbContextOptions options) : DbContext(options)
             .WithMany(i => i.Aisles)
             .UsingEntity<ItemAisle>();
         
-        modelBuilder.Entity<RecipeSectionEntry>()
+        modelBuilder.Entity<RecipeEntry>()
             .HasIndex(r => new {r.RecipeSectionId, r.ItemId, r.PrepId})
             .IsUnique();
         
@@ -90,9 +90,9 @@ public class CartSyncContext(DbContextOptions options) : DbContext(options)
         AddRange(SeedData.Preps);
         AddRange(SeedData.ItemPreps);
         AddRange(SeedData.Recipes);
-        AddRange(SeedData.RecipeInstructions);
+        AddRange(SeedData.RecipeSteps);
         AddRange(SeedData.RecipeSections);
-        AddRange(SeedData.RecipeSectionEntries);
+        AddRange(SeedData.RecipeEntries);
         
         AddRange(SeedData.SelectedStores);
         

@@ -32,17 +32,17 @@ export const actions: Actions = {
         const data: FormData = await request.formData();
         const aisleId: string = await getValue(data, 'id');
         const aisleName: string = await getValue(data, 'inputRename');
-        await editAisleName(cookies, storeId, aisleId, aisleName);
+        await editAisleName(cookies, aisleId, aisleName);
     },
     deleteAisle: async ({request, cookies}) => {
         const data: FormData = await request.formData();
         const aisleId: string = await getValue(data, 'id');
-        await deleteAisle(cookies, storeId, aisleId);
+        await deleteAisle(cookies, aisleId);
     },
     reorderAisle: async ({request, cookies}) => {
         const data: FormData = await request.formData();
         const aisleId: string = await getValue(data, 'id');
         const sortSortOrder: number = await getValueNumber(data, 'aisleSortOrder');
-        await editAisleOrder(cookies, storeId, aisleId, sortSortOrder);
+        await editAisleOrder(cookies, aisleId, sortSortOrder);
     }
 }

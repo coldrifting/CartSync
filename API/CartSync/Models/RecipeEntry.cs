@@ -9,13 +9,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CartSync.Models;
 
-[PrimaryKey(nameof(RecipeSectionEntryId))]
-public class RecipeSectionEntry : IEditable<RecipeSectionEntryEditRequest>, IResponse<RecipeSectionEntry, RecipeSectionEntryResponse>
+[PrimaryKey(nameof(RecipeEntryId))]
+public class RecipeEntry : IEditable<RecipeEntryEditRequest>, IResponse<RecipeEntry, RecipeEntryResponse>
 {
-    public Ulid RecipeSectionEntryId { get; init; } = Ulid.NewUlid();
+    public Ulid RecipeEntryId { get; init; } = Ulid.NewUlid();
     
     public Ulid RecipeSectionId { get; init; }
-    public Ulid ItemId { get; set; }
+    public Ulid ItemId { get; init; }
     public Ulid? PrepId { get; set; }
     public Amount Amount { get; set; } = new();
     
@@ -33,21 +33,19 @@ public class RecipeSectionEntry : IEditable<RecipeSectionEntryEditRequest>, IRes
     public Prep? Prep { get; set; }
     
     // Projections
-    public RecipeSectionEntryResponse ToNewResponse =>
+    public RecipeEntryResponse ToNewResponse =>
         new()
         {
-            RecipeSectionEntryId = RecipeSectionEntryId,
-            RecipeSectionId = RecipeSectionId,
+            RecipeEntryId = RecipeEntryId,
             Amount = Amount,
             Item = Item.ToMinimalResponse.Compile()(Item),
             Prep = Prep != null ? Prep.ToResponse.Compile()(Prep) : null
         };
     
-    public static Expression<Func<RecipeSectionEntry, RecipeSectionEntryResponse>> ToResponse =>
-        recipeSectionEntry => new RecipeSectionEntryResponse
+    public static Expression<Func<RecipeEntry, RecipeEntryResponse>> ToResponse =>
+        recipeSectionEntry => new RecipeEntryResponse
         {
-            RecipeSectionEntryId = recipeSectionEntry.RecipeSectionEntryId,
-            RecipeSectionId = recipeSectionEntry.RecipeSectionId,
+            RecipeEntryId = recipeSectionEntry.RecipeEntryId,
             Item = Item.ToMinimalResponse.Compile()(recipeSectionEntry.Item),
             Prep = recipeSectionEntry.Prep != null 
                 ? Prep.ToResponse.Compile()(recipeSectionEntry.Prep) 
@@ -56,9 +54,9 @@ public class RecipeSectionEntry : IEditable<RecipeSectionEntryEditRequest>, IRes
         };
     
     // Conversion and Validation
-    public RecipeSectionEntryEditRequest ToEditRequest(Ulid? storeId = null)
+    public RecipeEntryEditRequest ToEditRequest(Ulid? storeId = null)
     {
-        return new RecipeSectionEntryEditRequest
+        return new RecipeEntryEditRequest
         {
             PrepId = PrepId,
             Amount = Amount
@@ -66,7 +64,7 @@ public class RecipeSectionEntry : IEditable<RecipeSectionEntryEditRequest>, IRes
     }
     
     /// Requires RecipeSectionEntry.RecipeSection.RecipeSectionEntries Navigation to work
-    public void UpdateFromEditRequest(RecipeSectionEntryEditRequest editRequest)
+    public void UpdateFromEditRequest(RecipeEntryEditRequest editRequest)
     {
         PrepId = editRequest.PrepId;
         Amount = editRequest.Amount;
@@ -86,23 +84,22 @@ public class RecipeSectionEntry : IEditable<RecipeSectionEntryEditRequest>, IRes
         Error.AlreadyExists("Recipe Section Entry", itemId, "Item", prepId, "Prep");
 }
 
-public record RecipeSectionEntryResponse
+public record RecipeEntryResponse
 {
-    public required Ulid RecipeSectionEntryId { get; init; }
-    public required Ulid RecipeSectionId { get; init; }
+    public required Ulid RecipeEntryId { get; init; }
     public required ItemMinimalResponse Item { get; init; }
     public required PrepResponse? Prep { get; init; }
     public required Amount Amount { get; init; }
 }
 
-public record RecipeSectionEntryAddRequest
+public record RecipeEntryAddRequest
 {
     public required Ulid ItemId { get; init; }
     public required Ulid? PrepId { get; init; }
     public required Amount Amount { get; init; }
 }
 
-public record RecipeSectionEntryEditRequest
+public record RecipeEntryEditRequest
 {
     public required Ulid? PrepId { get; init; }
     public required Amount Amount { get; init; }

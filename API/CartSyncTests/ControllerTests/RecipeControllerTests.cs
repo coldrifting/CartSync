@@ -47,16 +47,16 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
 
         Ulid recipeId = SeedData.Recipes[1].RecipeId;
         
-        ReadOnlyList<RecipeInstructionResponse> expectedInstructions = SeedData.RecipeInstructions
+        ReadOnlyList<RecipeStepResponse> expectedSteps = SeedData.RecipeSteps
             .AsQueryable()
             .Where(r => r.RecipeId == recipeId)
             .OrderBy(r => r.SortOrder)
-            .Select(RecipeInstruction.ToResponse)
+            .Select(RecipeStep.ToResponse)
             .ToImmutableList()
             .WithValueSemantics();
         
         RecipeResponse result2 = await RecipeController.Details(recipeId).ValueAsync();
-        Assert.Equal(expectedInstructions, result2.Instructions);
+        Assert.Equal(expectedSteps, result2.Steps);
         
         ReadOnlyList<RecipeSectionResponse> expectedSections = SeedData.RecipeSections
             .AsQueryable()
@@ -67,17 +67,17 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
             .WithValueSemantics();
         
         Ulid? recipeSectionId = expectedSections[0].RecipeSectionId;
-        ImmutableList<RecipeSectionEntryMinimal> expectedSectionEntries = SeedData.RecipeSectionEntries
+        ImmutableList<RecipeSectionEntryMinimal> expectedSectionEntries = SeedData.RecipeEntries
             .AsQueryable()
             .Where(r => r.RecipeSectionId == recipeSectionId)
             .OrderBy(r => SeedData.Items.First(i => i.ItemId == r.ItemId).ItemTemp)
             .ThenBy(r => SeedData.Items.First(i => i.ItemId == r.ItemId).ItemName)
             .ThenBy(r => r.ItemId)
-            .Select(r => new RecipeSectionEntryMinimal(r.RecipeSectionEntryId, r.ItemId, r.PrepId))
+            .Select(r => new RecipeSectionEntryMinimal(r.RecipeEntryId, r.ItemId, r.PrepId))
             .ToImmutableList();
 
         ImmutableList<RecipeSectionEntryMinimal> actualSectionEntries = result2.Sections[0].Entries
-            .Select(r => new RecipeSectionEntryMinimal(r.RecipeSectionEntryId, r.Item.ItemId, r.Prep?.PrepId))
+            .Select(r => new RecipeSectionEntryMinimal(r.RecipeEntryId, r.Item.ItemId, r.Prep?.PrepId))
             .ToImmutableList();
         
         Assert.Single(result2.Sections);
@@ -90,12 +90,12 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
 
             Assert.Contains(itemName,
                 result2.Sections[0].Entries
-                    .Where(r => r.RecipeSectionEntryId == entry.EntryId)
+                    .Where(r => r.RecipeEntryId == entry.EntryId)
                     .Select(r => r.Item.ItemName));
             
             Assert.Contains(prepName,
                 result2.Sections[0].Entries
-                    .Where(r => r.RecipeSectionEntryId == entry.EntryId)
+                    .Where(r => r.RecipeEntryId == entry.EntryId)
                     .Select(r => r.Prep?.PrepName));
         }
     }

@@ -26,10 +26,10 @@ public class Recipe : IEditable<RecipeEditRequest>, IResponse<Recipe, RecipeResp
 
     // Navigation
     [JsonIgnore] 
-    public List<RecipeInstruction> RecipeInstructions { get; init; } = [];
+    public List<RecipeStep> Steps { get; init; } = [];
 
     [JsonIgnore] 
-    public List<RecipeSection> RecipeSections  { get; init; } = [];
+    public List<RecipeSection> Sections  { get; init; } = [];
         
     // Projections
     public static Expression<Func<Recipe, RecipeResponse>> ToResponse =>
@@ -40,13 +40,13 @@ public class Recipe : IEditable<RecipeEditRequest>, IResponse<Recipe, RecipeResp
                 RecipeName = recipe.RecipeName,
                 Url = recipe.Url,
                 IsPinned = recipe.IsPinned,
-                Instructions = recipe.RecipeInstructions
+                Steps = recipe.Steps
                     .AsQueryable()
                     .OrderBy(ri => ri.SortOrder)
-                    .Select(RecipeInstruction.ToResponse)
+                    .Select(RecipeStep.ToResponse)
                     .ToImmutableList()
                     .WithValueSemantics(),
-                Sections = recipe.RecipeSections
+                Sections = recipe.Sections
                     .AsQueryable()
                     .OrderBy(rs => rs.SortOrder)
                     .Select(RecipeSection.ToResponse)
@@ -71,7 +71,7 @@ public class Recipe : IEditable<RecipeEditRequest>, IResponse<Recipe, RecipeResp
             RecipeName = RecipeName,
             Url = Url,
             IsPinned = IsPinned,
-            Instructions = [],
+            Steps = [],
             Sections = [],
         };
     
@@ -108,7 +108,7 @@ public record RecipeResponse
     public required string Url { get; init; }
     public required bool IsPinned { get; init; }
 
-    public required ReadOnlyList<RecipeInstructionResponse> Instructions { get; init; }
+    public required ReadOnlyList<RecipeStepResponse> Steps { get; init; }
     public required ReadOnlyList<RecipeSectionResponse> Sections { get; init; }
 
     [JsonIgnore] 

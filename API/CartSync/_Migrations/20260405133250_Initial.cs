@@ -102,27 +102,6 @@ namespace CartSync._Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "RecipeInstructions",
-                columns: table => new
-                {
-                    RecipeInstructionId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
-                    RecipeId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
-                    RecipeInstructionContent = table.Column<string>(type: "character varying(2048)", maxLength: 2048, nullable: false),
-                    IsImage = table.Column<bool>(type: "boolean", nullable: false),
-                    SortOrder = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_RecipeInstructions", x => x.RecipeInstructionId);
-                    table.ForeignKey(
-                        name: "FK_RecipeInstructions_Recipes_RecipeId",
-                        column: x => x.RecipeId,
-                        principalTable: "Recipes",
-                        principalColumn: "RecipeId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "RecipeSections",
                 columns: table => new
                 {
@@ -136,6 +115,27 @@ namespace CartSync._Migrations
                     table.PrimaryKey("PK_RecipeSections", x => x.RecipeSectionId);
                     table.ForeignKey(
                         name: "FK_RecipeSections_Recipes_RecipeId",
+                        column: x => x.RecipeId,
+                        principalTable: "Recipes",
+                        principalColumn: "RecipeId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "RecipeSteps",
+                columns: table => new
+                {
+                    RecipeStepId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
+                    RecipeId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
+                    RecipeStepContent = table.Column<string>(type: "character varying(2048)", maxLength: 2048, nullable: false),
+                    IsImage = table.Column<bool>(type: "boolean", nullable: false),
+                    SortOrder = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RecipeSteps", x => x.RecipeStepId);
+                    table.ForeignKey(
+                        name: "FK_RecipeSteps_Recipes_RecipeId",
                         column: x => x.RecipeId,
                         principalTable: "Recipes",
                         principalColumn: "RecipeId",
@@ -187,10 +187,10 @@ namespace CartSync._Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "RecipeSectionEntries",
+                name: "RecipeEntries",
                 columns: table => new
                 {
-                    RecipeSectionEntryId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
+                    RecipeEntryId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
                     RecipeSectionId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
                     ItemId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
                     PrepId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: true),
@@ -198,21 +198,21 @@ namespace CartSync._Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_RecipeSectionEntries", x => x.RecipeSectionEntryId);
+                    table.PrimaryKey("PK_RecipeEntries", x => x.RecipeEntryId);
                     table.ForeignKey(
-                        name: "FK_RecipeSectionEntries_Items_ItemId",
+                        name: "FK_RecipeEntries_Items_ItemId",
                         column: x => x.ItemId,
                         principalTable: "Items",
                         principalColumn: "ItemId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_RecipeSectionEntries_Preps_PrepId",
+                        name: "FK_RecipeEntries_Preps_PrepId",
                         column: x => x.PrepId,
                         principalTable: "Preps",
                         principalColumn: "PrepId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_RecipeSectionEntries_RecipeSections_RecipeSectionId",
+                        name: "FK_RecipeEntries_RecipeSections_RecipeSectionId",
                         column: x => x.RecipeSectionId,
                         principalTable: "RecipeSections",
                         principalColumn: "RecipeSectionId",
@@ -272,29 +272,29 @@ namespace CartSync._Migrations
                 column: "PrepId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RecipeInstructions_RecipeId",
-                table: "RecipeInstructions",
-                column: "RecipeId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_RecipeSectionEntries_ItemId",
-                table: "RecipeSectionEntries",
+                name: "IX_RecipeEntries_ItemId",
+                table: "RecipeEntries",
                 column: "ItemId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RecipeSectionEntries_PrepId",
-                table: "RecipeSectionEntries",
+                name: "IX_RecipeEntries_PrepId",
+                table: "RecipeEntries",
                 column: "PrepId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RecipeSectionEntries_RecipeSectionId_ItemId_PrepId",
-                table: "RecipeSectionEntries",
+                name: "IX_RecipeEntries_RecipeSectionId_ItemId_PrepId",
+                table: "RecipeEntries",
                 columns: new[] { "RecipeSectionId", "ItemId", "PrepId" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_RecipeSections_RecipeId",
                 table: "RecipeSections",
+                column: "RecipeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RecipeSteps_RecipeId",
+                table: "RecipeSteps",
                 column: "RecipeId");
 
             migrationBuilder.CreateIndex(
@@ -319,10 +319,10 @@ namespace CartSync._Migrations
                 name: "ItemPreps");
 
             migrationBuilder.DropTable(
-                name: "RecipeInstructions");
+                name: "RecipeEntries");
 
             migrationBuilder.DropTable(
-                name: "RecipeSectionEntries");
+                name: "RecipeSteps");
 
             migrationBuilder.DropTable(
                 name: "SelectedStores");

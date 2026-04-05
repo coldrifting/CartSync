@@ -78,7 +78,7 @@ public class AisleControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
             }
         };
 
-        await AisleController.Edit(SeedData.Stores[0].StoreId, SeedData.Aisles[4].AisleId, jsonPatch).AssertIsSuccessful();
+        await AisleController.Edit(SeedData.Aisles[4].AisleId, jsonPatch).AssertIsSuccessful();
         
         List<AisleResponse> aisles = await AisleController.All(SeedData.Stores[0].StoreId).ValueAsync();
         Assert.Equal(23, aisles.Count);
@@ -105,7 +105,7 @@ public class AisleControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
             }
         };
         
-        await AisleController.Edit(SeedData.Stores[0].StoreId, SeedData.Aisles[4].AisleId, jsonPatch).AssertIsSuccessful();
+        await AisleController.Edit(SeedData.Aisles[4].AisleId, jsonPatch).AssertIsSuccessful();
         
         List<AisleResponse> aisles = await AisleController.All(SeedData.Stores[0].StoreId).ValueAsync();
         Assert.Equal(23, aisles.Count);
@@ -132,7 +132,7 @@ public class AisleControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
             }
         };
         
-        Error error = await AisleController.Edit(SeedData.Stores[0].StoreId, Ulid.NotFound, jsonPatch).ErrorAsync();
+        Error error = await AisleController.Edit(Ulid.NotFound, jsonPatch).ErrorAsync();
         error.AssertStatus(HttpStatusCode.NotFound);
         
         await TestAisleAll();
@@ -141,7 +141,7 @@ public class AisleControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
     [Fact]
     public async Task TestAisleDelete()
     {
-        await AisleController.Delete(SeedData.Stores[0].StoreId, SeedData.Aisles[2].AisleId).AssertIsSuccessful();
+        await AisleController.Delete(SeedData.Aisles[2].AisleId).AssertIsSuccessful();
 
         List<AisleResponse> aisles = await AisleController.All(SeedData.Stores[0].StoreId).ValueAsync();
         Assert.Equal(22, aisles.Count);
@@ -152,7 +152,7 @@ public class AisleControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
         Assert.DoesNotContain(SeedData.Aisles[2].AisleId, aisles2.Select(a => a.AisleId));
         
         
-        await AisleController.Delete(SeedData.Stores[1].StoreId, SeedData.Aisles[23].AisleId).AssertIsSuccessful();
+        await AisleController.Delete(SeedData.Aisles[23].AisleId).AssertIsSuccessful();
         
         List<AisleResponse> aisles3 = await AisleController.All(SeedData.Stores[0].StoreId).ValueAsync();
         Assert.Equal(22, aisles3.Count);
@@ -165,16 +165,7 @@ public class AisleControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
     [Fact]
     public async Task TestAisleDelete_AisleNotFound()
     {
-        Error error = await AisleController.Delete(SeedData.Stores[0].StoreId, Ulid.NotFound).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
-        
-        await TestAisleAll();
-    }
-
-    [Fact]
-    public async Task TestAisleDelete_AisleNotUnderStore()
-    {
-        Error error = await AisleController.Delete(SeedData.Stores[1].StoreId, SeedData.Aisles[0].AisleId).ErrorAsync();
+        Error error = await AisleController.Delete(Ulid.NotFound).ErrorAsync();
         error.AssertStatus(HttpStatusCode.NotFound);
         
         await TestAisleAll();
@@ -183,7 +174,7 @@ public class AisleControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
     [Fact]
     public async Task TestAisleDelete_InvalidAisleId()
     {
-        Error error = await AisleController.Delete(SeedData.Stores[0].StoreId, SeedData.Stores[0].StoreId).ErrorAsync();
+        Error error = await AisleController.Delete(SeedData.Stores[0].StoreId).ErrorAsync();
         error.AssertStatus(HttpStatusCode.NotFound);
 
         await TestAisleAll();

@@ -189,35 +189,44 @@ namespace CartSync._Migrations
                     b.ToTable("Recipes");
                 });
 
-            modelBuilder.Entity("CartSync.Models.RecipeInstruction", b =>
+            modelBuilder.Entity("CartSync.Models.RecipeEntry", b =>
                 {
-                    b.Property<string>("RecipeInstructionId")
+                    b.Property<string>("RecipeEntryId")
                         .HasMaxLength(26)
                         .IsUnicode(false)
                         .HasColumnType("character varying(26)");
 
-                    b.Property<bool>("IsImage")
-                        .HasColumnType("boolean");
+                    b.Property<string>("Amount")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.Property<string>("RecipeId")
+                    b.Property<string>("ItemId")
                         .IsRequired()
                         .HasMaxLength(26)
                         .IsUnicode(false)
                         .HasColumnType("character varying(26)");
 
-                    b.Property<string>("RecipeInstructionContent")
+                    b.Property<string>("PrepId")
+                        .HasMaxLength(26)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(26)");
+
+                    b.Property<string>("RecipeSectionId")
                         .IsRequired()
-                        .HasMaxLength(2048)
-                        .HasColumnType("character varying(2048)");
+                        .HasMaxLength(26)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(26)");
 
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("integer");
+                    b.HasKey("RecipeEntryId");
 
-                    b.HasKey("RecipeInstructionId");
+                    b.HasIndex("ItemId");
 
-                    b.HasIndex("RecipeId");
+                    b.HasIndex("PrepId");
 
-                    b.ToTable("RecipeInstructions");
+                    b.HasIndex("RecipeSectionId", "ItemId", "PrepId")
+                        .IsUnique();
+
+                    b.ToTable("RecipeEntries");
                 });
 
             modelBuilder.Entity("CartSync.Models.RecipeSection", b =>
@@ -248,44 +257,35 @@ namespace CartSync._Migrations
                     b.ToTable("RecipeSections");
                 });
 
-            modelBuilder.Entity("CartSync.Models.RecipeSectionEntry", b =>
+            modelBuilder.Entity("CartSync.Models.RecipeStep", b =>
                 {
-                    b.Property<string>("RecipeSectionEntryId")
+                    b.Property<string>("RecipeStepId")
                         .HasMaxLength(26)
                         .IsUnicode(false)
                         .HasColumnType("character varying(26)");
 
-                    b.Property<string>("Amount")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<bool>("IsImage")
+                        .HasColumnType("boolean");
 
-                    b.Property<string>("ItemId")
-                        .IsRequired()
-                        .HasMaxLength(26)
-                        .IsUnicode(false)
-                        .HasColumnType("character varying(26)");
-
-                    b.Property<string>("PrepId")
-                        .HasMaxLength(26)
-                        .IsUnicode(false)
-                        .HasColumnType("character varying(26)");
-
-                    b.Property<string>("RecipeSectionId")
+                    b.Property<string>("RecipeId")
                         .IsRequired()
                         .HasMaxLength(26)
                         .IsUnicode(false)
                         .HasColumnType("character varying(26)");
 
-                    b.HasKey("RecipeSectionEntryId");
+                    b.Property<string>("RecipeStepContent")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)");
 
-                    b.HasIndex("ItemId");
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
 
-                    b.HasIndex("PrepId");
+                    b.HasKey("RecipeStepId");
 
-                    b.HasIndex("RecipeSectionId", "ItemId", "PrepId")
-                        .IsUnique();
+                    b.HasIndex("RecipeId");
 
-                    b.ToTable("RecipeSectionEntries");
+                    b.ToTable("RecipeSteps");
                 });
 
             modelBuilder.Entity("CartSync.Models.Store", b =>
@@ -409,29 +409,7 @@ namespace CartSync._Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("CartSync.Models.RecipeInstruction", b =>
-                {
-                    b.HasOne("CartSync.Models.Recipe", "Recipe")
-                        .WithMany("RecipeInstructions")
-                        .HasForeignKey("RecipeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Recipe");
-                });
-
-            modelBuilder.Entity("CartSync.Models.RecipeSection", b =>
-                {
-                    b.HasOne("CartSync.Models.Recipe", "Recipe")
-                        .WithMany("RecipeSections")
-                        .HasForeignKey("RecipeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Recipe");
-                });
-
-            modelBuilder.Entity("CartSync.Models.RecipeSectionEntry", b =>
+            modelBuilder.Entity("CartSync.Models.RecipeEntry", b =>
                 {
                     b.HasOne("CartSync.Models.Item", "Item")
                         .WithMany("RecipeSectionEntries")
@@ -445,7 +423,7 @@ namespace CartSync._Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("CartSync.Models.RecipeSection", "RecipeSection")
-                        .WithMany("RecipeSectionEntries")
+                        .WithMany("Entries")
                         .HasForeignKey("RecipeSectionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -455,6 +433,28 @@ namespace CartSync._Migrations
                     b.Navigation("Prep");
 
                     b.Navigation("RecipeSection");
+                });
+
+            modelBuilder.Entity("CartSync.Models.RecipeSection", b =>
+                {
+                    b.HasOne("CartSync.Models.Recipe", "Recipe")
+                        .WithMany("Sections")
+                        .HasForeignKey("RecipeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Recipe");
+                });
+
+            modelBuilder.Entity("CartSync.Models.RecipeStep", b =>
+                {
+                    b.HasOne("CartSync.Models.Recipe", "Recipe")
+                        .WithMany("Steps")
+                        .HasForeignKey("RecipeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Recipe");
                 });
 
             modelBuilder.Entity("CartSync.Models.Item", b =>
@@ -475,14 +475,14 @@ namespace CartSync._Migrations
 
             modelBuilder.Entity("CartSync.Models.Recipe", b =>
                 {
-                    b.Navigation("RecipeInstructions");
+                    b.Navigation("Sections");
 
-                    b.Navigation("RecipeSections");
+                    b.Navigation("Steps");
                 });
 
             modelBuilder.Entity("CartSync.Models.RecipeSection", b =>
                 {
-                    b.Navigation("RecipeSectionEntries");
+                    b.Navigation("Entries");
                 });
 
             modelBuilder.Entity("CartSync.Models.Store", b =>

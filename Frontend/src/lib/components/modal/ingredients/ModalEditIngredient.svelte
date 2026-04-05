@@ -81,7 +81,6 @@
           id={action}
           use:enhance={submitFunction}>
         <div>
-            <input name="recipeSectionId" bind:value={sectionId} hidden required/>
             <input name="recipeEntryId" bind:value={recipeEntryId} hidden required/>
             
             <FormGroup floating label="Item" disabled={true}>

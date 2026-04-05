@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Security.Claims;
 using CartSync.Models;
 using CartSync.Models.Interfaces;
 using CartSync.Models.Joins;

@@ -33,7 +33,7 @@ export const actions: Actions = {
         const sectionId: string = await getValue(data, "id");
         const newName: string = await getValue(data, "inputRename");
         
-        await editRecipeSectionName(cookies, recipeId, sectionId, newName);
+        await editRecipeSectionName(cookies, sectionId, newName);
     },
     addRecipeEntry: async ({request, cookies}) => {
         const data: FormData = await request.formData();
@@ -50,15 +50,14 @@ export const actions: Actions = {
             const sectionName: string = await getValue(data, "recipeSectionName");
             const newSectionId: string = await addRecipeSection(cookies, recipeId, sectionName);
             
-            await addRecipeEntry(cookies, recipeId, newSectionId, itemId, prepId, amount);
+            await addRecipeEntry(cookies, newSectionId, itemId, prepId, amount);
         }
         else {
-            await addRecipeEntry(cookies, recipeId, sectionId, itemId, prepId, amount);
+            await addRecipeEntry(cookies, sectionId, itemId, prepId, amount);
         }
     },
     editRecipeEntry: async ({request, cookies}) => {
         const data: FormData = await request.formData();
-        const sectionId: string = await getValue(data, "recipeSectionId");
         const entryId: string = await getValue(data, "recipeEntryId");
         
         const prepId: string | null = await getValueOrNull(data, "prepId");
@@ -67,14 +66,13 @@ export const actions: Actions = {
         const unitType: string = await getValue(data, "unitType");
         const amount: Amount = {fraction: Fraction.fromString(fraction), unitType: unitType} as Amount;
         
-        await editRecipeEntry(cookies, recipeId, sectionId, entryId, prepId, amount);
+        await editRecipeEntry(cookies, entryId, prepId, amount);
     },
     deleteRecipeEntry: async ({request, cookies}) => {
         const data: FormData = await request.formData();
-        const sectionId: string = await getValue(data, "sectionId");
         const entryId: string = await getValue(data, "entryId");
         
-        await deleteRecipeEntry(cookies, recipeId, sectionId, entryId);
+        await deleteRecipeEntry(cookies, entryId);
     },
     editRecipeUrl: async ({request, cookies}) => {
         const data: FormData = await request.formData();

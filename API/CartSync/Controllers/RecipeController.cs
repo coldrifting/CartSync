@@ -16,9 +16,9 @@ public class RecipeController(CartSyncContext context) : ControllerCore(context)
     public async Task<Ok<List<RecipeMinimalResponse>>> All()
     {
         List<RecipeMinimalResponse> recipes = await Db.Recipes
-            .Include(r => r.RecipeInstructions)
-            .Include(r => r.RecipeSections)
-            .ThenInclude(rs => rs.RecipeSectionEntries)
+            .Include(r => r.Steps)
+            .Include(r => r.Sections)
+            .ThenInclude(rs => rs.Entries)
             .ThenInclude(rs => rs.Prep)
             .Select(Recipe.ToMinimalResponse)
             .OrderBy(r => r.RecipeName)
@@ -32,9 +32,9 @@ public class RecipeController(CartSyncContext context) : ControllerCore(context)
     public async Task<Results<Ok<RecipeResponse>, BadRequest<Error>, NotFound<Error>>> Details(Ulid recipeId)
     {
         RecipeResponse? recipe = await Db.Recipes
-            .Include(r => r.RecipeInstructions)
-            .Include(r => r.RecipeSections)
-            .ThenInclude(rs => rs.RecipeSectionEntries)
+            .Include(r => r.Steps)
+            .Include(r => r.Sections)
+            .ThenInclude(rs => rs.Entries)
             .ThenInclude(rs => rs.Prep)
             .Select(Recipe.ToResponse)
             .FirstOrDefaultAsync(r => r.RecipeId == recipeId);
