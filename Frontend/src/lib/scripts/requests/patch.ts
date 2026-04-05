@@ -1,5 +1,5 @@
 import type {Cookies} from "@sveltejs/kit";
-import {apiBaseUrl, checkForErrors, getToken} from "$lib/scripts/requests/common.js";
+import {apiBaseUrl, checkForErrors, getToken, isContentImage} from "$lib/scripts/requests/common.js";
 import type Amount from "$lib/scripts/classes/Amount.ts";
 
 export async function editItemName(cookies: Cookies, itemId: string, itemName: string): Promise<void> {
@@ -64,6 +64,13 @@ export async function editRecipeEntry(cookies: Cookies, recipeId: string, recipe
 
 export async function editRecipeUrl(cookies: Cookies, recipeId: string, url: string): Promise<void> {
     await patch(cookies, `/recipes/${recipeId}/edit`, { "/Url": url });
+}
+
+export async function editRecipeInstruction(cookies: Cookies, recipeId: string, recipeInstructionId: string, content: string): Promise<void> {
+    await patch(cookies, `/recipes/${recipeId}/instructions/${recipeInstructionId}/edit`, { 
+        recipeInstructionContent: content,
+        isImage: isContentImage(content)
+    });
 }
     
 async function patch(cookies: Cookies, url: string, pathValuePairs: Record<string, any>): Promise<void> {

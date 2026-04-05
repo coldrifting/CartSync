@@ -67,6 +67,10 @@ export async function getValueBoolean(formData: FormData, formElementName: strin
     return elementValue === "on";
 }
 
+export function isContentImage(content: string): boolean {
+    return content.trim().split(' ').length === 1 && content.includes('/');
+}
+
 export const cookieSettings: any = {
     path: '/', // Makes the cookie available across the entire site
     httpOnly: true, // Prevents client-side JavaScript from reading the cookie

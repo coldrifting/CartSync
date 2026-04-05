@@ -4,13 +4,15 @@
     import Header from "$lib/components/Header.svelte";
     import ReorderableList from "$lib/components/dragAndDrop/ReorderableList.svelte";
     import {tick} from "svelte";
+    import ModalAddStep from "$lib/components/modal/steps/ModalAddStep.svelte";
+    import ModalEditStep from "$lib/components/modal/steps/ModalEditStep.svelte";
 
     let {data}: PageProps = $props();
 
     let headerActions: HeaderAction[] = [
         {
             label: "Add Step", icon: 'fa-plus', action: () => {
-                // TODO
+                modalAddStep.show();
             }
         }
     ];
@@ -18,7 +20,7 @@
     let contextActions: ContextAction[] = [
         {
             label: "Edit", action: (id, value) => { 
-				// TODO
+				modalEditStep.show(id, value ?? "");
             }
         },
         {
@@ -57,11 +59,17 @@
             reorderForm.requestSubmit();
         }
     })
+    
+    let modalAddStep: ModalAddStep
+    let modalEditStep: ModalEditStep
 </script>
 
 <svelte:head>
     <title>Recipes - {data.recipe.recipeName} - Instructions</title>
 </svelte:head>
+
+<ModalAddStep bind:this={modalAddStep} action="addInstruction"/>
+<ModalEditStep bind:this={modalEditStep} action="editInstruction"/>
 
 <Header back={[`/recipes/${data.recipe.recipeId}`, 'Recipe']} title={data.recipe.recipeName} subtitle="Recipe Steps"
         headerActions={headerActions}/>

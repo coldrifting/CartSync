@@ -1,5 +1,5 @@
 import type {Cookies} from "@sveltejs/kit";
-import {apiBaseUrl, checkForErrors, getToken} from "$lib/scripts/requests/common.js";
+import {apiBaseUrl, checkForErrors, getToken, isContentImage} from "$lib/scripts/requests/common.js";
 import type Amount from "$lib/scripts/classes/Amount.ts";
 import type RecipeSection from "$lib/scripts/classes/RecipeSection.ts";
 
@@ -40,6 +40,13 @@ export async function addRecipeEntry(cookies: Cookies, recipeId: string, recipeS
         itemId: itemId,
         prepId: prepId,
         amount: amount
+    });
+}
+
+export async function addRecipeInstruction(cookies: Cookies, recipeId: string, content: string): Promise<void> {
+    await post(cookies, `/recipes/${recipeId}/instructions/add`, { 
+        recipeInstructionContent: content,
+        isImage: isContentImage(content)
     });
 }
 
