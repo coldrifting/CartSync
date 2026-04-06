@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CartSync._Migrations
 {
     [DbContext(typeof(CartSyncContext))]
-    [Migration("20260405133250_Initial")]
+    [Migration("20260406150520_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -50,6 +50,84 @@ namespace CartSync._Migrations
                     b.HasIndex("StoreId");
 
                     b.ToTable("Aisles");
+                });
+
+            modelBuilder.Entity("CartSync.Models.CartEntry", b =>
+                {
+                    b.Property<string>("CartEntryId")
+                        .HasMaxLength(26)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(26)");
+
+                    b.Property<string>("AisleId")
+                        .HasMaxLength(26)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(26)");
+
+                    b.Property<string>("Amount")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Bay")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsChecked")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("ItemId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(26)");
+
+                    b.Property<string>("PrepId")
+                        .HasMaxLength(26)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(26)");
+
+                    b.HasKey("CartEntryId");
+
+                    b.HasIndex("AisleId");
+
+                    b.HasIndex("PrepId");
+
+                    b.HasIndex("ItemId", "PrepId")
+                        .IsUnique();
+
+                    b.ToTable("CartEntries");
+                });
+
+            modelBuilder.Entity("CartSync.Models.CartItem", b =>
+                {
+                    b.Property<string>("CartItemId")
+                        .HasMaxLength(26)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(26)");
+
+                    b.Property<string>("Amount")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ItemId")
+                        .IsRequired()
+                        .HasMaxLength(26)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(26)");
+
+                    b.Property<string>("PrepId")
+                        .HasMaxLength(26)
+                        .IsUnicode(false)
+                        .HasColumnType("character varying(26)");
+
+                    b.HasKey("CartItemId");
+
+                    b.HasIndex("PrepId");
+
+                    b.HasIndex("ItemId", "PrepId")
+                        .IsUnique();
+
+                    b.ToTable("CartItems");
                 });
 
             modelBuilder.Entity("CartSync.Models.Item", b =>
@@ -171,7 +249,7 @@ namespace CartSync._Migrations
                         .IsUnicode(false)
                         .HasColumnType("character varying(26)");
 
-                    b.Property<int>("CartAmount")
+                    b.Property<int>("CartQuantity")
                         .HasColumnType("integer");
 
                     b.Property<bool>("IsPinned")
@@ -345,6 +423,49 @@ namespace CartSync._Migrations
                         .IsRequired();
 
                     b.Navigation("Store");
+                });
+
+            modelBuilder.Entity("CartSync.Models.CartEntry", b =>
+                {
+                    b.HasOne("CartSync.Models.Aisle", "Aisle")
+                        .WithMany()
+                        .HasForeignKey("AisleId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("CartSync.Models.Item", "Item")
+                        .WithMany()
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CartSync.Models.Prep", "Prep")
+                        .WithMany()
+                        .HasForeignKey("PrepId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Aisle");
+
+                    b.Navigation("Item");
+
+                    b.Navigation("Prep");
+                });
+
+            modelBuilder.Entity("CartSync.Models.CartItem", b =>
+                {
+                    b.HasOne("CartSync.Models.Item", "Item")
+                        .WithMany()
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CartSync.Models.Prep", "Prep")
+                        .WithMany()
+                        .HasForeignKey("PrepId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Item");
+
+                    b.Navigation("Prep");
                 });
 
             modelBuilder.Entity("CartSync.Models.Joins.ItemAisle", b =>

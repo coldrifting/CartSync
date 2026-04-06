@@ -44,7 +44,7 @@ namespace CartSync._Migrations
                     RecipeName = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     Url = table.Column<string>(type: "character varying(2048)", maxLength: 2048, nullable: false),
                     IsPinned = table.Column<bool>(type: "boolean", nullable: false),
-                    CartAmount = table.Column<int>(type: "integer", nullable: false)
+                    CartQuantity = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -75,6 +75,32 @@ namespace CartSync._Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.UserId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CartItems",
+                columns: table => new
+                {
+                    CartItemId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
+                    ItemId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
+                    PrepId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: true),
+                    Amount = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CartItems", x => x.CartItemId);
+                    table.ForeignKey(
+                        name: "FK_CartItems_Items_ItemId",
+                        column: x => x.ItemId,
+                        principalTable: "Items",
+                        principalColumn: "ItemId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CartItems_Preps_PrepId",
+                        column: x => x.PrepId,
+                        principalTable: "Preps",
+                        principalColumn: "PrepId",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -220,6 +246,41 @@ namespace CartSync._Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "CartEntries",
+                columns: table => new
+                {
+                    CartEntryId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
+                    ItemId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
+                    PrepId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: true),
+                    Amount = table.Column<string>(type: "text", nullable: false),
+                    AisleId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: true),
+                    Bay = table.Column<string>(type: "text", nullable: false),
+                    IsChecked = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CartEntries", x => x.CartEntryId);
+                    table.ForeignKey(
+                        name: "FK_CartEntries_Aisles_AisleId",
+                        column: x => x.AisleId,
+                        principalTable: "Aisles",
+                        principalColumn: "AisleId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CartEntries_Items_ItemId",
+                        column: x => x.ItemId,
+                        principalTable: "Items",
+                        principalColumn: "ItemId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CartEntries_Preps_PrepId",
+                        column: x => x.PrepId,
+                        principalTable: "Preps",
+                        principalColumn: "PrepId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ItemAisles",
                 columns: table => new
                 {
@@ -255,6 +316,33 @@ namespace CartSync._Migrations
                 name: "IX_Aisles_StoreId",
                 table: "Aisles",
                 column: "StoreId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CartEntries_AisleId",
+                table: "CartEntries",
+                column: "AisleId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CartEntries_ItemId_PrepId",
+                table: "CartEntries",
+                columns: new[] { "ItemId", "PrepId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CartEntries_PrepId",
+                table: "CartEntries",
+                column: "PrepId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CartItems_ItemId_PrepId",
+                table: "CartItems",
+                columns: new[] { "ItemId", "PrepId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CartItems_PrepId",
+                table: "CartItems",
+                column: "PrepId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ItemAisles_AisleId",
@@ -312,6 +400,12 @@ namespace CartSync._Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "CartEntries");
+
+            migrationBuilder.DropTable(
+                name: "CartItems");
+
             migrationBuilder.DropTable(
                 name: "ItemAisles");
 

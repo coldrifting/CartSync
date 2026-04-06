@@ -25,6 +25,8 @@ public class CartSyncContext(DbContextOptions options) : DbContext(options)
     public DbSet<RecipeEntry> RecipeEntries { get; set; }
     
     public DbSet<SelectedStore> SelectedStores { get; set; }
+    public DbSet<CartItem> CartItems { get; set; } 
+    public DbSet<CartEntry> CartEntries { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -46,6 +48,14 @@ public class CartSyncContext(DbContextOptions options) : DbContext(options)
         
         modelBuilder.Entity<RecipeEntry>()
             .HasIndex(r => new {r.RecipeSectionId, r.ItemId, r.PrepId})
+            .IsUnique();
+        
+        modelBuilder.Entity<CartItem>()
+            .HasIndex(ci => new {ci.ItemId, ci.PrepId})
+            .IsUnique();
+        
+        modelBuilder.Entity<CartEntry>()
+            .HasIndex(ce => new {ce.ItemId, ce.PrepId})
             .IsUnique();
         
         foreach (IMutableForeignKey relationship in modelBuilder.Model.GetEntityTypes().SelectMany(mutableEntryType => mutableEntryType.GetForeignKeys()))
@@ -95,6 +105,7 @@ public class CartSyncContext(DbContextOptions options) : DbContext(options)
         AddRange(SeedData.RecipeEntries);
         
         AddRange(SeedData.SelectedStores);
+        AddRange(SeedData.CartItems);
         
         SaveChanges();
     }

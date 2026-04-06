@@ -32,6 +32,12 @@ public class Amount
         Fraction = new Fraction(quantity);
         UnitType = unitType;
     }
+
+    public Amount(int num, int dem, UnitType unitType)
+    {
+        Fraction = new Fraction(num, dem);
+        UnitType = unitType;
+    }
     
     public Amount Simplify()
     {

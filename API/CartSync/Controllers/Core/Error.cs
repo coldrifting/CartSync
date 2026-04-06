@@ -34,6 +34,15 @@ public record Error
         });
     }
 
+    public static BadRequest<Error> BadRequestCartAmountInvalid()
+    {
+        return TypedResults.BadRequest(new Error
+        {
+            StatusCode = StatusCodes.Status400BadRequest,
+            Message = "BadRequest: Cart amount must be greater than 0"
+        });
+    }
+
     public static BadRequest<Error> BadRequestPatchInvalid(ModelStateDictionary modelState)
     {
         Dictionary<string, string?> errors = modelState
@@ -66,6 +75,15 @@ public record Error
         {
             StatusCode = StatusCodes.Status404NotFound,
             Message = $"NotFound: {itemName} matching id {id} was not found"
+        });
+    }
+
+    public static NotFound<Error> NotFoundCompositeKey(string itemName, Ulid id1, string itemName1, Ulid? id2, string itemName2)
+    {
+        return TypedResults.NotFound(new Error
+        {
+            StatusCode = StatusCodes.Status404NotFound,
+            Message = $"NotFound: {itemName} with composite key containing {itemName1} with id {id1} and {itemName2} with id {id2}"
         });
     }
 

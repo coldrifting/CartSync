@@ -22,7 +22,7 @@ public class Recipe : IEditable<RecipeEditRequest>, IResponse<Recipe, RecipeResp
     public string Url { get; set; } = string.Empty;
     
     public bool IsPinned { get; set; }
-    public int CartAmount { get; set; }
+    public int CartQuantity { get; set; }
 
     // Navigation
     [JsonIgnore] 

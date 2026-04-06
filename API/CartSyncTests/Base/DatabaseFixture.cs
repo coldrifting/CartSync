@@ -21,6 +21,7 @@ public class DatabaseFixture(DatabaseSetup fixture) : IClassFixture<DatabaseSetu
     public required PrepController PrepController;
     public required RecipeController RecipeController;
     public required RecipeEntryController RecipeEntryController;
+    public required CartController CartController;
 
     /// Start
     public async Task InitializeAsync()
@@ -33,6 +34,7 @@ public class DatabaseFixture(DatabaseSetup fixture) : IClassFixture<DatabaseSetu
         PrepController = AddTestController<PrepController>(Context);
         RecipeController = AddTestController<RecipeController>(Context);
         RecipeEntryController = AddTestController<RecipeEntryController>(Context);
+        CartController = AddTestController<CartController>(Context);
         
         await Context.Database.BeginTransactionAsync();
     }
