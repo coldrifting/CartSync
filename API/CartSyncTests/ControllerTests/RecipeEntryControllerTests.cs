@@ -32,7 +32,7 @@ public class RecipeEntryControllerTests(DatabaseSetup fixture) : DatabaseFixture
 
         RecipeEntry? entry = await Context.RecipeEntries
             .Include(r => r.RecipeSection)
-            .FirstOrDefaultAsync(r => r.RecipeEntryId == Ulid.Parse(result.location.Split('/').Last()));
+            .FirstOrDefaultAsync(r => r.RecipeEntryId == Ulid.Parse(result.location.Split('/').Last()), TestContext.Current.CancellationToken);
         
         Assert.NotNull(entry);
         Assert.Equal(sectionId, entry.RecipeSectionId);
@@ -61,7 +61,7 @@ public class RecipeEntryControllerTests(DatabaseSetup fixture) : DatabaseFixture
 
         RecipeEntry? entry = await Context.RecipeEntries
             .Include(r => r.RecipeSection)
-            .FirstOrDefaultAsync(r => r.RecipeEntryId == Ulid.Parse(result.location.Split('/').Last()));
+            .FirstOrDefaultAsync(r => r.RecipeEntryId == Ulid.Parse(result.location.Split('/').Last()), TestContext.Current.CancellationToken);
         
         Assert.NotNull(entry);
         Assert.Equal(sectionId, entry.RecipeSectionId);
@@ -90,7 +90,7 @@ public class RecipeEntryControllerTests(DatabaseSetup fixture) : DatabaseFixture
 
         RecipeEntry? entry = await Context.RecipeEntries
             .Include(r => r.RecipeSection)
-            .FirstOrDefaultAsync(r => r.RecipeEntryId == Ulid.Parse(result.location.Split('/').Last()));
+            .FirstOrDefaultAsync(r => r.RecipeEntryId == Ulid.Parse(result.location.Split('/').Last()), TestContext.Current.CancellationToken);
         
         Assert.NotNull(entry);
         Assert.Equal(sectionId, entry.RecipeSectionId);
@@ -119,7 +119,7 @@ public class RecipeEntryControllerTests(DatabaseSetup fixture) : DatabaseFixture
             .SingleAsync(rse => 
                 rse.RecipeSectionId == sectionId &&
                 rse.ItemId == recipeEntryAddRequest.ItemId &&
-                rse.PrepId == recipeEntryAddRequest.PrepId);
+                rse.PrepId == recipeEntryAddRequest.PrepId, TestContext.Current.CancellationToken);
         
         Assert.NotEqual(recipeEntryAddRequest.Amount, entry.Amount);
         Assert.Equal(recipeEntryAddRequest.ItemId, entry.ItemId);
@@ -143,7 +143,7 @@ public class RecipeEntryControllerTests(DatabaseSetup fixture) : DatabaseFixture
 
         RecipeEntry? entry = await Context.RecipeEntries
             .FirstOrDefaultAsync(rse => rse.ItemId == recipeEntryAddRequest.ItemId &&
-                                        rse.PrepId == recipeEntryAddRequest.PrepId);
+                                        rse.PrepId == recipeEntryAddRequest.PrepId, TestContext.Current.CancellationToken);
         
         Assert.Null(entry);
     }
@@ -170,7 +170,7 @@ public class RecipeEntryControllerTests(DatabaseSetup fixture) : DatabaseFixture
         
         await RecipeEntryController.Edit(recipeEntryId, jsonPatch).AssertIsSuccessful();
 
-        RecipeEntry? entry = await Context.RecipeEntries.FindAsync(recipeEntryId);
+        RecipeEntry? entry = await Context.RecipeEntries.FindAsync([recipeEntryId], TestContext.Current.CancellationToken);
         
         Assert.NotNull(entry);
         Assert.Equal(sectionId, entry.RecipeSectionId);
@@ -208,7 +208,7 @@ public class RecipeEntryControllerTests(DatabaseSetup fixture) : DatabaseFixture
         
         await RecipeEntryController.Edit(recipeEntryId, jsonPatch).AssertIsSuccessful();
 
-        RecipeEntry? entry = await Context.RecipeEntries.FindAsync(recipeEntryId);
+        RecipeEntry? entry = await Context.RecipeEntries.FindAsync([recipeEntryId], TestContext.Current.CancellationToken);
         
         Assert.NotNull(entry);
         Assert.Equal(sectionId, entry.RecipeSectionId);
@@ -248,7 +248,7 @@ public class RecipeEntryControllerTests(DatabaseSetup fixture) : DatabaseFixture
         error.AssertStatus(HttpStatusCode.Conflict);
         
         RecipeEntry entry = await Context.RecipeEntries
-            .SingleAsync(r => r.RecipeSectionId == sectionId && r.ItemId == itemId && r.PrepId == null);
+            .SingleAsync(r => r.RecipeSectionId == sectionId && r.ItemId == itemId && r.PrepId == null, TestContext.Current.CancellationToken);
         
         Assert.Equal(sectionId, entry.RecipeSectionId);
         Assert.Equal(itemId, entry.ItemId);

@@ -27,7 +27,7 @@ public class StoreControllerEndpointTests(AppSetupFactory<Program> setupFactory)
 
         Ulid pathId = Ulid.Parse(location.OriginalString.Split('/').Last());
 
-        StoreResponse? value = await response.Content.ReadFromJsonAsync<StoreResponse>();
+        StoreResponse? value = await response.Content.ReadFromJsonAsync<StoreResponse>(TestContext.Current.CancellationToken);
         Assert.NotNull(value);
         
         Assert.Equal(pathId, value.StoreId);

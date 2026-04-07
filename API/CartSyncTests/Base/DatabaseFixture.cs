@@ -24,7 +24,7 @@ public class DatabaseFixture(DatabaseSetup fixture) : IClassFixture<DatabaseSetu
     public required CartController CartController;
 
     /// Start
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         Context = DatabaseSetup.CreateContext();
         
@@ -40,9 +40,10 @@ public class DatabaseFixture(DatabaseSetup fixture) : IClassFixture<DatabaseSetu
     }
 
     /// End
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         await Context.Database.RollbackTransactionAsync();
+        GC.SuppressFinalize(this);
     }
 
     private static T AddTestController<T>(CartSyncContext context) where T : ControllerCore

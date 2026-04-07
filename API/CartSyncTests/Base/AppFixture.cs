@@ -18,7 +18,7 @@ public class AppFixture(AppSetupFactory<Program> setupFactory) : IClassFixture<A
     private HttpClient _client = null!;
     private HttpClient _clientAnonymous = null!;
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         WebApplicationFactoryClientOptions clientOptions = new()
         {
@@ -32,9 +32,10 @@ public class AppFixture(AppSetupFactory<Program> setupFactory) : IClassFixture<A
         await InitializeAuthorizedMethods();
     }
 
-    public Task DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        return Task.CompletedTask;
+        GC.SuppressFinalize(this);
+        return ValueTask.CompletedTask;
     }
     
     // Workaround for custom URL lowercase rewriter
