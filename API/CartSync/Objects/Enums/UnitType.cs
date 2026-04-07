@@ -11,11 +11,11 @@ public enum UnitType
     
     VolumeTeaspoons = 8,
     VolumeTablespoons = 9,
-    VolumeOunces = 10,
-    VolumeCups = 11,
-    VolumeQuarts = 12,
-    VolumePints = 13,
-    VolumeGallons = 14,
+    VolumeCups = 10,
+    VolumeQuarts = 11,
+    VolumePints = 12,
+    VolumeGallons = 13,
+    VolumeOunces = 14,
     
     WeightOunces = 32,
     WeightPounds = 33
@@ -23,11 +23,22 @@ public enum UnitType
 
 public static class UnitTypeEx
 {
+    public static UnitTypeCategory GetCategory(UnitType unitType)
+    {
+        return unitType.IsVolume
+            ? UnitTypeCategory.Volume
+            : unitType.IsWeight
+                ? UnitTypeCategory.Weight
+                : UnitTypeCategory.Quantity;
+    }
+    
     extension(UnitType unitType)
     {
-        public bool IsVolume => ((int)unitType) / 8 == 1;
-        public bool IsWeight => ((int)unitType) / 8 == 4;
-        
+        public bool IsVolume => (int)unitType / 8 == 1;
+        public bool IsWeight => (int)unitType / 8 == 4;
+
+        public UnitTypeCategory Category => GetCategory(unitType);
+
         public bool IsCompatible(UnitType other)
         {
             int a = (int)unitType;
@@ -54,6 +65,23 @@ public static class UnitTypeEx
                 _ => throw new ArgumentOutOfRangeException(nameof(unitType), unitType, null)
             };
         }
+
+        public string Abbreviation =>
+            unitType switch
+            {
+                UnitType.None => "(none)",
+                UnitType.Count => "ea.",
+                UnitType.VolumeTeaspoons => "tsp",
+                UnitType.VolumeTablespoons => "Tbsp",
+                UnitType.VolumeOunces => "oz",
+                UnitType.VolumeCups => "cups",
+                UnitType.VolumePints => "pt",
+                UnitType.VolumeQuarts => "qt",
+                UnitType.VolumeGallons => "gal",
+                UnitType.WeightOunces => "oz (#)",
+                UnitType.WeightPounds => "lbs",
+                _ => throw new ArgumentOutOfRangeException(nameof(unitType), unitType, null)
+            };
 
         public int Units =>
             unitType switch

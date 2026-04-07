@@ -23,7 +23,7 @@ public class StoreController(CartSyncContext context) : ControllerCore(context)
         for (int index = 0; index < stores.Count; index++)
         {
             StoreResponse storeResponse = stores[index];
-            if (storeResponse.StoreId == selectedStoreId)
+            if (storeResponse.Id == selectedStoreId)
             {
                 stores[index] = storeResponse with { IsSelected = true };
             }
@@ -38,7 +38,7 @@ public class StoreController(CartSyncContext context) : ControllerCore(context)
     {
         Store store = new()
         {
-            StoreName = storeAddRequest.StoreName,
+            StoreName = storeAddRequest.Name,
         };
         
         Db.Add(store);

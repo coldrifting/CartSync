@@ -61,7 +61,7 @@ namespace CartSync._Migrations
                         .IsUnicode(false)
                         .HasColumnType("character varying(26)");
 
-                    b.Property<string>("Amount")
+                    b.Property<string>("Amounts")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -102,7 +102,7 @@ namespace CartSync._Migrations
                         .IsUnicode(false)
                         .HasColumnType("character varying(26)");
 
-                    b.Property<string>("Amount")
+                    b.Property<string>("Amounts")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -143,9 +143,12 @@ namespace CartSync._Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
-                    b.Property<string>("ItemTemp")
+                    b.Property<string>("Temp")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<bool>("UncapCartUnits")
+                        .HasColumnType("boolean");
 
                     b.HasKey("ItemId");
 

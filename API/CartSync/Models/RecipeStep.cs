@@ -31,8 +31,8 @@ public class RecipeStep : ISortable, IEditable<RecipeStepEditRequest>, IResponse
     public static Expression<Func<RecipeStep, RecipeStepResponse>> ToResponse =>
         recipeStep => new RecipeStepResponse
         {
-            RecipeStepId = recipeStep.RecipeStepId,
-            RecipeStepContent = recipeStep.RecipeStepContent,
+            Id = recipeStep.RecipeStepId,
+            Content = recipeStep.RecipeStepContent,
             SortOrder = recipeStep.SortOrder,
             IsImage = recipeStep.IsImage
         };
@@ -40,8 +40,8 @@ public class RecipeStep : ISortable, IEditable<RecipeStepEditRequest>, IResponse
     public RecipeStepResponse ToNewResponse =>
         new()
         {
-            RecipeStepId = RecipeStepId,
-            RecipeStepContent = RecipeStepContent,
+            Id = RecipeStepId,
+            Content = RecipeStepContent,
             IsImage = IsImage,
             SortOrder = SortOrder
         };
@@ -51,7 +51,7 @@ public class RecipeStep : ISortable, IEditable<RecipeStepEditRequest>, IResponse
     {
         return new RecipeStepEditRequest
         {
-            RecipeStepContent = RecipeStepContent,
+            Content = RecipeStepContent,
             IsImage = IsImage,
             SortOrder = SortOrder
         };
@@ -60,7 +60,7 @@ public class RecipeStep : ISortable, IEditable<RecipeStepEditRequest>, IResponse
     /// Requires RecipeStep.Recipe.RecipeSteps navigation to work
     public void UpdateFromEditRequest(RecipeStepEditRequest editRequest)
     {
-        RecipeStepContent = editRequest.RecipeStepContent;
+        RecipeStepContent = editRequest.Content;
         IsImage = editRequest.IsImage;
         
         int oldIndex = SortOrder;
@@ -74,21 +74,21 @@ public class RecipeStep : ISortable, IEditable<RecipeStepEditRequest>, IResponse
 
 public record RecipeStepResponse
 {
-    public required Ulid RecipeStepId { get; init; }
-    public required string RecipeStepContent { get; init; }
+    public required Ulid Id { get; init; }
+    public required string Content { get; init; }
     public required bool IsImage { get; init; }
     public required int SortOrder { get; init; }
 }
 
 public class RecipeStepAddRequest
 {
-    public required string RecipeStepContent { get; init; } = string.Empty;
+    public required string Content { get; init; } = string.Empty;
     public required bool IsImage { get; init; }
 }
 
 public class RecipeStepEditRequest
 {
-    public required string RecipeStepContent { get; init; }
+    public required string Content { get; init; }
     public required bool IsImage { get; init; }
     public required int SortOrder { get; init; }
 }

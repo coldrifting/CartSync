@@ -34,12 +34,12 @@ public class RecipeSection : ISortable, IEditable<RecipeSectionEditRequest>, IRe
     public static Expression<Func<RecipeSection, RecipeSectionResponse>> ToResponse =>
         recipeSection => new RecipeSectionResponse
         {
-            RecipeSectionId = recipeSection.RecipeSectionId,
-            RecipeSectionName = recipeSection.RecipeSectionName,
+            Id = recipeSection.RecipeSectionId,
+            Name = recipeSection.RecipeSectionName,
             SortOrder = recipeSection.SortOrder,
             Entries = recipeSection.Entries
                 .AsQueryable()
-                .OrderBy(rse => rse.Item.ItemTemp)
+                .OrderBy(rse => rse.Item.Temp)
                 .ThenBy(rse => rse.Item.ItemName)
                 .ThenBy(rse => rse.Item.ItemId)
                 .Select(RecipeEntry.ToResponse)
@@ -50,8 +50,8 @@ public class RecipeSection : ISortable, IEditable<RecipeSectionEditRequest>, IRe
     public RecipeSectionResponse ToNewResponse =>
         new()
         {
-            RecipeSectionId = RecipeSectionId,
-            RecipeSectionName = RecipeSectionName,
+            Id = RecipeSectionId,
+            Name = RecipeSectionName,
             SortOrder = SortOrder,
             Entries = []
         };
@@ -62,7 +62,7 @@ public class RecipeSection : ISortable, IEditable<RecipeSectionEditRequest>, IRe
     {
         return new RecipeSectionEditRequest
         {
-            RecipeSectionName = RecipeSectionName,
+            Name = RecipeSectionName,
             SortOrder = SortOrder
         };
     }
@@ -70,7 +70,7 @@ public class RecipeSection : ISortable, IEditable<RecipeSectionEditRequest>, IRe
     /// Requires RecipeSection.Recipe.RecipeSections navigation to work
     public void UpdateFromEditRequest(RecipeSectionEditRequest editRequest)
     {
-        RecipeSectionName = editRequest.RecipeSectionName;
+        RecipeSectionName = editRequest.Name;
         
         int oldIndex = SortOrder;
         Recipe.Sections.Reorder(oldIndex, editRequest.SortOrder);
@@ -88,8 +88,8 @@ public class RecipeSection : ISortable, IEditable<RecipeSectionEditRequest>, IRe
 
 public record RecipeSectionResponse
 {
-    public required Ulid? RecipeSectionId { get; init; }
-    public required string RecipeSectionName { get; init; }
+    public required Ulid? Id { get; init; }
+    public required string Name { get; init; }
     public required int SortOrder { get; init; }
     public required ReadOnlyList<RecipeEntryResponse> Entries { get; init; }
 }
@@ -97,12 +97,12 @@ public record RecipeSectionResponse
 public record RecipeSectionAddRequest
 {
     [StringLength(255, MinimumLength = 1)] 
-    public required string RecipeSectionName { get; init; }
+    public required string Name { get; init; }
 }
 
 public record RecipeSectionEditRequest
 {
     [StringLength(255, MinimumLength = 1)] 
-    public required string RecipeSectionName { get; init; }
+    public required string Name { get; init; }
     public required int SortOrder { get; init; }
 }

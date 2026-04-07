@@ -25,14 +25,14 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         List<ItemByStoreResponse> items = await ItemController.All().ValueAsync();
         Assert.Equal(SeedData.Items.Count, items.Count);
         
-        Assert.Contains(items, ir => ir.ItemId == SeedData.Items[0].ItemId);
-        AssertItemEqual(items.Single(i => i.ItemId == SeedData.Items[0].ItemId), 0, [aisleIndex1]);
+        Assert.Contains(items, item => item.Id == SeedData.Items[0].ItemId);
+        AssertItemEqual(items.Single(item => item.Id == SeedData.Items[0].ItemId), 0, [aisleIndex1]);
         
-        Assert.Contains(items, ir => ir.ItemId == SeedData.Items[180].ItemId);
-        AssertItemEqual(items.Single(i => i.ItemId == SeedData.Items[180].ItemId), 180, [aisleIndex2]);
+        Assert.Contains(items, item => item.Id == SeedData.Items[180].ItemId);
+        AssertItemEqual(items.Single(item => item.Id == SeedData.Items[180].ItemId), 180, [aisleIndex2]);
         
-        Assert.Contains(items, ir => ir.ItemId == SeedData.Items[209].ItemId);
-        AssertItemEqual(items.Single(i => i.ItemId == SeedData.Items[209].ItemId), 209, [aisleIndex3]);
+        Assert.Contains(items, item => item.Id == SeedData.Items[209].ItemId);
+        AssertItemEqual(items.Single(item => item.Id == SeedData.Items[209].ItemId), 209, [aisleIndex3]);
     }
 
     [Fact]
@@ -57,25 +57,25 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         ItemUsagesResponse expected = new()
         {
-            ItemId = SeedData.Items[66].ItemId,
-            ItemName = SeedData.Items[66].ItemName,
+            Id = SeedData.Items[66].ItemId,
+            Name = SeedData.Items[66].ItemName,
             Recipes = [
                 new RecipeMinimalResponse
                 {
-                    RecipeId = SeedData.Recipes[2].RecipeId,
-                    RecipeName = SeedData.Recipes[2].RecipeName,
+                    Id = SeedData.Recipes[2].RecipeId,
+                    Name = SeedData.Recipes[2].RecipeName,
                     IsPinned =  SeedData.Recipes[2].IsPinned,
                 },
                 new RecipeMinimalResponse
                 {
-                    RecipeId = SeedData.Recipes[0].RecipeId,
-                    RecipeName = SeedData.Recipes[0].RecipeName,
+                    Id = SeedData.Recipes[0].RecipeId,
+                    Name = SeedData.Recipes[0].RecipeName,
                     IsPinned =  SeedData.Recipes[0].IsPinned,
                 },
                 new RecipeMinimalResponse
                 {
-                    RecipeId = SeedData.Recipes[3].RecipeId,
-                    RecipeName = SeedData.Recipes[3].RecipeName,
+                    Id = SeedData.Recipes[3].RecipeId,
+                    Name = SeedData.Recipes[3].RecipeName,
                     IsPinned =  SeedData.Recipes[3].IsPinned,
                 }
             ],
@@ -91,15 +91,15 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         ItemUsagesResponse expected = new()
         {
-            ItemId = SeedData.Items[2].ItemId,
-            ItemName = SeedData.Items[2].ItemName,
+            Id = SeedData.Items[2].ItemId,
+            Name = SeedData.Items[2].ItemName,
             Recipes = [],
             Preps =
             [
                 new PrepResponse
                 {
-                    PrepId = SeedData.Preps[7].PrepId,
-                    PrepName = SeedData.Preps[7].PrepName,
+                    Id = SeedData.Preps[7].PrepId,
+                    Name = SeedData.Preps[7].PrepName,
                 }
             ]
         };
@@ -114,27 +114,27 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         ItemUsagesResponse expected = new()
         {
-            ItemId = SeedData.Items[207].ItemId,
-            ItemName = SeedData.Items[207].ItemName,
+            Id = SeedData.Items[207].ItemId,
+            Name = SeedData.Items[207].ItemName,
             Recipes = [
                 new RecipeMinimalResponse
                 {
-                    RecipeId = SeedData.Recipes[0].RecipeId,
-                    RecipeName = SeedData.Recipes[0].RecipeName,
+                    Id = SeedData.Recipes[0].RecipeId,
+                    Name = SeedData.Recipes[0].RecipeName,
                     IsPinned =  SeedData.Recipes[0].IsPinned,
                 },
                 new RecipeMinimalResponse
                 {
-                    RecipeId = SeedData.Recipes[3].RecipeId,
-                    RecipeName = SeedData.Recipes[3].RecipeName,
+                    Id = SeedData.Recipes[3].RecipeId,
+                    Name = SeedData.Recipes[3].RecipeName,
                     IsPinned =  SeedData.Recipes[3].IsPinned,
                 }
             ],
             Preps = [
                 new PrepResponse
                 {
-                    PrepId = SeedData.Preps[2].PrepId,
-                    PrepName = SeedData.Preps[2].PrepName,
+                    Id = SeedData.Preps[2].PrepId,
+                    Name = SeedData.Preps[2].PrepName,
                 }
             ]
         };
@@ -148,8 +148,8 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         ItemUsagesResponse expected = new()
         {
-            ItemId = SeedData.Items[22].ItemId,
-            ItemName = SeedData.Items[22].ItemName,
+            Id = SeedData.Items[22].ItemId,
+            Name = SeedData.Items[22].ItemName,
             Recipes = [],
             Preps = []
         };
@@ -170,22 +170,22 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         ItemAddRequest newItem = new()
         {
-            ItemName = "New Item Name",
+            Name = "New Item Name",
         };
 
         (ItemResponse item, string location) result = await ItemController.Add(newItem).ValueAsync();
-        Assert.Equal(newItem.ItemName, result.item.ItemName);
-        Assert.Equal(result.location.Split('/').Last().ToLower(), result.item.ItemId.ToString().ToLower());
+        Assert.Equal(newItem.Name, result.item.Name);
+        Assert.Equal(result.location.Split('/').Last().ToLower(), result.item.Id.ToString().ToLower());
 
-        ItemByStoreResponse fetch = await ItemController.Details(result.item.ItemId).ValueAsync();
-        Assert.Equal(newItem.ItemName, fetch.ItemName);
+        ItemByStoreResponse fetch = await ItemController.Details(result.item.Id).ValueAsync();
+        Assert.Equal(newItem.Name, fetch.Name);
 
         List<ItemByStoreResponse> results = await ItemController.All().ValueAsync();
         Assert.Equal(SeedData.Items.Count + 1, results.Count);
-        Assert.Contains(results, r => r.ItemId ==  result.item.ItemId);
+        Assert.Contains(results, item => item.Id == result.item.Id);
         
-        ItemByStoreResponse item = results.First(r => r.ItemId == result.item.ItemId);
-        Assert.Equal(newItem.ItemName, item.ItemName);
+        ItemByStoreResponse item = results.First(item => item.Id == result.item.Id);
+        Assert.Equal(newItem.Name, item.Name);
     }
 
     [Fact]
@@ -198,7 +198,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
                 new Operation<ItemEditRequest>
                 {
                     op = "replace",
-                    path = "/ItemName",
+                    path = "/Name",
                     value = "New Item"
                 }
             }
@@ -210,7 +210,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         
         List<ItemByStoreResponse> items = await ItemController.All().ValueAsync();
         Assert.Equal(SeedData.Items.Count, items.Count);
-        Assert.Contains("New Item", items.Where(i => i.ItemId == itemId).Select(i => i.ItemName));
+        Assert.Contains("New Item", items.Where(item => item.Id == itemId).Select(i => i.Name));
     }
 
     [Fact]
@@ -223,7 +223,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
                 new Operation<ItemEditRequest>
                 {
                     op = "replace",
-                    path = "/ItemTemp",
+                    path = "/Temp",
                     value = "Frozen"
                 }
             }
@@ -235,7 +235,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         
         List<ItemByStoreResponse> items = await ItemController.All().ValueAsync();
         Assert.Equal(SeedData.Items.Count, items.Count);
-        Assert.Contains(ItemTemp.Frozen, items.Where(i => i.ItemId == itemId).Select(i => i.ItemTemp));
+        Assert.Contains(Temp.Frozen, items.Where(item => item.Id == itemId).Select(i => i.Temp));
     }
 
     [Fact]
@@ -246,7 +246,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         ItemAisleEditRequest location = new()
         {
             AisleId = SeedData.Aisles[23].AisleId,
-            Bay = BayType.End
+            Bay = Bay.End
         };
         
         JsonPatchDocument<ItemEditRequest> jsonPatch = new()
@@ -281,7 +281,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         ItemAisleEditRequest location = new()
         {
             AisleId = SeedData.Aisles[17].AisleId,
-            Bay = BayType.Start
+            Bay = Bay.Begin
         };
         
         JsonPatchDocument<ItemEditRequest> jsonPatch = new()
@@ -313,7 +313,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         ItemAisleEditRequest location = new()
         {
             AisleId = Ulid.NotFound,
-            Bay = BayType.End
+            Bay = Bay.End
         };
         
         JsonPatchDocument<ItemEditRequest> jsonPatch = new()
@@ -335,7 +335,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
 
         Assert.Equal(SeedData.Aisles[4].AisleId, item.Location?.AisleId);
-        Assert.Equal(BayType.Middle, item.Location?.Bay);
+        Assert.Equal(Bay.Center, item.Location?.Bay);
     }
 
     [Fact]
@@ -346,7 +346,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         ItemAisleEditRequest location = new()
         {
             AisleId = SeedData.Aisles[4].AisleId,
-            Bay = BayType.End
+            Bay = Bay.End
         };
         
         JsonPatchDocument<ItemEditRequest> jsonPatch = new()
@@ -450,7 +450,10 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
 
         IEnumerable<Ulid> expected = [ prepId ];
-        IEnumerable<Ulid> actual = item.Preps.OrderBy(i => i.PrepName).ThenBy(i => i.PrepId).Select(i => i.PrepId);
+        IEnumerable<Ulid> actual = item.Preps
+            .OrderBy(prep => prep.Name)
+            .ThenBy(prep => prep.Id)
+            .Select(prep => prep.Id);
         
         Assert.Equal(expected, actual);
     }
@@ -478,7 +481,10 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
 
         IEnumerable<Ulid> expected = [ prepId, SeedData.Preps[3].PrepId, SeedData.Preps[4].PrepId ];
-        IEnumerable<Ulid> actual = item.Preps.OrderBy(i => i.PrepName).ThenBy(i => i.PrepId).Select(i => i.PrepId);
+        IEnumerable<Ulid> actual = item.Preps
+            .OrderBy(prep => prep.Name)
+            .ThenBy(prep => prep.Id)
+            .Select(prep => prep.Id);
         
         Assert.Equal(expected, actual);
     }
@@ -507,7 +513,10 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
 
         IEnumerable<Ulid> expected = [ SeedData.Preps[3].PrepId, SeedData.Preps[4].PrepId ];
-        IEnumerable<Ulid> actual = item.Preps.OrderBy(i => i.PrepName).ThenBy(i => i.PrepId).Select(i => i.PrepId);
+        IEnumerable<Ulid> actual = item.Preps
+            .OrderBy(prep => prep.Name)
+            .ThenBy(prep => prep.Id)
+            .Select(prep => prep.Id);
         
         Assert.Equal(expected, actual);
     }
@@ -535,7 +544,10 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
 
         IEnumerable<Ulid> expected = [ SeedData.Preps[prepIndex].PrepId ];
-        IEnumerable<Ulid> actual = item.Preps.OrderBy(i => i.PrepName).ThenBy(i => i.PrepId).Select(i => i.PrepId);
+        IEnumerable<Ulid> actual = item.Preps
+            .OrderBy(prep => prep.Name)
+            .ThenBy(prep => prep.Id)
+            .Select(prep => prep.Id);
         
         Assert.Equal(expected, actual);
     }
@@ -562,7 +574,10 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
 
         IEnumerable<Ulid> expected = [ ];
-        IEnumerable<Ulid> actual = item.Preps.OrderBy(i => i.PrepName).ThenBy(i => i.PrepId).Select(i => i.PrepId);
+        IEnumerable<Ulid> actual = item.Preps
+            .OrderBy(prep => prep.Name)
+            .ThenBy(prep => prep.Id)
+            .Select(prep => prep.Id);
         
         Assert.Equal(expected, actual);
     }
@@ -611,7 +626,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         
         List<ItemByStoreResponse> items = await ItemController.All().ValueAsync();
         Assert.Equal(SeedData.Items.Count - 1, items.Count);
-        Assert.DoesNotContain(items, r => r.ItemId == itemId);
+        Assert.DoesNotContain(items, item => item.Id == itemId);
     }
 
     [Fact]
@@ -626,10 +641,11 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         ItemResponse item = new()
         {
-            ItemId = itemResponse.ItemId,
-            ItemName = itemResponse.ItemName,
-            ItemTemp =  itemResponse.ItemTemp,
+            Id = itemResponse.Id,
+            Name = itemResponse.Name,
+            Temp =  itemResponse.Temp,
             DefaultUnitType = itemResponse.DefaultUnitType,
+            UncapCartUnits = itemResponse.UncapCartUnits,
             Preps = itemResponse.Preps,
             Locations = itemResponse.Location != null ? [itemResponse.Location] : [],
         };
@@ -638,9 +654,9 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
 
     private static void AssertItemEqual(ItemResponse itemResponse, int itemIndex, int[]? aisleIndices = null)
     {
-        Assert.Equal(SeedData.Items[itemIndex].ItemId, itemResponse.ItemId);
-        Assert.Equal(SeedData.Items[itemIndex].ItemName, itemResponse.ItemName);
-        Assert.Equal(SeedData.Items[itemIndex].ItemTemp, itemResponse.ItemTemp);
+        Assert.Equal(SeedData.Items[itemIndex].ItemId, itemResponse.Id);
+        Assert.Equal(SeedData.Items[itemIndex].ItemName, itemResponse.Name);
+        Assert.Equal(SeedData.Items[itemIndex].Temp, itemResponse.Temp);
         Assert.Equal(SeedData.Items[itemIndex].DefaultUnitType, itemResponse.DefaultUnitType);
 
         if (itemResponse.Preps.Count <= 0)
@@ -653,8 +669,8 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
             .Select(ip => SeedData.Preps.Single(p => p.PrepId == ip.PrepId))
             .AsQueryable()
             .Select(Prep.ToResponse)
-            .OrderBy(p => p.PrepName)
-            .ThenBy(p => p.PrepId)
+            .OrderBy(prep => prep.Name)
+            .ThenBy(prep => prep.Id)
             .ToList();
         
         Assert.Equal(itemResponse.Preps, expectedPreps);

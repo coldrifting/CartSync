@@ -14,7 +14,7 @@ public class ItemAisle
     public Ulid StoreId { get; init; }
     
     public Ulid AisleId { get; set; }
-    public BayType Bay { get; set; } = BayType.Middle;
+    public Bay Bay { get; set; } = Bay.Center;
     
     // Navigation
     [ForeignKey(nameof(ItemId))]
@@ -52,7 +52,7 @@ public record ItemAisleResponse
     public required Ulid AisleId { get; init; }
     public required Ulid StoreId { get; init; }
     public required string AisleName { get; init; }
-    public required BayType Bay { get; init; }
+    public required Bay Bay { get; init; }
     public required int SortOrder { get; init; }
 }
 
@@ -62,5 +62,5 @@ public record ItemAisleEditRequest
     public required Ulid AisleId { get; init; }
     
     [Required]
-    public required BayType Bay { get; init; }
+    public required Bay Bay { get; init; }
 }

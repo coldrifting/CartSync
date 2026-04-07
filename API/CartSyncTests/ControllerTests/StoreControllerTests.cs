@@ -24,17 +24,17 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
     {
         StoreAddRequest newStore = new()
         {
-            StoreName = "new store"
+            Name = "new store"
         };
         
         (StoreResponse store, string location) result = await StoreController.Add(newStore).ValueAsync();
-        Assert.Equal(result.store.StoreName, newStore.StoreName);
-        Assert.Equal(result.location.Split('/').Last().ToLower(), result.store.StoreId.ToString().ToLower());
+        Assert.Equal(result.store.Name, newStore.Name);
+        Assert.Equal(result.location.Split('/').Last().ToLower(), result.store.Id.ToString().ToLower());
 
         List<StoreResponse> stores = await StoreController.All().ValueAsync();
 
         Assert.Equal(3, stores.Count);
-        Assert.Contains("new store", stores.Select(s => s.StoreName));
+        Assert.Contains("new store", stores.Select(s => s.Name));
     }
     
     [Fact]
@@ -49,8 +49,8 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
         await StoreController.Select(store1).AssertIsSuccessful();
 
         List<StoreResponse> storeResponse = await StoreController.All().ValueAsync();
-        Assert.False(storeResponse.FirstOrDefault(s => s.StoreId == store0)?.IsSelected);
-        Assert.True(storeResponse.FirstOrDefault(s => s.StoreId == store1)?.IsSelected);
+        Assert.False(storeResponse.FirstOrDefault(store => store.Id == store0)?.IsSelected);
+        Assert.True(storeResponse.FirstOrDefault(store => store.Id == store1)?.IsSelected);
 
         await StoreController.Delete(store0).AssertIsSuccessful();
         
@@ -60,7 +60,7 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
         List<StoreResponse> stores = await StoreController.All().ValueAsync();
 
         Assert.Single(stores);
-        Assert.Contains(store1, stores.Select(s => s.StoreId));
+        Assert.Contains(store1, stores.Select(store => store.Id));
     }
     
     [Fact]
@@ -73,7 +73,7 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
                 new Operation<StoreEditRequest>
                 {
                     op = "replace",
-                    path = "/StoreName",
+                    path = "/Name",
                     value = "edited store"
                 }
             }
@@ -85,9 +85,9 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
 
         Assert.Equal(2, stores.Count);
 
-        StoreResponse? store = stores.FirstOrDefault(s => s.StoreId == SeedData.Stores[0].StoreId);
+        StoreResponse? store = stores.FirstOrDefault(store => store.Id == SeedData.Stores[0].StoreId);
         Assert.NotNull(store);
-        Assert.Equal("edited store", store.StoreName);
+        Assert.Equal("edited store", store.Name);
     }
     
     [Fact]
@@ -112,7 +112,7 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
         List<StoreResponse> stores = await StoreController.All().ValueAsync();
         
         Assert.Equal(2, stores.Count);
-        Assert.DoesNotContain("edited store", stores.Select(s => s.StoreName));
+        Assert.DoesNotContain("edited store", stores.Select(store => store.Name));
     }
     
     [Fact]
@@ -136,7 +136,7 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
         List<StoreResponse> stores = await StoreController.All().ValueAsync();
         
         Assert.Equal(2, stores.Count);
-        Assert.Contains(SeedData.Stores[0].StoreName, stores.Select(s => s.StoreName));
+        Assert.Contains(SeedData.Stores[0].StoreName, stores.Select(store => store.Name));
     }
     
     [Fact]
@@ -161,7 +161,7 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
         List<StoreResponse> stores = await StoreController.All().ValueAsync();
         
         Assert.Equal(2, stores.Count);
-        Assert.DoesNotContain("", stores.Select(s => s.StoreName));
+        Assert.DoesNotContain("", stores.Select(store => store.Name));
     }
     
     [Fact]
@@ -187,7 +187,7 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
         List<StoreResponse> stores = await StoreController.All().ValueAsync();
         
         Assert.Equal(2, stores.Count);
-        Assert.DoesNotContain("", stores.Select(s => s.StoreName));
+        Assert.DoesNotContain("", stores.Select(store => store.Name));
     }
     
     [Fact]
@@ -198,7 +198,7 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
         List<StoreResponse> stores = await StoreController.All().ValueAsync();
 
         Assert.Single(stores);
-        Assert.DoesNotContain(SeedData.Stores[1].StoreId, stores.Select(s => s.StoreId));
+        Assert.DoesNotContain(SeedData.Stores[1].StoreId, stores.Select(store => store.Id));
     }
     
     [Fact]
@@ -210,7 +210,7 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
         List<StoreResponse> stores = await StoreController.All().ValueAsync();
 
         Assert.Equal(2, stores.Count);
-        Assert.Contains(SeedData.Stores[0].StoreId, stores.Select(s => s.StoreId));
+        Assert.Contains(SeedData.Stores[0].StoreId, stores.Select(store => store.Id));
     }
     
     [Fact]
@@ -223,7 +223,7 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
         List<StoreResponse> stores = await StoreController.All().ValueAsync();
         
         Assert.Equal(2, stores.Count);
-        Assert.Contains(SeedData.Stores[0].StoreId, stores.Select(s => s.StoreId));
-        Assert.Contains(SeedData.Stores[1].StoreId, stores.Select(s => s.StoreId));
+        Assert.Contains(SeedData.Stores[0].StoreId, stores.Select(store => store.Id));
+        Assert.Contains(SeedData.Stores[1].StoreId, stores.Select(store => store.Id));
     }
 }

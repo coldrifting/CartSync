@@ -17,8 +17,8 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         List<PrepResponse> expectedPreps = SeedData.Preps
             .AsQueryable()
             .Select(Prep.ToResponse)
-            .OrderBy(p => p.PrepName)
-            .ThenBy(p => p.PrepId)
+            .OrderBy(prep => prep.Name)
+            .ThenBy(prep => prep.Id)
             .ToList();
 
         List<PrepResponse> preps = await PrepController.All()
@@ -32,57 +32,57 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         PrepUsagesResponse expected = new()
         {
-            PrepId = SeedData.Preps[3].PrepId,
-            PrepName = SeedData.Preps[3].PrepName,
+            Id = SeedData.Preps[3].PrepId,
+            Name = SeedData.Preps[3].PrepName,
             Items = [
                 new ItemMinimalResponse
                 {
-                    ItemId = SeedData.Items[179].ItemId,
-                    ItemName = SeedData.Items[179].ItemName,
-                    ItemTemp = SeedData.Items[179].ItemTemp,
+                    Id = SeedData.Items[179].ItemId,
+                    Name = SeedData.Items[179].ItemName,
+                    Temp = SeedData.Items[179].Temp,
                 },
                 new ItemMinimalResponse
                 {
-                    ItemId = SeedData.Items[180].ItemId,
-                    ItemName = SeedData.Items[180].ItemName,
-                    ItemTemp = SeedData.Items[180].ItemTemp,
+                    Id = SeedData.Items[180].ItemId,
+                    Name = SeedData.Items[180].ItemName,
+                    Temp = SeedData.Items[180].Temp,
                 },
                 new ItemMinimalResponse
                 {
-                    ItemId = SeedData.Items[181].ItemId,
-                    ItemName = SeedData.Items[181].ItemName,
-                    ItemTemp = SeedData.Items[181].ItemTemp,
+                    Id = SeedData.Items[181].ItemId,
+                    Name = SeedData.Items[181].ItemName,
+                    Temp = SeedData.Items[181].Temp,
                 },
                 new ItemMinimalResponse
                 {
-                    ItemId = SeedData.Items[182].ItemId,
-                    ItemName = SeedData.Items[182].ItemName,
-                    ItemTemp = SeedData.Items[182].ItemTemp,
+                    Id = SeedData.Items[182].ItemId,
+                    Name = SeedData.Items[182].ItemName,
+                    Temp = SeedData.Items[182].Temp,
                 },
                 new ItemMinimalResponse
                 {
-                    ItemId = SeedData.Items[183].ItemId,
-                    ItemName = SeedData.Items[183].ItemName,
-                    ItemTemp = SeedData.Items[183].ItemTemp,
+                    Id = SeedData.Items[183].ItemId,
+                    Name = SeedData.Items[183].ItemName,
+                    Temp = SeedData.Items[183].Temp,
                 },
                 new ItemMinimalResponse
                 {
-                    ItemId = SeedData.Items[184].ItemId,
-                    ItemName = SeedData.Items[184].ItemName,
-                    ItemTemp = SeedData.Items[184].ItemTemp,
+                    Id = SeedData.Items[184].ItemId,
+                    Name = SeedData.Items[184].ItemName,
+                    Temp = SeedData.Items[184].Temp,
                 }
             ],
             Recipes = [
                 new RecipeMinimalResponse
                 {
-                    RecipeId = SeedData.Recipes[1].RecipeId,
-                    RecipeName = SeedData.Recipes[1].RecipeName,
+                    Id = SeedData.Recipes[1].RecipeId,
+                    Name = SeedData.Recipes[1].RecipeName,
                     IsPinned =  SeedData.Recipes[1].IsPinned,
                 },
                 new RecipeMinimalResponse
                 {
-                    RecipeId = SeedData.Recipes[3].RecipeId,
-                    RecipeName = SeedData.Recipes[3].RecipeName,
+                    Id = SeedData.Recipes[3].RecipeId,
+                    Name = SeedData.Recipes[3].RecipeName,
                     IsPinned =  SeedData.Recipes[3].IsPinned,
                 }
             ]
@@ -97,15 +97,15 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         PrepUsagesResponse expected = new()
         {
-            PrepId = SeedData.Preps[6].PrepId,
-            PrepName = SeedData.Preps[6].PrepName,
+            Id = SeedData.Preps[6].PrepId,
+            Name = SeedData.Preps[6].PrepName,
             Items =
             [
                 new ItemMinimalResponse
                 {
-                    ItemId = SeedData.Items[56].ItemId,
-                    ItemName = SeedData.Items[56].ItemName,
-                    ItemTemp = SeedData.Items[56].ItemTemp,
+                    Id = SeedData.Items[56].ItemId,
+                    Name = SeedData.Items[56].ItemName,
+                    Temp = SeedData.Items[56].Temp,
                 },
             ],
             Recipes = []
@@ -128,22 +128,22 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         List<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
             .Select(Prep.ToResponse)
-            .OrderBy(p => p.PrepName)
-            .ThenBy(p => p.PrepId)
+            .OrderBy(prep => prep.Name)
+            .ThenBy(prep => prep.Id)
             .ToList();
 
         PrepAddRequest addRequest = new()
         {
-            PrepName = "New Prep Name"
+            Name = "New Prep Name"
         };
         (PrepResponse prep, string location) result = await PrepController.Add(addRequest).ValueAsync();
-        Assert.Equal(addRequest.PrepName, result.prep.PrepName);
-        Assert.Equal(result.location.Split('/').Last().ToLower(), result.prep.PrepId.ToString().ToLower());
+        Assert.Equal(addRequest.Name, result.prep.Name);
+        Assert.Equal(result.location.Split('/').Last().ToLower(), result.prep.Id.ToString().ToLower());
         
         List<PrepResponse> preps = await PrepController.All().ValueAsync();
         
         Assert.Equal(previousPreps.Count + 1, preps.Count);
-        Assert.Contains(preps, p => p.PrepName == addRequest.PrepName);
+        Assert.Contains(preps, prep => prep.Name == addRequest.Name);
     }
 
     [Fact]
@@ -152,8 +152,8 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         List<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
             .Select(Prep.ToResponse)
-            .OrderBy(p => p.PrepName)
-            .ThenBy(p => p.PrepId)
+            .OrderBy(prep => prep.Name)
+            .ThenBy(prep => prep.Id)
             .ToList();
         
         JsonPatchDocument<PrepEditRequest> jsonPatch = new()
@@ -163,7 +163,7 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
                 new Operation<PrepEditRequest>
                 {
                     op = "replace",
-                    path = "/PrepName",
+                    path = "/Name",
                     value = "New Prep Name"
                 }
             }
@@ -176,7 +176,7 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
             .ValueAsync();
         
         Assert.Equal(previousPreps.Count, preps.Count);
-        Assert.Contains(preps, p => p.PrepId == prepId && p.PrepName == "New Prep Name");
+        Assert.Contains(preps, prep => prep.Id == prepId && prep.Name == "New Prep Name");
     }
 
     [Fact]
@@ -185,8 +185,8 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         List<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
             .Select(Prep.ToResponse)
-            .OrderBy(p => p.PrepName)
-            .ThenBy(p => p.PrepId)
+            .OrderBy(prep => prep.Name)
+            .ThenBy(prep => prep.Id)
             .ToList();
         
         JsonPatchDocument<PrepEditRequest> jsonPatch = new()
@@ -210,7 +210,7 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
             .ValueAsync();
         
         Assert.Equal(previousPreps.Count, preps.Count);
-        Assert.Contains(preps, p => p.PrepId == prepId && p.PrepName != "New Prep Name");
+        Assert.Contains(preps, prep => prep.Id == prepId && prep.Name != "New Prep Name");
     }
 
     [Fact]
@@ -219,8 +219,8 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         List<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
             .Select(Prep.ToResponse)
-            .OrderBy(p => p.PrepName)
-            .ThenBy(p => p.PrepId)
+            .OrderBy(prep => prep.Name)
+            .ThenBy(prep => prep.Id)
             .ToList();
         
         Ulid badPrepId = SeedData.Preps[5].PrepId;
@@ -245,8 +245,8 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
             .ValueAsync();
         
         Assert.Equal(previousPreps.Count, preps.Count);
-        Assert.Contains(preps, p => p.PrepId == prepId);
-        Assert.Single(preps, p => p.PrepId == badPrepId);
+        Assert.Contains(preps, prep => prep.Id == prepId);
+        Assert.Single(preps, prep => prep.Id == badPrepId);
     }
 
     [Fact]
@@ -255,8 +255,8 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         List<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
             .Select(Prep.ToResponse)
-            .OrderBy(p => p.PrepName)
-            .ThenBy(p => p.PrepId)
+            .OrderBy(prep => prep.Name)
+            .ThenBy(prep => prep.Id)
             .ToList();
         
         JsonPatchDocument<PrepEditRequest> jsonPatch = new()
@@ -280,8 +280,8 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
             .ValueAsync();
         
         Assert.Equal(previousPreps.Count, preps.Count);
-        Assert.Contains(preps, p => p.PrepId == prepId);
-        Assert.DoesNotContain(preps, p => p.PrepId == Ulid.NotFound);
+        Assert.Contains(preps, prep => prep.Id == prepId);
+        Assert.DoesNotContain(preps, prep => prep.Id == Ulid.NotFound);
     }
 
     [Fact]
@@ -290,8 +290,8 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         List<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
             .Select(Prep.ToResponse)
-            .OrderBy(p => p.PrepName)
-            .ThenBy(p => p.PrepId)
+            .OrderBy(prep => prep.Name)
+            .ThenBy(prep => prep.Id)
             .ToList();
         
         JsonPatchDocument<PrepEditRequest> jsonPatch = new()
@@ -314,7 +314,7 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
             .ValueAsync();
         
         Assert.Equal(previousPreps.Count, preps.Count);
-        Assert.Contains(preps, p => p.PrepId == prepId && p.PrepName != "New Prep Name");
+        Assert.Contains(preps, prep => prep.Id == prepId && prep.Name != "New Prep Name");
     }
 
     [Fact]
@@ -323,8 +323,8 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         List<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
             .Select(Prep.ToResponse)
-            .OrderBy(p => p.PrepName)
-            .ThenBy(p => p.PrepId)
+            .OrderBy(prep => prep.Name)
+            .ThenBy(prep => prep.Id)
             .ToList();
 
         await PrepController.Delete(SeedData.Preps[3].PrepId).AssertIsSuccessful();
@@ -342,25 +342,25 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         List<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
             .Select(Prep.ToResponse)
-            .OrderBy(p => p.PrepName)
-            .ThenBy(p => p.PrepId)
+            .OrderBy(prep => prep.Name)
+            .ThenBy(prep => prep.Id)
             .ToList();
 
         PrepAddRequest addRequest = new()
         {
-            PrepName = "New Prep Name"
+            Name = "New Prep Name"
         };
         (PrepResponse prep, string location) result = await PrepController.Add(addRequest).ValueAsync();
-        Assert.Equal(addRequest.PrepName, result.prep.PrepName);
-        Assert.Equal(result.location.Split('/').Last().ToLower(), result.prep.PrepId.ToString().ToLower());
+        Assert.Equal(addRequest.Name, result.prep.Name);
+        Assert.Equal(result.location.Split('/').Last().ToLower(), result.prep.Id.ToString().ToLower());
         
         List<PrepResponse> prepsAfterAdd = await PrepController.All()
             .ValueAsync();
         
         Assert.Equal(previousPreps.Count + 1, prepsAfterAdd.Count);
-        Assert.Contains(prepsAfterAdd, p => p.PrepName == addRequest.PrepName);
+        Assert.Contains(prepsAfterAdd, prep => prep.Name == addRequest.Name);
         
-        Ulid prepId = prepsAfterAdd.Single(p => p.PrepName == addRequest.PrepName).PrepId;
+        Ulid prepId = prepsAfterAdd.Single(prep => prep.Name == addRequest.Name).Id;
 
         await PrepController.Delete(prepId).AssertIsSuccessful();
         
@@ -371,7 +371,7 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
             .ValueAsync();
         
         Assert.Equal(previousPreps.Count, preps.Count);
-        Assert.DoesNotContain(preps, p => p.PrepName == addRequest.PrepName);
+        Assert.DoesNotContain(preps, prep => prep.Name == addRequest.Name);
     }
     
     [Fact]

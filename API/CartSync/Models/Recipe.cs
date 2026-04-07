@@ -36,8 +36,8 @@ public class Recipe : IEditable<RecipeEditRequest>, IResponse<Recipe, RecipeResp
         recipe =>
             new RecipeResponse
             {
-                RecipeId = recipe.RecipeId,
-                RecipeName = recipe.RecipeName,
+                Id = recipe.RecipeId,
+                Name = recipe.RecipeName,
                 Url = recipe.Url,
                 IsPinned = recipe.IsPinned,
                 Steps = recipe.Steps
@@ -58,8 +58,8 @@ public class Recipe : IEditable<RecipeEditRequest>, IResponse<Recipe, RecipeResp
         recipe =>
             new RecipeMinimalResponse
             {
-                RecipeId = recipe.RecipeId,
-                RecipeName = recipe.RecipeName,
+                Id = recipe.RecipeId,
+                Name = recipe.RecipeName,
                 IsPinned = recipe.IsPinned
             };
     
@@ -67,8 +67,8 @@ public class Recipe : IEditable<RecipeEditRequest>, IResponse<Recipe, RecipeResp
     public RecipeResponse ToNewResponse =>
         new()
         {
-            RecipeId = RecipeId,
-            RecipeName = RecipeName,
+            Id = RecipeId,
+            Name = RecipeName,
             Url = Url,
             IsPinned = IsPinned,
             Steps = [],
@@ -80,7 +80,7 @@ public class Recipe : IEditable<RecipeEditRequest>, IResponse<Recipe, RecipeResp
     {
         return new RecipeEditRequest
         {
-            RecipeName = RecipeName,
+            Name = RecipeName,
             Url = Url,
             IsPinned = IsPinned
         };
@@ -88,7 +88,7 @@ public class Recipe : IEditable<RecipeEditRequest>, IResponse<Recipe, RecipeResp
 
     public void UpdateFromEditRequest(RecipeEditRequest editRequest)
     {
-        RecipeName = editRequest.RecipeName;
+        RecipeName = editRequest.Name;
         Url = editRequest.Url;
         IsPinned = editRequest.IsPinned;
     }
@@ -102,9 +102,9 @@ public class Recipe : IEditable<RecipeEditRequest>, IResponse<Recipe, RecipeResp
 
 public record RecipeResponse
 {
-    public required Ulid RecipeId { get; init; }
+    public required Ulid Id { get; init; }
     
-    public required string RecipeName { get; init; }
+    public required string Name { get; init; }
     public required string Url { get; init; }
     public required bool IsPinned { get; init; }
 
@@ -115,30 +115,30 @@ public record RecipeResponse
     public RecipeMinimalResponse ToMinimalResponse =>
         new()
         {
-            RecipeId = RecipeId,
-            RecipeName = RecipeName,
+            Id = Id,
+            Name = Name,
             IsPinned = IsPinned,
         };
 }
 
 public record RecipeMinimalResponse
 {
-    public required Ulid RecipeId { get; init; }
+    public required Ulid Id { get; init; }
     
-    public required string RecipeName { get; init; }
+    public required string Name { get; init; }
     public required bool IsPinned { get; init; }
 }
 
 public class RecipeAddRequest
 {
     [Required, StringLength(255, MinimumLength = 1)]
-    public required string RecipeName  { get; init; }
+    public required string Name  { get; init; }
 }
 
 public class RecipeEditRequest
 {
     [Required, StringLength(255, MinimumLength = 1)]
-    public required string RecipeName  { get; init; }
+    public required string Name  { get; init; }
     
     [Required, StringLength(2048)]
     public required string Url { get; init; }

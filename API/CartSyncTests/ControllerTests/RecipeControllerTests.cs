@@ -18,8 +18,8 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
     {
         ReadOnlyList<RecipeMinimalResponse> expected = SeedData.Recipes
             .AsQueryable()
-            .OrderBy(r => r.RecipeName)
-            .ThenBy(r => r.RecipeId)
+            .OrderBy(recipe => recipe.RecipeName)
+            .ThenBy(recipe => recipe.RecipeId)
             .Select(Recipe.ToMinimalResponse)
             .ToImmutableList()
             .WithValueSemantics();
@@ -33,15 +33,15 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
     {
         ReadOnlyList<RecipeResponse> expected = SeedData.Recipes
             .AsQueryable()
-            .OrderBy(r => r.RecipeName)
-            .ThenBy(r => r.RecipeId)
+            .OrderBy(recipe => recipe.RecipeName)
+            .ThenBy(recipe => recipe.RecipeId)
             .Select(Recipe.ToResponse)
             .ToImmutableList()
             .WithValueSemantics();
         
         foreach (RecipeResponse expectedRecipe in expected)
         {
-            RecipeResponse result = await RecipeController.Details(expectedRecipe.RecipeId).ValueAsync();
+            RecipeResponse result = await RecipeController.Details(expectedRecipe.Id).ValueAsync();
             Assert.Equal(expectedRecipe.ToMinimalResponse, result.ToMinimalResponse);
         }
 
@@ -49,8 +49,8 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
         
         ReadOnlyList<RecipeStepResponse> expectedSteps = SeedData.RecipeSteps
             .AsQueryable()
-            .Where(r => r.RecipeId == recipeId)
-            .OrderBy(r => r.SortOrder)
+            .Where(recipe => recipe.RecipeId == recipeId)
+            .OrderBy(recipe => recipe.SortOrder)
             .Select(RecipeStep.ToResponse)
             .ToImmutableList()
             .WithValueSemantics();
@@ -60,43 +60,43 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
         
         ReadOnlyList<RecipeSectionResponse> expectedSections = SeedData.RecipeSections
             .AsQueryable()
-            .Where(r => r.RecipeId == recipeId)
-            .OrderBy(r => r.SortOrder)
+            .Where(section => section.RecipeId == recipeId)
+            .OrderBy(section => section.SortOrder)
             .Select(RecipeSection.ToResponse)
             .ToImmutableList()
             .WithValueSemantics();
         
-        Ulid? recipeSectionId = expectedSections[0].RecipeSectionId;
+        Ulid? recipeSectionId = expectedSections[0].Id;
         ImmutableList<RecipeSectionEntryMinimal> expectedSectionEntries = SeedData.RecipeEntries
             .AsQueryable()
-            .Where(r => r.RecipeSectionId == recipeSectionId)
-            .OrderBy(r => SeedData.Items.First(i => i.ItemId == r.ItemId).ItemTemp)
-            .ThenBy(r => SeedData.Items.First(i => i.ItemId == r.ItemId).ItemName)
-            .ThenBy(r => r.ItemId)
-            .Select(r => new RecipeSectionEntryMinimal(r.RecipeEntryId, r.ItemId, r.PrepId))
+            .Where(entry => entry.RecipeSectionId == recipeSectionId)
+            .OrderBy(entry => SeedData.Items.First(item => item.ItemId == entry.ItemId).Temp)
+            .ThenBy(entry => SeedData.Items.First(item => item.ItemId == entry.ItemId).ItemName)
+            .ThenBy(entry => entry.ItemId)
+            .Select(entry => new RecipeSectionEntryMinimal(entry.RecipeEntryId, entry.ItemId, entry.PrepId))
             .ToImmutableList();
 
         ImmutableList<RecipeSectionEntryMinimal> actualSectionEntries = result2.Sections[0].Entries
-            .Select(r => new RecipeSectionEntryMinimal(r.RecipeEntryId, r.Item.ItemId, r.Prep?.PrepId))
+            .Select(entry => new RecipeSectionEntryMinimal(entry.Id, entry.Item.Id, entry.Prep?.Id))
             .ToImmutableList();
         
         Assert.Single(result2.Sections);
         Assert.Equal(expectedSectionEntries, actualSectionEntries);
         
-        foreach (RecipeSectionEntryMinimal entry in expectedSectionEntries)
+        foreach (RecipeSectionEntryMinimal entryMinimal in expectedSectionEntries)
         {
-            string? itemName = SeedData.Items.Find(i => i.ItemId == entry.ItemId)?.ItemName;
-            string? prepName = SeedData.Preps.Find(p => p.PrepId == entry.PrepId)?.PrepName;
+            string? itemName = SeedData.Items.Find(i => i.ItemId == entryMinimal.ItemId)?.ItemName;
+            string? prepName = SeedData.Preps.Find(p => p.PrepId == entryMinimal.PrepId)?.PrepName;
 
             Assert.Contains(itemName,
                 result2.Sections[0].Entries
-                    .Where(r => r.RecipeEntryId == entry.EntryId)
-                    .Select(r => r.Item.ItemName));
+                    .Where(entry => entry.Id == entryMinimal.EntryId)
+                    .Select(entry => entry.Item.Name));
             
             Assert.Contains(prepName,
                 result2.Sections[0].Entries
-                    .Where(r => r.RecipeEntryId == entry.EntryId)
-                    .Select(r => r.Prep?.PrepName));
+                    .Where(entry => entry.Id == entryMinimal.EntryId)
+                    .Select(entry => entry.Prep?.Name));
         }
     }
 
@@ -105,16 +105,16 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
     {
         RecipeAddRequest recipeAddRequest = new()
         {
-            RecipeName = "New Recipe"
+            Name = "New Recipe"
         };
         
         (RecipeResponse recipe, string location) result = await RecipeController.Add(recipeAddRequest).ValueAsync();
-        Assert.Equal(recipeAddRequest.RecipeName, result.recipe.RecipeName);
-        Assert.Equal(result.location.Split('/').Last().ToLower(), result.recipe.RecipeId.ToString().ToLower());
+        Assert.Equal(recipeAddRequest.Name, result.recipe.Name);
+        Assert.Equal(result.location.Split('/').Last().ToLower(), result.recipe.Id.ToString().ToLower());
         
         List<RecipeMinimalResponse> results = await RecipeController.All().ValueAsync();
         Assert.Equal(5, results.Count);
-        Assert.Contains(recipeAddRequest.RecipeName, results.Select(r => r.RecipeName));
+        Assert.Contains(recipeAddRequest.Name, results.Select(recipe => recipe.Name));
     }
 
     [Fact]
@@ -128,7 +128,7 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
                 new Operation<RecipeEditRequest>
                 {
                     op = "replace",
-                    path = "/RecipeName",
+                    path = "/Name",
                     value = "New Recipe Name"
                 }
             }
@@ -137,12 +137,12 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
         await RecipeController.Edit(recipeId, jsonPatch).AssertIsSuccessful();
 
         RecipeResponse result = await RecipeController.Details(recipeId).ValueAsync();
-        Assert.Equal("New Recipe Name", result.RecipeName);
+        Assert.Equal("New Recipe Name", result.Name);
         
         List<RecipeMinimalResponse> results = await RecipeController.All().ValueAsync();
         Assert.Equal(4, results.Count);
-        Assert.Contains("New Recipe Name", results.Select(r => r.RecipeName));
-        Assert.DoesNotContain(SeedData.Recipes[3].RecipeName, results.Select(r => r.RecipeName));
+        Assert.Contains("New Recipe Name", results.Select(recipe => recipe.Name));
+        Assert.DoesNotContain(SeedData.Recipes[3].RecipeName, results.Select(recipe => recipe.Name));
     }
 
     [Fact]
@@ -176,7 +176,7 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
         
         List<RecipeMinimalResponse> results = await RecipeController.All().ValueAsync();
         Assert.Equal(4, results.Count);
-        Assert.DoesNotContain(true, results.Select(r => r.IsPinned));
+        Assert.DoesNotContain(true, results.Select(recipe => recipe.IsPinned));
     }
 
     [Fact]
@@ -201,7 +201,7 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
 
         List<RecipeMinimalResponse> results = await RecipeController.All().ValueAsync();
         Assert.Equal(4, results.Count);
-        Assert.DoesNotContain("New Recipe Name", results.Select(r => r.RecipeName));
+        Assert.DoesNotContain("New Recipe Name", results.Select(recipe => recipe.Name));
     }
 
     [Fact]
@@ -225,7 +225,7 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
 
         List<RecipeMinimalResponse> results = await RecipeController.All().ValueAsync();
         Assert.Equal(4, results.Count);
-        Assert.DoesNotContain("New Recipe Name", results.Select(r => r.RecipeName));
+        Assert.DoesNotContain("New Recipe Name", results.Select(recipe => recipe.Name));
     }
 
     [Fact]

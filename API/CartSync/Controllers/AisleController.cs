@@ -49,14 +49,14 @@ public class AisleController(CartSyncContext context) : ControllerCore(context)
         Aisle aisle = new()
         {
             StoreId = s.StoreId,
-            AisleName = aisleAddRequest.AisleName,
+            AisleName = aisleAddRequest.Name,
             SortOrder = s.Aisles.Count
         };
         
         Db.Add(aisle);
         await Db.SaveChangesAsync();
 
-        return TypedResults.Created($"/api/stores/{storeId}/aisles/{aisle.AisleId}", aisle.ToNewResponse);
+        return TypedResults.Created($"/api/aisles/{aisle.AisleId}", aisle.ToNewResponse);
     }
 
     [HttpPatch]

@@ -22,16 +22,16 @@ public class Store : IEditable<StoreEditRequest>, IResponse<Store, StoreResponse
     public StoreResponse ToNewResponse =>
         new()
         {
-            StoreId = StoreId,
-            StoreName = StoreName,
+            Id = StoreId,
+            Name = StoreName,
             IsSelected = false
         };
     
     public static Expression<Func<Store, StoreResponse>> ToResponse =>
         store => new StoreResponse
         {
-            StoreId = store.StoreId,
-            StoreName = store.StoreName,
+            Id = store.StoreId,
+            Name = store.StoreName,
             IsSelected = false
         };
     
@@ -40,13 +40,13 @@ public class Store : IEditable<StoreEditRequest>, IResponse<Store, StoreResponse
     {
         return new StoreEditRequest
         {
-            StoreName = StoreName
+            Name = StoreName
         };
     }
 
     public void UpdateFromEditRequest(StoreEditRequest editRequest)
     {
-        StoreName = editRequest.StoreName;
+        StoreName = editRequest.Name;
     }
     
     // Errors
@@ -65,19 +65,19 @@ public class Store : IEditable<StoreEditRequest>, IResponse<Store, StoreResponse
 
 public record StoreResponse
 {
-    public required Ulid StoreId { get; init; }
-    public required string StoreName { get; init; }
+    public required Ulid Id { get; init; }
+    public required string Name { get; init; }
     public required bool IsSelected { get; init; }
 }
 
 public record StoreAddRequest
 {
     [Required, StringLength(256, MinimumLength = 1)]
-    public required string StoreName { get; init; }
+    public required string Name { get; init; }
 }
 
 public record StoreEditRequest
 {
     [Required, StringLength(256, MinimumLength = 1)]
-    public required string StoreName { get; init; }
+    public required string Name { get; init; }
 }

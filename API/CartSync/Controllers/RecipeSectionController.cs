@@ -27,7 +27,7 @@ public class RecipeSectionController(CartSyncContext context) : ControllerCore(c
         RecipeSection recipeSection = new()
         {
             RecipeId = recipeId,
-            RecipeSectionName = recipeSectionAddRequest.RecipeSectionName,
+            RecipeSectionName = recipeSectionAddRequest.Name,
             SortOrder = recipe.Sections.Count
         };
         

@@ -26,7 +26,7 @@ public class RecipeEntry : IEditable<RecipeEntryEditRequest>, IResponse<RecipeEn
     
     [JsonIgnore]
     [ForeignKey(nameof(ItemId))]
-    public Item Item { set; get => field ?? throw Item.NotLoaded; }
+    public Item Item { init; get => field ?? throw Item.NotLoaded; }
 
     [JsonIgnore]
     [ForeignKey(nameof(PrepId))]
@@ -36,7 +36,7 @@ public class RecipeEntry : IEditable<RecipeEntryEditRequest>, IResponse<RecipeEn
     public RecipeEntryResponse ToNewResponse =>
         new()
         {
-            RecipeEntryId = RecipeEntryId,
+            Id = RecipeEntryId,
             Amount = Amount,
             Item = Item.ToMinimalResponse.Compile()(Item),
             Prep = Prep != null ? Prep.ToResponse.Compile()(Prep) : null
@@ -45,7 +45,7 @@ public class RecipeEntry : IEditable<RecipeEntryEditRequest>, IResponse<RecipeEn
     public static Expression<Func<RecipeEntry, RecipeEntryResponse>> ToResponse =>
         recipeSectionEntry => new RecipeEntryResponse
         {
-            RecipeEntryId = recipeSectionEntry.RecipeEntryId,
+            Id = recipeSectionEntry.RecipeEntryId,
             Item = Item.ToMinimalResponse.Compile()(recipeSectionEntry.Item),
             Prep = recipeSectionEntry.Prep != null 
                 ? Prep.ToResponse.Compile()(recipeSectionEntry.Prep) 
@@ -86,7 +86,7 @@ public class RecipeEntry : IEditable<RecipeEntryEditRequest>, IResponse<RecipeEn
 
 public record RecipeEntryResponse
 {
-    public required Ulid RecipeEntryId { get; init; }
+    public required Ulid Id { get; init; }
     public required ItemMinimalResponse Item { get; init; }
     public required PrepResponse? Prep { get; init; }
     public required Amount Amount { get; init; }

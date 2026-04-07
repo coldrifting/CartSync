@@ -16,10 +16,10 @@ public class PrepControllerEndpointTests(AppSetupFactory<Program> setupFactory) 
         HttpResponseMessage allPrepsResult = await GetAsyncAnonymous("/api/preps");
         Assert.Equal(HttpStatusCode.Unauthorized, allPrepsResult.StatusCode);
 
-        PrepAddRequest prepAddRequest = new() { PrepName = "New Prep Name" };
+        PrepAddRequest prepAddRequest = new() { Name = "New Prep Name" };
         HttpResponseMessage addPrepResult = await PostAsyncAnonymous("/api/preps/add", prepAddRequest);
         Assert.Equal(HttpStatusCode.Unauthorized, addPrepResult.StatusCode);
-        Assert.DoesNotContain(prepAddRequest.PrepName, Context.Preps.Select(p => p.PrepName));
+        Assert.DoesNotContain(prepAddRequest.Name, Context.Preps.Select(p => p.PrepName));
 
         Ulid prepId = SeedData.Preps[4].PrepId;
         HttpResponseMessage prepUsagesResult = await GetAsyncAnonymous($"/api/preps/{prepId}/usages");
@@ -33,13 +33,13 @@ public class PrepControllerEndpointTests(AppSetupFactory<Program> setupFactory) 
                 {
                     op = "replace",
                     path = "/PrepName",
-                    value = prepAddRequest.PrepName
+                    value = prepAddRequest.Name
                 }
             }
         };
         HttpResponseMessage prepEditResult = await PatchAsyncAnonymous($"/api/preps/{prepId}/edit", prepEditRequest);
         Assert.Equal(HttpStatusCode.Unauthorized, prepEditResult.StatusCode);
-        Assert.DoesNotContain(prepAddRequest.PrepName, Context.Preps.Select(p => p.PrepName));
+        Assert.DoesNotContain(prepAddRequest.Name, Context.Preps.Select(p => p.PrepName));
         
         HttpResponseMessage prepDeleteRequest = await DeleteAsyncAnonymous($"/api/preps/{prepId}/delete");
         Assert.Equal(HttpStatusCode.Unauthorized, prepDeleteRequest.StatusCode);

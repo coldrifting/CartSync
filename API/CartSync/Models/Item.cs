@@ -19,9 +19,10 @@ public class Item : IEditable<ItemEditRequest>, IResponse<Item, ItemResponse>
     [StringLength(256, MinimumLength = 1)]
     public required string ItemName { get; set; }
 
-    public ItemTemp ItemTemp { get; set; }
+    public Temp Temp { get; set; }
     public UnitType DefaultUnitType { get; set; }
-    
+    public bool UncapCartUnits { get; set; }
+
     // Navigation
     public List<Prep> Preps { get; init; } = [];
     public List<ItemPrep> ItemPreps { get; init; } = [];
@@ -35,10 +36,11 @@ public class Item : IEditable<ItemEditRequest>, IResponse<Item, ItemResponse>
     public static Expression<Func<Item, ItemResponse>> ToResponse =>
         item => new ItemResponse
         {
-            ItemId = item.ItemId,
-            ItemName = item.ItemName,
-            ItemTemp = item.ItemTemp,
+            Id = item.ItemId,
+            Name = item.ItemName,
+            Temp = item.Temp,
             DefaultUnitType = item.DefaultUnitType,
+            UncapCartUnits = item.UncapCartUnits,
             Preps = item.Preps
                 .AsQueryable()
                 .OrderBy(p => p.PrepName)
@@ -58,10 +60,11 @@ public class Item : IEditable<ItemEditRequest>, IResponse<Item, ItemResponse>
     public static Expression<Func<Item, ItemByStoreResponse>> ToByStoreResponse(Ulid storeId) =>
         item => new ItemByStoreResponse
         {
-            ItemId = item.ItemId,
-            ItemName = item.ItemName,
-            ItemTemp = item.ItemTemp,
+            Id = item.ItemId,
+            Name = item.ItemName,
+            Temp = item.Temp,
             DefaultUnitType = item.DefaultUnitType,
+            UncapCartUnits = item.UncapCartUnits,
             Preps = item.Preps
                 .AsQueryable()
                 .OrderBy(p => p.PrepName)
@@ -78,16 +81,16 @@ public class Item : IEditable<ItemEditRequest>, IResponse<Item, ItemResponse>
     public static Expression<Func<Item, ItemMinimalResponse>> ToMinimalResponse =>
         item => new ItemMinimalResponse
         {
-            ItemId = item.ItemId,
-            ItemName = item.ItemName,
-            ItemTemp = item.ItemTemp
+            Id = item.ItemId,
+            Name = item.ItemName,
+            Temp = item.Temp
         };
 
     public static Expression<Func<Item, ItemUsagesResponse>> ToUsagesResponse =>
         item => new ItemUsagesResponse
         {
-            ItemId = item.ItemId,
-            ItemName = item.ItemName,
+            Id = item.ItemId,
+            Name = item.ItemName,
             Preps = item.Preps
                 .AsQueryable()
                 .OrderBy(p => p.PrepName)
@@ -110,10 +113,11 @@ public class Item : IEditable<ItemEditRequest>, IResponse<Item, ItemResponse>
     public ItemResponse ToNewResponse =>
         new()
         {
-            ItemId = ItemId,
-            ItemName = ItemName,
-            ItemTemp = ItemTemp,
+            Id = ItemId,
+            Name = ItemName,
+            Temp = Temp,
             DefaultUnitType = DefaultUnitType,
+            UncapCartUnits = UncapCartUnits,
             Preps = [],
             Locations = []
         };
@@ -123,10 +127,11 @@ public class Item : IEditable<ItemEditRequest>, IResponse<Item, ItemResponse>
     {
         return new ItemEditRequest
         {
-            ItemName = ItemName,
-            ItemTemp = ItemTemp,
+            Name = ItemName,
+            Temp = Temp,
             Location = ItemAisles.FirstOrDefault(a => a.StoreId == storeId)?.ToEditRequest(),
             DefaultUnitType = DefaultUnitType,
+            UncapCartUnits = UncapCartUnits,
             PrepIds = Preps
                 .OrderBy(p => p.PrepName)
                 .ThenBy(p => p.PrepId)
@@ -138,9 +143,10 @@ public class Item : IEditable<ItemEditRequest>, IResponse<Item, ItemResponse>
     /// Requires Item.Preps Navigation to work
     public void UpdateFromEditRequest(ItemEditRequest editRequest)
     {
-        ItemName = editRequest.ItemName;
-        ItemTemp = editRequest.ItemTemp;
+        ItemName = editRequest.Name;
+        Temp = editRequest.Temp;
         DefaultUnitType = editRequest.DefaultUnitType;
+        UncapCartUnits = editRequest.UncapCartUnits;
 
         ItemPreps.Clear();
 
@@ -163,35 +169,37 @@ public class Item : IEditable<ItemEditRequest>, IResponse<Item, ItemResponse>
 
 public record ItemResponse
 {
-    public required Ulid ItemId { get; init; }
-    public required string ItemName { get; init; }
-    public required ItemTemp ItemTemp { get; init; }
+    public required Ulid Id { get; init; }
+    public required string Name { get; init; }
+    public required Temp Temp { get; init; }
     public required UnitType DefaultUnitType { get; init; }
+    public required bool UncapCartUnits { get; init; }
     public required ReadOnlyList<PrepResponse> Preps { get; init; }
     public required ReadOnlyList<ItemAisleResponse> Locations { get; init; }
 }
 
 public record ItemByStoreResponse
 {
-    public required Ulid ItemId { get; init; }
-    public required string ItemName { get; init; }
-    public required ItemTemp ItemTemp { get; init; }
+    public required Ulid Id { get; init; }
+    public required string Name { get; init; }
+    public required Temp Temp { get; init; }
     public required UnitType DefaultUnitType { get; init; }
+    public required bool UncapCartUnits { get; init; }
     public required ReadOnlyList<PrepResponse> Preps { get; init; }
     public required ItemAisleResponse? Location { get; init; }
 }
 
 public record ItemMinimalResponse
 {
-    public required Ulid ItemId { get; init; }
-    public required string ItemName { get; init; }
-    public required ItemTemp ItemTemp { get; init; }
+    public required Ulid Id { get; init; }
+    public required string Name { get; init; }
+    public required Temp Temp { get; init; }
 }
 
 public record ItemUsagesResponse
 {
-    public required Ulid ItemId { get; init; }
-    public required string ItemName { get; init; }
+    public required Ulid Id { get; init; }
+    public required string Name { get; init; }
     public required ReadOnlyList<PrepResponse> Preps { get; init; }
     public required ReadOnlyList<RecipeMinimalResponse> Recipes { get; init; }
 }
@@ -199,16 +207,17 @@ public record ItemUsagesResponse
 public record ItemAddRequest
 {
     [StringLength(256, MinimumLength = 1)]
-    public required string ItemName { get; init; }
+    public required string Name { get; init; }
 }
 
 public record ItemEditRequest
 {
     [Required, StringLength(256, MinimumLength = 1)]
-    public required string ItemName { get; init; }
+    public required string Name { get; init; }
     
-    [Required] public required ItemTemp ItemTemp { get; init; }
+    [Required] public required Temp Temp { get; init; }
     [Required] public required UnitType DefaultUnitType { get; init; }
+    [Required] public required bool UncapCartUnits { get; init; }
     [Required] public required List<Ulid> PrepIds { get; init; }
     
     // Dont use required attribute

@@ -27,7 +27,7 @@ public class RecipeStepsController(CartSyncContext context) : ControllerCore(con
         RecipeStep recipeStep = new()
         {
             RecipeId = recipeId,
-            RecipeStepContent = recipeStepAddRequest.RecipeStepContent,
+            RecipeStepContent = recipeStepAddRequest.Content,
             IsImage = recipeStepAddRequest.IsImage,
             SortOrder = recipe.Steps.Count
         };

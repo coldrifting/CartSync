@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq.Expressions;
 using System.Text.Json.Serialization;
 using CartSync.Controllers.Core;
 using CartSync.Objects;
@@ -9,19 +10,19 @@ using Microsoft.EntityFrameworkCore;
 namespace CartSync.Models;
 
 [PrimaryKey(nameof(CartEntryId))]
-public class CartEntry
+public record CartEntry
 {
     public Ulid CartEntryId { get; init; } = Ulid.NewUlid();
     
     public Ulid ItemId { get; init; }
     public Ulid? PrepId { get; init; }
 
-    public required Amount Amount { get; init; }
+    public required AmountGroup Amounts { get; init; }
     
     public Ulid? AisleId { get; init; }
-    public BayType Bay { get; init; }
+    public Bay Bay { get; init; }
 
-    public bool IsChecked { get; set; } = false;
+    public bool IsChecked { get; set; }
 
     // Navigation
     [JsonIgnore]
@@ -41,24 +42,45 @@ public class CartEntry
         Error.NotFoundCompositeKey("CartEntry", itemId, "Item", prepId, "Prep");
 }
 
+public record CartEntryValue
+{
+    public required Ulid ItemId { get; init; }
+    public required Ulid? PrepId { get; init; }
+    public required AmountGroup Amounts { get; init; }
+    public required Ulid? AisleId { get; init; }
+    public required Bay Bay { get; init; }
+    public required bool IsChecked { get; init; }
+    
+    public static Expression<Func<CartEntry, CartEntryValue>> FromCartEntry =>
+        cartEntry => new CartEntryValue
+        {
+            ItemId = cartEntry.ItemId,
+            PrepId = cartEntry.PrepId,
+            Amounts = cartEntry.Amounts,
+            AisleId = cartEntry.AisleId,
+            Bay = cartEntry.Bay,
+            IsChecked = cartEntry.IsChecked
+        };
+}
+
 public record CartResponse
 {
-    public Ulid StoreId { get; init; }
-    public string StoreName { get; init; } = "";
-    public CartAisleResponse[] Aisles { get; init; } = [];
+    public required Ulid StoreId { get; init; }
+    public required string StoreName { get; init; }
+    public required CartAisleResponse[] Aisles { get; init; }
 }
 
 public record CartAisleResponse
 {
-    public Ulid? AisleId { get; init; }
-    public string? AisleName { get; init; } = "";
-    public CartItemResponse[] Items { get; init; } = [];
+    public required Ulid? AisleId { get; init; }
+    public required string? AisleName { get; init; }
+    public required CartItemResponse[] Items { get; init; }
 }
 
 public record CartItemResponse
 {
     public required ItemMinimalResponse Item;
-    public Prep? Prep { get; init; }
-    public BayType Bay { get; init; } = BayType.Middle;
-    public Amount Amount { get; init; } = new();
+    public required Prep? Prep { get; init; }
+    public required Bay Bay { get; init; }
+    public required AmountGroup Amounts { get; init; }
 }

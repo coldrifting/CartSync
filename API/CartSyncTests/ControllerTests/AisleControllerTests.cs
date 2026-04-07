@@ -16,14 +16,14 @@ public class AisleControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
     {
         List<AisleResponse> aisles = await AisleController.All(SeedData.Stores[0].StoreId).ValueAsync();
         Assert.Equal(23, aisles.Count);
-        Assert.Contains((SeedData.Aisles[0].AisleId, SeedData.Aisles[0].AisleName), aisles.Select(a => (a.AisleId, a.AisleName)));
-        Assert.Contains((SeedData.Aisles[5].AisleId, SeedData.Aisles[5].AisleName), aisles.Select(a => (a.AisleId, a.AisleName)));
-        Assert.Contains((SeedData.Aisles[13].AisleId, SeedData.Aisles[13].AisleName), aisles.Select(a => (a.AisleId, a.AisleName)));
-        Assert.Contains((SeedData.Aisles[22].AisleId, SeedData.Aisles[22].AisleName), aisles.Select(a => (a.AisleId, a.AisleName)));
+        Assert.Contains((SeedData.Aisles[0].AisleId, SeedData.Aisles[0].AisleName), aisles.Select(aisle => (aisle.Id, aisle.Name)));
+        Assert.Contains((SeedData.Aisles[5].AisleId, SeedData.Aisles[5].AisleName), aisles.Select(aisle => (aisle.Id, aisle.Name)));
+        Assert.Contains((SeedData.Aisles[13].AisleId, SeedData.Aisles[13].AisleName), aisles.Select(aisle => (aisle.Id, aisle.Name)));
+        Assert.Contains((SeedData.Aisles[22].AisleId, SeedData.Aisles[22].AisleName), aisles.Select(aisle => (aisle.Id, aisle.Name)));
         
         List<AisleResponse> aisles2 = await AisleController.All(SeedData.Stores[1].StoreId).ValueAsync();
         Assert.Single(aisles2);
-        Assert.Contains((SeedData.Aisles[23].AisleId, SeedData.Aisles[23].AisleName), aisles2.Select(a => (a.AisleId, a.AisleName)));
+        Assert.Contains((SeedData.Aisles[23].AisleId, SeedData.Aisles[23].AisleName), aisles2.Select(aisle => (aisle.Id, aisle.Name)));
     }
 
     [Fact]
@@ -38,18 +38,18 @@ public class AisleControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
     {
         AisleAddRequest aisleNewRequest = new()
         {
-            AisleName = "New Aisle"
+            Name = "New Aisle"
         };
         (AisleResponse aisle, string location) result = await AisleController.Add(SeedData.Stores[0].StoreId, aisleNewRequest).ValueAsync();
-        Assert.Equal(aisleNewRequest.AisleName, result.aisle.AisleName);
+        Assert.Equal(aisleNewRequest.Name, result.aisle.Name);
         
         List<AisleResponse> aisles = await AisleController.All(SeedData.Stores[0].StoreId).ValueAsync();
         Assert.Equal(24, aisles.Count);
-        Assert.Contains(aisleNewRequest.AisleName, aisles.Select(a => a.AisleName));
+        Assert.Contains(aisleNewRequest.Name, aisles.Select(aisle => aisle.Name));
         
         List<AisleResponse> aisles2 = await AisleController.All(SeedData.Stores[1].StoreId).ValueAsync();
         Assert.Single(aisles2);
-        Assert.DoesNotContain(aisleNewRequest.AisleName, aisles2.Select(a => a.AisleName));
+        Assert.DoesNotContain(aisleNewRequest.Name, aisles2.Select(aisle => aisle.Name));
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public class AisleControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
     {
         Error error = await AisleController.Add(Ulid.NotFound, new AisleAddRequest
         {
-            AisleName = "New Aisle"
+            Name = "New Aisle"
         }).ErrorAsync();
         error.AssertStatus(HttpStatusCode.NotFound);
     }
@@ -72,7 +72,7 @@ public class AisleControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
                 new Operation<AisleEditRequest>
                 {
                     op = "replace",
-                    path = "/AisleName",
+                    path = "/Name",
                     value = "New Aisle"
                 }
             }
@@ -82,11 +82,11 @@ public class AisleControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
         
         List<AisleResponse> aisles = await AisleController.All(SeedData.Stores[0].StoreId).ValueAsync();
         Assert.Equal(23, aisles.Count);
-        Assert.Contains("New Aisle", aisles.Select(a => a.AisleName));
+        Assert.Contains("New Aisle", aisles.Select(aisle => aisle.Name));
         
         List<AisleResponse> aisles2 = await AisleController.All(SeedData.Stores[1].StoreId).ValueAsync();
         Assert.Single(aisles2);
-        Assert.DoesNotContain("New Aisle", aisles2.Select(a => a.AisleName));
+        Assert.DoesNotContain("New Aisle", aisles2.Select(aisle => aisle.Name));
     }
 
     [Fact]
@@ -109,11 +109,11 @@ public class AisleControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
         
         List<AisleResponse> aisles = await AisleController.All(SeedData.Stores[0].StoreId).ValueAsync();
         Assert.Equal(23, aisles.Count);
-        Assert.Equal(SeedData.Aisles[4].AisleName, aisles.OrderBy(a => a.SortOrder).Select(a => a.AisleName).FirstOrDefault());
+        Assert.Equal(SeedData.Aisles[4].AisleName, aisles.OrderBy(aisle => aisle.SortOrder).Select(aisle => aisle.Name).FirstOrDefault());
         
         List<AisleResponse> aisles2 = await AisleController.All(SeedData.Stores[1].StoreId).ValueAsync();
         Assert.Single(aisles2);
-        Assert.DoesNotContain(SeedData.Aisles[4].AisleName, aisles2.Select(a => a.AisleName));
+        Assert.DoesNotContain(SeedData.Aisles[4].AisleName, aisles2.Select(aisle => aisle.Name));
     }
 
     [Fact]
@@ -145,18 +145,18 @@ public class AisleControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
 
         List<AisleResponse> aisles = await AisleController.All(SeedData.Stores[0].StoreId).ValueAsync();
         Assert.Equal(22, aisles.Count);
-        Assert.DoesNotContain(SeedData.Aisles[2].AisleId, aisles.Select(a => a.AisleId));
+        Assert.DoesNotContain(SeedData.Aisles[2].AisleId, aisles.Select(aisle => aisle.Id));
         
         List<AisleResponse> aisles2 = await AisleController.All(SeedData.Stores[1].StoreId).ValueAsync();
         Assert.Single(aisles2);
-        Assert.DoesNotContain(SeedData.Aisles[2].AisleId, aisles2.Select(a => a.AisleId));
+        Assert.DoesNotContain(SeedData.Aisles[2].AisleId, aisles2.Select(aisle => aisle.Id));
         
         
         await AisleController.Delete(SeedData.Aisles[23].AisleId).AssertIsSuccessful();
         
         List<AisleResponse> aisles3 = await AisleController.All(SeedData.Stores[0].StoreId).ValueAsync();
         Assert.Equal(22, aisles3.Count);
-        Assert.DoesNotContain(SeedData.Aisles[23].AisleId, aisles3.Select(a => a.AisleId));
+        Assert.DoesNotContain(SeedData.Aisles[23].AisleId, aisles3.Select(aisle => aisle.Id));
         
         List<AisleResponse> aisles4 = await AisleController.All(SeedData.Stores[1].StoreId).ValueAsync();
         Assert.Empty(aisles4);

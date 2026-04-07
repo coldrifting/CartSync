@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CartSync._Migrations
 {
     [DbContext(typeof(CartSyncContext))]
-    [Migration("20260406150520_Initial")]
+    [Migration("20260407142513_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -64,7 +64,7 @@ namespace CartSync._Migrations
                         .IsUnicode(false)
                         .HasColumnType("character varying(26)");
 
-                    b.Property<string>("Amount")
+                    b.Property<string>("Amounts")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -105,7 +105,7 @@ namespace CartSync._Migrations
                         .IsUnicode(false)
                         .HasColumnType("character varying(26)");
 
-                    b.Property<string>("Amount")
+                    b.Property<string>("Amounts")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -146,9 +146,12 @@ namespace CartSync._Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
-                    b.Property<string>("ItemTemp")
+                    b.Property<string>("Temp")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<bool>("UncapCartUnits")
+                        .HasColumnType("boolean");
 
                     b.HasKey("ItemId");
 

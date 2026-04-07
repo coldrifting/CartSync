@@ -71,7 +71,11 @@ public class CartSyncContext(DbContextOptions options) : DbContext(options)
             .HaveConversion<Amount.ValueConverter>();
         
         configurationBuilder
-            .Properties<BayType>()
+            .Properties<AmountGroup>()
+            .HaveConversion<AmountGroup.ValueConverter>();
+        
+        configurationBuilder
+            .Properties<Bay>()
             .HaveConversion<string>();
         
         configurationBuilder
@@ -79,7 +83,7 @@ public class CartSyncContext(DbContextOptions options) : DbContext(options)
             .HaveConversion<string>();
 
         configurationBuilder
-            .Properties<ItemTemp>()
+            .Properties<Temp>()
             .HaveConversion<string>();
         
         configurationBuilder

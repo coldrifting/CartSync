@@ -27,15 +27,15 @@ public class Prep : IEditable<PrepEditRequest>, IResponse<Prep, PrepResponse>
     public static Expression<Func<Prep, PrepResponse>> ToResponse =>
         prep => new PrepResponse
         {
-            PrepId = prep.PrepId,
-            PrepName = prep.PrepName
+            Id = prep.PrepId,
+            Name = prep.PrepName
         };
     
     public static Expression<Func<Prep, PrepUsagesResponse>> ToUsagesResponse =>
         prep => new PrepUsagesResponse
         {
-            PrepId = prep.PrepId,
-            PrepName = prep.PrepName,
+            Id = prep.PrepId,
+            Name = prep.PrepName,
             Items = prep.Items
                 .AsQueryable()
                 .OrderBy(i => i.ItemName)
@@ -62,13 +62,13 @@ public class Prep : IEditable<PrepEditRequest>, IResponse<Prep, PrepResponse>
     {
         return new PrepEditRequest
         {
-            PrepName = PrepName
+            Name = PrepName
         };
     }
 
     public void UpdateFromEditRequest(PrepEditRequest editRequest)
     {
-        PrepName = editRequest.PrepName;
+        PrepName = editRequest.Name;
     }
     
     // Errors
@@ -83,15 +83,14 @@ public class Prep : IEditable<PrepEditRequest>, IResponse<Prep, PrepResponse>
 
 public record PrepResponse
 {
-    public required Ulid PrepId { get; init; }
-    public required string PrepName { get; init; }
+    public required Ulid Id { get; init; }
+    public required string Name { get; init; }
 }
-
 
 public record PrepUsagesResponse
 {
-    public required Ulid PrepId { get; init; }
-    public required string PrepName { get; init; }
+    public required Ulid Id { get; init; }
+    public required string Name { get; init; }
     public required ReadOnlyList<ItemMinimalResponse> Items { get; init; }
     public required ReadOnlyList<RecipeMinimalResponse> Recipes { get; init; }
 }
@@ -99,11 +98,11 @@ public record PrepUsagesResponse
 public record PrepAddRequest
 {
     [Required, StringLength(256, MinimumLength = 1)] 
-    public required string PrepName { get; init; }
+    public required string Name { get; init; }
 }
 
 public record PrepEditRequest
 {
     [Required, StringLength(256, MinimumLength = 1)] 
-    public required string PrepName { get; init; }
+    public required string Name { get; init; }
 }

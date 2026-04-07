@@ -6,6 +6,9 @@ public static partial class SeedData
 {
     public static List<CartItem> CartItems =>
     [
-        new() { ItemId = Items[114].ItemId, PrepId = null, Amount = Amount.Count(3)}
+        new() { ItemId = Items[114].ItemId, PrepId = null, Amounts = Amount.Count(3)},
+        new() { ItemId = Items[181].ItemId, PrepId = Preps[4].PrepId, Amounts = Amount.VolumeCups(2)},
+        new() { ItemId = Items[183].ItemId, PrepId = null, Amounts = Amount.VolumeCups(8)},
+        new() { ItemId = Items[183].ItemId, PrepId = Preps[3].PrepId, Amounts = Amount.VolumeCups(4)}
     ];
 }

@@ -10,7 +10,7 @@ public class RecipeControllerEndpointTests(AppSetupFactory<Program> setupFactory
     [Fact]
     public async Task TestRecipeAdd_EmptyStringShouldError()
     {
-        HttpResponseMessage result = await PostAsync("api/recipes/add", new RecipeAddRequest { RecipeName = "" });
+        HttpResponseMessage result = await PostAsync("api/recipes/add", new RecipeAddRequest { Name = "" });
         Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
     }
 }

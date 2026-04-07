@@ -50,7 +50,7 @@ public static partial class SeedData
         new() { RecipeEntryId = Ulid.Parse("01KJA5YNH4SA22ZN23BS443VRR"), RecipeSectionId = RecipeSections[3].RecipeSectionId, ItemId = Items[61].ItemId, PrepId = null, Amount =             Amount.VolumeTablespoons(2) },
         new() { RecipeEntryId = Ulid.Parse("01KJA5YNH4NABG3FMVFEH2PQH4"), RecipeSectionId = RecipeSections[3].RecipeSectionId, ItemId = Items[64].ItemId, PrepId = null, Amount =             Amount.VolumeCups(3,4) },
         new() { RecipeEntryId = Ulid.Parse("01KJA5YNH4F2A0BJ08FMW25C65"), RecipeSectionId = RecipeSections[3].RecipeSectionId, ItemId = Items[88].ItemId, PrepId = null, Amount =             Amount.VolumeTeaspoons(1,4) },
-        new() { RecipeEntryId = Ulid.Parse("01KJA5YNH4GD4Y800F7030CVM1"), RecipeSectionId = RecipeSections[3].RecipeSectionId, ItemId = Items[66].ItemId, PrepId = null, Amount =             Amount.VolumeTeaspoons(1,4) },
-        new() { RecipeEntryId = Ulid.Parse("01KJA5YNH4VDCN7FMVAP9BRXT7"), RecipeSectionId = RecipeSections[3].RecipeSectionId, ItemId = Items[180].ItemId, PrepId = Preps[3].PrepId, Amount = Amount.VolumeCups(1) }
+        new() { RecipeEntryId = Ulid.Parse("01KJA5YNH4GD4Y800F7030CVM1"), RecipeSectionId = RecipeSections[4].RecipeSectionId, ItemId = Items[66].ItemId, PrepId = null, Amount =             Amount.VolumeTeaspoons(1,4) },
+        new() { RecipeEntryId = Ulid.Parse("01KJA5YNH4VDCN7FMVAP9BRXT7"), RecipeSectionId = RecipeSections[4].RecipeSectionId, ItemId = Items[180].ItemId, PrepId = Preps[3].PrepId, Amount = Amount.VolumeCups(1) }
     ];
 }

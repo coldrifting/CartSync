@@ -16,8 +16,8 @@ public class PrepController(CartSyncContext context) : ControllerCore(context)
     {
         List<PrepResponse> preps = await Db.Preps
             .Select(Prep.ToResponse)
-            .OrderBy(p => p.PrepName)
-            .ThenBy(p => p.PrepId)
+            .OrderBy(prep => prep.Name)
+            .ThenBy(prep => prep.Id)
             .ToListAsync();
         
         return TypedResults.Ok(preps);
@@ -29,7 +29,7 @@ public class PrepController(CartSyncContext context) : ControllerCore(context)
     {
         Prep prep = new()
         {
-            PrepName = prepAddRequest.PrepName
+            PrepName = prepAddRequest.Name
         };
         
         Db.Add(prep);
@@ -49,7 +49,7 @@ public class PrepController(CartSyncContext context) : ControllerCore(context)
             .ThenInclude(r => r.RecipeSection)
             .ThenInclude(r => r.Recipe)
             .Select(Prep.ToUsagesResponse)
-            .FirstOrDefaultAsync(p => p.PrepId == prepId);
+            .FirstOrDefaultAsync(prepUsages => prepUsages.Id == prepId);
         if (prepUsages == null)
         {
             return Prep.NotFound(prepId);

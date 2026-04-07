@@ -20,8 +20,8 @@ public class ItemController(CartSyncContext context) : ControllerCore(context)
                 .Include(i => i.Preps)
                 .Include(i => i.Aisles)
                 .Select(Item.ToByStoreResponse(storeId))
-                .OrderBy(i => i.ItemName)
-                .ThenBy(i => i.ItemId)
+                .OrderBy(item => item.Name)
+                .ThenBy(item => item.Id)
                 .ToListAsync();
 
         return TypedResults.Ok(allItems);
@@ -38,7 +38,7 @@ public class ItemController(CartSyncContext context) : ControllerCore(context)
             .ThenInclude(r => r.RecipeSection)
             .ThenInclude(r => r.Recipe)
             .Select(Item.ToUsagesResponse)
-            .FirstOrDefaultAsync(i => i.ItemId == itemId);
+            .FirstOrDefaultAsync(item => item.Id == itemId);
         if (itemUsages == null)
         {
             return Aisle.NotFound(itemId);
@@ -53,7 +53,7 @@ public class ItemController(CartSyncContext context) : ControllerCore(context)
     {
         Item item = new()
         {
-            ItemName = itemAddRequest.ItemName
+            ItemName = itemAddRequest.Name
         };
         
         Db.Add(item);
@@ -72,7 +72,7 @@ public class ItemController(CartSyncContext context) : ControllerCore(context)
             .Include(i => i.Preps)
             .Include(i => i.Aisles)
             .Select(Item.ToByStoreResponse(currentStoreId))
-            .FirstOrDefaultAsync(i => i.ItemId == itemId);
+            .FirstOrDefaultAsync(item => item.Id == itemId);
 
         if (itemResponse == null)
         {

@@ -16,7 +16,7 @@ public class CartItem
     public Ulid ItemId { get; init; }
     public Ulid? PrepId { get; init; }
 
-    public Amount Amount { get; set; } = Amount.None;
+    public AmountGroup Amounts { get; set; } = new();
     
     // Navigation
     [JsonIgnore]
@@ -33,18 +33,18 @@ public class CartItem
         {
             Item = new ItemMinimalResponse
             {
-                ItemId = cartItem.ItemId,
-                ItemName = cartItem.Item.ItemName,
-                ItemTemp = cartItem.Item.ItemTemp,
+                Id = cartItem.ItemId,
+                Name = cartItem.Item.ItemName,
+                Temp = cartItem.Item.Temp,
             },
             Prep = (cartItem.PrepId == null
                 ? null
                 : new PrepResponse
                 {
-                    PrepId = cartItem.PrepId.Value,
-                    PrepName = cartItem.Prep!.PrepName
+                    Id = cartItem.PrepId.Value,
+                    Name = cartItem.Prep!.PrepName
                 })!,
-            Amount = cartItem.Amount
+            Amount = cartItem.Amounts.Amount
         };
 
     // Errors
@@ -56,7 +56,17 @@ public record CartInfo
 {
     public Ulid ItemId { get; init; }
     public Ulid? PrepId { get; init; }
-    public required Amount Amount { get; set; }
+    public required AmountGroup Amounts { get; init; }
+    public required bool UncapUnits { get; init; }
+    
+    public static Expression<Func<CartItem, CartInfo>> FromCartItem =>
+        cartItem => new CartInfo
+        {
+            ItemId = cartItem.ItemId,
+            PrepId = cartItem.PrepId,
+            Amounts = cartItem.Amounts,
+            UncapUnits = cartItem.Item.UncapCartUnits
+        };
 }
 
 public record CartSelectResponse
@@ -68,15 +78,15 @@ public record CartSelectResponse
 public record CartSelectItemResponse
 {
     public required ItemMinimalResponse Item { get; init; }
-    public required PrepResponse Prep { get; init; }
+    public PrepResponse? Prep { get; init; }
     public Amount Amount { get; init; } = new();
 }
 
 public record CartSelectRecipeResponse
 {
-    public Ulid RecipeId { get; init; }
-    public string RecipeName { get; init; } = "";
-    public int Quantity { get; init; }
+    public required Ulid RecipeId { get; init; }
+    public required string RecipeName { get; init; }
+    public required int Quantity { get; init; }
 }
 
 public record CartItemEditRequest

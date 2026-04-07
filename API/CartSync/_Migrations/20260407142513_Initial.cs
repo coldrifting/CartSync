@@ -16,8 +16,9 @@ namespace CartSync._Migrations
                 {
                     ItemId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
                     ItemName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    ItemTemp = table.Column<string>(type: "text", nullable: false),
-                    DefaultUnitType = table.Column<string>(type: "text", nullable: false)
+                    Temp = table.Column<string>(type: "text", nullable: false),
+                    DefaultUnitType = table.Column<string>(type: "text", nullable: false),
+                    UncapCartUnits = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -84,7 +85,7 @@ namespace CartSync._Migrations
                     CartItemId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
                     ItemId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
                     PrepId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: true),
-                    Amount = table.Column<string>(type: "text", nullable: false)
+                    Amounts = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -252,7 +253,7 @@ namespace CartSync._Migrations
                     CartEntryId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
                     ItemId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
                     PrepId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: true),
-                    Amount = table.Column<string>(type: "text", nullable: false),
+                    Amounts = table.Column<string>(type: "text", nullable: false),
                     AisleId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: true),
                     Bay = table.Column<string>(type: "text", nullable: false),
                     IsChecked = table.Column<bool>(type: "boolean", nullable: false)

@@ -11,7 +11,7 @@ public class StoreControllerEndpointTests(AppSetupFactory<Program> setupFactory)
     [Fact]
     public async Task TestStoreAdd_BadStoreNameEmptyString()
     {
-        HttpResponseMessage result = await PostAsync("api/stores/add", new StoreAddRequest { StoreName = "" });
+        HttpResponseMessage result = await PostAsync("api/stores/add", new StoreAddRequest { Name = "" });
         Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
     }
     
@@ -19,7 +19,7 @@ public class StoreControllerEndpointTests(AppSetupFactory<Program> setupFactory)
     public async Task TestStoreAdd_HasLocationHeader()
     {
         const string url = "/api/stores/add";
-        HttpResponseMessage response = await PostAsync(url, new StoreAddRequest { StoreName = "New Store Name" });
+        HttpResponseMessage response = await PostAsync(url, new StoreAddRequest { Name = "New Store Name" });
         
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         Uri? location = response.Headers.Location;
@@ -27,10 +27,10 @@ public class StoreControllerEndpointTests(AppSetupFactory<Program> setupFactory)
 
         Ulid pathId = Ulid.Parse(location.OriginalString.Split('/').Last());
 
-        StoreResponse? value = await response.Content.ReadFromJsonAsync<StoreResponse>(TestContext.Current.CancellationToken);
-        Assert.NotNull(value);
+        StoreResponse? store = await response.Content.ReadFromJsonAsync<StoreResponse>(TestContext.Current.CancellationToken);
+        Assert.NotNull(store);
         
-        Assert.Equal(pathId, value.StoreId);
+        Assert.Equal(pathId, store.Id);
         
         Assert.Equal(3, (await GetStores()).Count);
         Assert.Equal(3, Context.Stores.Count());

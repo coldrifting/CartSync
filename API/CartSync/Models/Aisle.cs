@@ -21,7 +21,7 @@ public class Aisle : ISortable, IEditable<AisleEditRequest>, IResponse<Aisle, Ai
     
     // Navigation
     [ForeignKey(nameof(StoreId))]
-    public Store Store { set; get => field ?? throw Store.NotLoaded; }
+    public Store Store { init; get => field ?? throw Store.NotLoaded; }
 
     public List<Item> Items { get; init; } = [];
     
@@ -29,9 +29,8 @@ public class Aisle : ISortable, IEditable<AisleEditRequest>, IResponse<Aisle, Ai
     public static Expression<Func<Aisle, AisleResponse>> ToResponse =>
         aisle => new AisleResponse
         {
-            AisleId = aisle.AisleId,
-            StoreId = aisle.StoreId,
-            AisleName = aisle.AisleName,
+            Id = aisle.AisleId,
+            Name = aisle.AisleName,
             SortOrder = aisle.SortOrder
         };
     
@@ -43,7 +42,7 @@ public class Aisle : ISortable, IEditable<AisleEditRequest>, IResponse<Aisle, Ai
     {
         return new AisleEditRequest
         {
-            AisleName = AisleName,
+            Name = AisleName,
             SortOrder = SortOrder
         };
     }
@@ -51,7 +50,7 @@ public class Aisle : ISortable, IEditable<AisleEditRequest>, IResponse<Aisle, Ai
     /// Requires Aisle.Store.Aisles navigation to work
     public void UpdateFromEditRequest(AisleEditRequest editRequest)
     {
-        AisleName = editRequest.AisleName;
+        AisleName = editRequest.Name;
         
         int oldIndex = SortOrder;
         Store.Aisles.Reorder(oldIndex, editRequest.SortOrder);
@@ -69,22 +68,21 @@ public class Aisle : ISortable, IEditable<AisleEditRequest>, IResponse<Aisle, Ai
 
 public record AisleResponse
 {
-    public required Ulid AisleId { get; init; }
-    public required Ulid StoreId { get; init; }
-    public required string AisleName { get; init; }
+    public required Ulid Id { get; init; }
+    public required string Name { get; init; }
     public required int SortOrder { get; init; }
 }
 
 public record AisleAddRequest
 {
     [Required, StringLength(256, MinimumLength = 1)] 
-    public required string AisleName { get; init; }
+    public required string Name { get; init; }
 }
 
 public record AisleEditRequest
 {
     [Required, StringLength(256, MinimumLength = 1)] 
-    public required string AisleName { get; init; }
+    public required string Name { get; init; }
     
     [Required]
     public required int SortOrder { get; init; }
