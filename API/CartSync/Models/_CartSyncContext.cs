@@ -72,15 +72,15 @@ public class CartSyncContext(DbContextOptions options) : DbContext(options)
         
         configurationBuilder
             .Properties<BayType>()
-            .HaveConversion<BayTypeEx.ValueConverter>();
+            .HaveConversion<string>();
         
         configurationBuilder
             .Properties<UnitType>()
-            .HaveConversion<UnitTypeEx.ValueConverter>();
+            .HaveConversion<string>();
 
         configurationBuilder
             .Properties<ItemTemp>()
-            .HaveConversion<ItemTempEx.ItemTempConverter>();
+            .HaveConversion<string>();
         
         configurationBuilder
             .Properties<Ulid>()

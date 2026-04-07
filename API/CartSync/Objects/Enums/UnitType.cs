@@ -1,41 +1,39 @@
 using System.Text.Json.Serialization;
-using JetBrains.Annotations;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace CartSync.Objects.Enums;
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum UnitType
 {
-    None,
-    Count,
-    VolumeTeaspoons,
-    VolumeTablespoons,
-    VolumeOunces,
-    VolumeCups,
-    VolumeQuarts,
-    VolumePints,
-    VolumeGallons,
-    WeightOunces,
-    WeightPounds
+    None = -1,
+    
+    Count = 1,
+    
+    VolumeTeaspoons = 8,
+    VolumeTablespoons = 9,
+    VolumeOunces = 10,
+    VolumeCups = 11,
+    VolumeQuarts = 12,
+    VolumePints = 13,
+    VolumeGallons = 14,
+    
+    WeightOunces = 32,
+    WeightPounds = 33
 }
 
 public static class UnitTypeEx
 {
     extension(UnitType unitType)
     {
+        public bool IsVolume => ((int)unitType) / 8 == 1;
+        public bool IsWeight => ((int)unitType) / 8 == 4;
+        
         public bool IsCompatible(UnitType other)
         {
-            if (unitType.ToString().StartsWith("Volume") && other.ToString().StartsWith("Volume"))
-            {
-                return true;
-            }
-            if (unitType.ToString().StartsWith("Weight") && other.ToString().StartsWith("Weight"))
-            {
-                return true;
-            }
+            int a = (int)unitType;
+            int b = (int)other;
 
-            return unitType == other;
+            return a / 8 == b / 8;
         }
         
         public string GetAbbreviation(bool isPlural = false)
@@ -74,10 +72,4 @@ public static class UnitTypeEx
                 _ => throw new ArgumentOutOfRangeException(nameof(unitType), unitType, null)
             };
     }
-
-    [UsedImplicitly]
-    public class ValueConverter() : ValueConverter<UnitType, string>(
-        v => v.ToString(),
-        v => Enum.Parse<UnitType>(v)
-    );
 }

@@ -32,29 +32,73 @@ public class Amount
         UnitType = unitType;
         Fraction = new Fraction(num, dem);
     }
+
+    public Amount Combine(Amount other)
+    {
+        if (UnitType is { IsVolume: false, IsWeight: false })
+        {
+            return new Amount(UnitType, Fraction + other.Fraction).Simplify();
+        }
+
+        Fraction a = Fraction * UnitType.Units;
+        Fraction b = other.Fraction * UnitType.Units;
+        UnitType baseUnitType = UnitType.IsVolume ? UnitType.VolumeTeaspoons : UnitType.WeightOunces;
+        return new Amount(baseUnitType, a + b).Simplify();
+    }
     
     public Amount Simplify()
     {
-        Amount amt = this;
-        
-        if (amt is { UnitType: UnitType.VolumeTeaspoons, Fraction.AsInt: >= 3 })
-        {
-            amt = new Amount(UnitType.VolumeTablespoons, amt.Fraction / 3);
-        }
-        
-        if (amt is { UnitType: UnitType.VolumeTablespoons, Fraction.AsInt: >= 16 })
-        {
-            // Avoid "Simplifying" to weird fractions
-            Fraction newFrac = amt.Fraction / 16;
-            if (newFrac.Dem > 10 && newFrac.Dem > amt.Fraction.Dem)
-            {
-                return amt;
-            }
-            
-            return new Amount(UnitType.VolumeCups, newFrac);
-        }
+        return Simplify(this);
+    }
 
-        return amt;
+    private static Amount Simplify(Amount amount)
+    {
+        switch (amount.UnitType)
+        {
+            case UnitType.WeightOunces:
+            {
+                return StepUp(amount, 16, UnitType.WeightPounds);
+            }
+            case UnitType.VolumeTeaspoons:
+            {
+                return StepUp(amount, 3, UnitType.VolumeTablespoons);
+            }
+            case UnitType.VolumeTablespoons:
+            {
+                return StepUp(amount, 16, UnitType.VolumeCups);
+            }
+            case UnitType.VolumeOunces:
+            {
+                return StepUp(amount, 8, UnitType.VolumeCups);
+            }
+            case UnitType.VolumeCups:
+            {
+                return StepUp(amount, 2, UnitType.VolumePints);
+            }
+            case UnitType.VolumeQuarts:
+            {
+                return StepUp(amount, 2, UnitType.VolumeQuarts);
+            }
+            case UnitType.VolumePints:
+            {
+                return StepUp(amount, 2, UnitType.VolumeGallons);
+            }
+            case UnitType.None:
+            case UnitType.Count:
+            case UnitType.WeightPounds:
+            case UnitType.VolumeGallons:
+            default:
+                return amount;
+        }
+    }
+
+    private static Amount StepUp(Amount amount, int threshold, UnitType nextUnitType)
+    {
+        const int demThreshold = 5;
+        Fraction newFrac = amount.Fraction / threshold;
+        return amount.Fraction.AsInt >= threshold && newFrac.Dem <= demThreshold 
+            ? new Amount(nextUnitType, newFrac).Simplify()
+            : amount;
     }
 
     public static Amount Count(int num, int dem = 1) => new(UnitType.Count, num, dem);
@@ -79,10 +123,10 @@ public class Amount
         {
             return left;
         }
-        
-        return left.UnitType.IsCompatible(right.UnitType) 
-            ? new Amount(left.UnitType, left.Fraction + right.Fraction).Simplify() 
-            : new Amount(UnitType.None, 0);
+
+        return !left.UnitType.IsCompatible(right.UnitType) 
+            ? throw new InvalidOperationException($"Unable to add amounts with incompatible unit types: {left} + {right}") 
+            : left.Combine(right);
     }
 
     public static Amount operator *(Amount left, int right)
