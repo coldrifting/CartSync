@@ -14,7 +14,7 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     public async Task TestEditItem_NoPrep_NotInCart()
     {
         Ulid itemId = SeedData.Items[37].ItemId;
-        Amount cartAmount = new(5, 2, UnitType.VolumeCups);
+        Amount cartAmount = Amount.VolumeCups(5, 2);
         await CartController.EditItem(itemId, null, new CartItemEditRequest { Amount = cartAmount }).AssertIsSuccessful();
 
         CartItem? cartItem = await Context.CartItems.FirstOrDefaultAsync(ci => ci.ItemId == itemId && ci.PrepId == null);
@@ -27,7 +27,7 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         Ulid itemId = SeedData.Items[207].ItemId;
         Ulid prepId = SeedData.Preps[2].PrepId;
-        Amount cartAmount = new(1, 2, UnitType.Count);
+        Amount cartAmount = Amount.Count(1, 2);
         await CartController.EditItem(itemId, prepId, new CartItemEditRequest { Amount = cartAmount }).AssertIsSuccessful();
 
         CartItem? cartItem = await Context.CartItems.FirstOrDefaultAsync(ci => ci.ItemId == itemId && ci.PrepId == prepId);
@@ -40,8 +40,8 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         Ulid itemId = SeedData.Items[207].ItemId;
         Ulid prepId = SeedData.Preps[2].PrepId;
-        Amount cartAmount1 = new(1, 2, UnitType.Count);
-        Amount cartAmount2 = new(4, 1, UnitType.VolumeTablespoons);
+        Amount cartAmount1 = Amount.Count(1, 2);
+        Amount cartAmount2 = Amount.VolumeTablespoons(4);
         await CartController.EditItem(itemId, prepId, new CartItemEditRequest { Amount = cartAmount1 }).AssertIsSuccessful();
         await CartController.EditItem(itemId, null, new CartItemEditRequest { Amount = cartAmount2 }).AssertIsSuccessful();
 
@@ -58,7 +58,7 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     public async Task TestEditItem_NoPrep_AlreadyInCart()
     {
         Ulid itemId = SeedData.Items[114].ItemId;
-        Amount cartAmount = new(5, 2, UnitType.VolumeCups);
+        Amount cartAmount = Amount.VolumeCups(5, 2);
         await CartController.EditItem(itemId, null, new CartItemEditRequest { Amount = cartAmount }).AssertIsSuccessful();
 
         CartItem? cartItem = await Context.CartItems.FirstOrDefaultAsync(ci => ci.ItemId == itemId && ci.PrepId == null);

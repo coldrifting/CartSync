@@ -1,5 +1,4 @@
 using CartSync.Objects;
-using CartSync.Objects.Enums;
 
 namespace CartSyncTests.MiscTests;
 
@@ -8,10 +7,10 @@ public class AmountTests
     [Fact]
     public void TestAmountSimplify()
     {
-        Amount a = new(1, UnitType.VolumeTeaspoons);
-        Amount b = new(2, UnitType.VolumeTeaspoons);
-        
-        Amount expected = new(1, UnitType.VolumeTablespoons);
+        Amount a = Amount.VolumeTeaspoons(1);
+        Amount b = Amount.VolumeTeaspoons(2);
+
+        Amount expected = Amount.VolumeTablespoons(1);
         Amount actual = a + b;
         
         Assert.Equal(expected, actual);
@@ -20,10 +19,10 @@ public class AmountTests
     [Fact]
     public void TestAmountSimplify2()
     {
-        Amount a = new(5, UnitType.VolumeTeaspoons);
-        Amount b = new(2, UnitType.VolumeTeaspoons);
+        Amount a = Amount.VolumeTeaspoons(5);
+        Amount b = Amount.VolumeTeaspoons(2);
         
-        Amount expected = new(new Fraction(7, 3), UnitType.VolumeTablespoons);
+        Amount expected = Amount.VolumeTablespoons(7, 3);
         Amount actual = a + b;
         
         Assert.Equal(expected, actual);
@@ -32,10 +31,10 @@ public class AmountTests
     [Fact]
     public void TestAmountSimplify3()
     {
-        Amount a = new(5, UnitType.VolumeTeaspoons);
-        Amount b = new(4, UnitType.VolumeTeaspoons);
+        Amount a = Amount.VolumeTeaspoons(5);
+        Amount b = Amount.VolumeTeaspoons(4);
         
-        Amount expected = new(new Fraction(3, 1), UnitType.VolumeTablespoons);
+        Amount expected = Amount.VolumeTablespoons(3);
         Amount actual = a + b;
         
         Assert.Equal(expected, actual);
@@ -44,10 +43,10 @@ public class AmountTests
     [Fact]
     public void TestAmountSimplify4()
     {
-        Amount a = new(15, UnitType.VolumeTablespoons);
-        Amount b = new(1, UnitType.VolumeTablespoons);
-        
-        Amount expected = new(new Fraction(1, 1), UnitType.VolumeCups);
+        Amount a = Amount.VolumeTablespoons(15);
+        Amount b = Amount.VolumeTablespoons(1);
+
+        Amount expected = Amount.VolumeCups(1);
         Amount actual = a + b;
         
         Assert.Equal(expected, actual);
@@ -56,10 +55,10 @@ public class AmountTests
     [Fact]
     public void TestAmountSimplify5()
     {
-        Amount a = new(40, UnitType.VolumeTeaspoons);
-        Amount b = new(8, UnitType.VolumeTeaspoons);
+        Amount a = Amount.VolumeTeaspoons(40);
+        Amount b = Amount.VolumeTeaspoons(8);
         
-        Amount expected = new(new Fraction(1, 1), UnitType.VolumeCups);
+        Amount expected = Amount.VolumeCups(1);
         Amount actual = a + b;
         
         Assert.Equal(expected, actual);
@@ -68,10 +67,10 @@ public class AmountTests
     [Fact]
     public void TestAmountSimplify6()
     {
-        Amount a = new(40, UnitType.VolumeTeaspoons);
-        Amount b = new(10, UnitType.VolumeTeaspoons);
+        Amount a = Amount.VolumeTeaspoons(40);
+        Amount b = Amount.VolumeTeaspoons(10);
         
-        Amount expected = new(new Fraction(50, 3), UnitType.VolumeTablespoons);
+        Amount expected = Amount.VolumeTablespoons(50, 3);
         Amount actual = a + b;
         
         Assert.Equal(expected, actual);
@@ -80,10 +79,10 @@ public class AmountTests
     [Fact]
     public void TestAmountSimplify7()
     {
-        Amount a = new(40, UnitType.VolumeTeaspoons);
-        Amount b = new(11, UnitType.VolumeTeaspoons);
+        Amount a = Amount.VolumeTeaspoons(40);
+        Amount b = Amount.VolumeTeaspoons(11);
         
-        Amount expected = new(new Fraction(17, 1), UnitType.VolumeTablespoons);
+        Amount expected = Amount.VolumeTablespoons(17);
         Amount actual = a + b;
         
         Assert.Equal(expected, actual);

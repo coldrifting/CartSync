@@ -10,33 +10,27 @@ namespace CartSync.Objects;
 [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
 public class Amount
 {
-    public Fraction Fraction { get; init; }
     public UnitType UnitType { get; init; }
+    public Fraction Fraction { get; init; }
 
-    public static readonly Amount None = new(0, UnitType.None);
+    public static readonly Amount None = new(UnitType.None, 0);
     
     public Amount()
     {
-        Fraction = new Fraction(1);
         UnitType = UnitType.Count;
+        Fraction = new Fraction(1);
     }
 
-    public Amount(Fraction fraction, UnitType unitType)
+    private Amount(UnitType unitType, Fraction fraction)
     {
+        UnitType = unitType;
         Fraction = fraction;
-        UnitType = unitType;
     }
 
-    public Amount(int quantity, UnitType unitType)
+    private Amount(UnitType unitType, int num, int dem = 1)
     {
-        Fraction = new Fraction(quantity);
         UnitType = unitType;
-    }
-
-    public Amount(int num, int dem, UnitType unitType)
-    {
         Fraction = new Fraction(num, dem);
-        UnitType = unitType;
     }
     
     public Amount Simplify()
@@ -45,7 +39,7 @@ public class Amount
         
         if (amt is { UnitType: UnitType.VolumeTeaspoons, Fraction.AsInt: >= 3 })
         {
-            amt = new Amount(amt.Fraction / 3, UnitType.VolumeTablespoons);
+            amt = new Amount(UnitType.VolumeTablespoons, amt.Fraction / 3);
         }
         
         if (amt is { UnitType: UnitType.VolumeTablespoons, Fraction.AsInt: >= 16 })
@@ -57,27 +51,52 @@ public class Amount
                 return amt;
             }
             
-            return new Amount(newFrac, UnitType.VolumeCups);
+            return new Amount(UnitType.VolumeCups, newFrac);
         }
 
         return amt;
     }
 
+    public static Amount Count(int num, int dem = 1) => new(UnitType.Count, num, dem);
+    public static Amount VolumeTeaspoons(int num, int dem = 1) => new(UnitType.VolumeTeaspoons, num, dem);
+    public static Amount VolumeTablespoons(int num, int dem = 1) => new(UnitType.VolumeTablespoons, num, dem);
+    public static Amount VolumeOunces(int num, int dem = 1) => new(UnitType.VolumeOunces, num, dem);
+    public static Amount VolumeCups(int num, int dem = 1) => new(UnitType.VolumeCups, num, dem);
+    public static Amount VolumeQuarts(int num, int dem = 1) => new(UnitType.VolumeQuarts, num, dem);
+    public static Amount VolumePints(int num, int dem = 1) => new(UnitType.VolumePints, num, dem);
+    public static Amount VolumeGallons(int num, int dem = 1) => new(UnitType.VolumeGallons, num, dem);
+    public static Amount WeightOunces(int num, int dem = 1) => new(UnitType.WeightOunces, num, dem);
+    public static Amount WeightPounds(int num, int dem = 1) => new(UnitType.WeightPounds, num, dem);
+    
     public static Amount operator +(Amount left, Amount right)
     {
+        if (left.UnitType == UnitType.None)
+        {
+            return right;
+        }
+
+        if (right.UnitType == UnitType.None)
+        {
+            return left;
+        }
+        
         return left.UnitType.IsCompatible(right.UnitType) 
-            ? new Amount(left.Fraction + right.Fraction, left.UnitType).Simplify() 
-            : new Amount(-1, UnitType.None);
+            ? new Amount(left.UnitType, left.Fraction + right.Fraction).Simplify() 
+            : new Amount(UnitType.None, 0);
     }
 
     public static Amount operator *(Amount left, int right)
     {
-        return new Amount(left.Fraction * right, left.UnitType).Simplify();
+        return left.UnitType == UnitType.None 
+            ? None 
+            : new Amount(left.UnitType, left.Fraction * right).Simplify();
     }
 
     public static Amount operator *(int left, Amount right)
     {
-        return new Amount(right.Fraction * left, right.UnitType).Simplify();
+        return right.UnitType == UnitType.None 
+            ? None 
+            : new Amount(right.UnitType, right.Fraction * left).Simplify();
     }
 
     public override bool Equals(object? obj)
@@ -115,7 +134,7 @@ public class Amount
 
         UnitType unit = Enum.Parse<UnitType>(second[1]);
         
-        return new Amount(new Fraction(num, dem), unit);
+        return new Amount(unit, new Fraction(num, dem));
     }
     
 

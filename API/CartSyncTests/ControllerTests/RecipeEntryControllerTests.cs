@@ -3,7 +3,6 @@ using CartSync.Controllers.Core;
 using CartSync.Models;
 using CartSync.Models.Seeding;
 using CartSync.Objects;
-using CartSync.Objects.Enums;
 using CartSyncTests.Base;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson.Operations;
@@ -22,7 +21,7 @@ public class RecipeEntryControllerTests(DatabaseSetup fixture) : DatabaseFixture
 
         RecipeEntryAddRequest recipeEntryAddRequest = new()
         {
-            Amount = new Amount(3, UnitType.VolumeCups),
+            Amount = Amount.VolumeCups(3),
             ItemId = SeedData.Items[35].ItemId,
             PrepId = null
         };
@@ -51,7 +50,7 @@ public class RecipeEntryControllerTests(DatabaseSetup fixture) : DatabaseFixture
 
         RecipeEntryAddRequest recipeEntryAddRequest = new()
         {
-            Amount = new Amount(3, UnitType.VolumeCups),
+            Amount = Amount.VolumeCups(3),
             ItemId = SeedData.Items[182].ItemId,
             PrepId = SeedData.Preps[4].PrepId
         };
@@ -80,7 +79,7 @@ public class RecipeEntryControllerTests(DatabaseSetup fixture) : DatabaseFixture
 
         RecipeEntryAddRequest recipeEntryAddRequest = new()
         {
-            Amount = new Amount(3, UnitType.VolumeCups),
+            Amount = Amount.VolumeCups(3),
             ItemId = SeedData.Items[180].ItemId,
             PrepId = SeedData.Preps[4].PrepId
         };
@@ -108,7 +107,7 @@ public class RecipeEntryControllerTests(DatabaseSetup fixture) : DatabaseFixture
 
         RecipeEntryAddRequest recipeEntryAddRequest = new()
         {
-            Amount = new Amount(3, UnitType.VolumeCups),
+            Amount = Amount.VolumeCups(3),
             ItemId = SeedData.Items[180].ItemId,
             PrepId = SeedData.Preps[3].PrepId
         };
@@ -134,7 +133,7 @@ public class RecipeEntryControllerTests(DatabaseSetup fixture) : DatabaseFixture
 
         RecipeEntryAddRequest recipeEntryAddRequest = new()
         {
-            Amount = new Amount(3, UnitType.VolumeCups),
+            Amount = Amount.VolumeCups(3),
             ItemId = SeedData.Items[182].ItemId,
             PrepId = SeedData.Preps[0].PrepId
         };
@@ -202,7 +201,7 @@ public class RecipeEntryControllerTests(DatabaseSetup fixture) : DatabaseFixture
         
         Ulid recipeEntryId = Ulid.Parse((await RecipeEntryController.Add(sectionId, new RecipeEntryAddRequest
         {
-            Amount = new Amount(3, UnitType.VolumeCups),
+            Amount = Amount.VolumeCups(3),
             ItemId = itemId,
             PrepId = null
         }).ValueAsync()).Item2.Split('/').Last());
@@ -240,7 +239,7 @@ public class RecipeEntryControllerTests(DatabaseSetup fixture) : DatabaseFixture
         
         await RecipeEntryController.Add(sectionId, new RecipeEntryAddRequest
         {
-            Amount = new Amount(3, UnitType.VolumeCups),
+            Amount = Amount.VolumeCups(3),
             ItemId = itemId,
             PrepId = null
         });
