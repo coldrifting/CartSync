@@ -4,8 +4,8 @@
     <DataCollectors>
       <DataCollector friendlyName="XPlat code coverage">
         <Configuration>
-          <ExcludeByAttribute>Obsolete,GeneratedCodeAttribute,CompilerGeneratedAttribute</ExcludeByAttribute>
-          <ExcludeByFile>**/*_Migrations*/*.cs</ExcludeByFile>
+          <Exclude>[*]CartSync._Migrations.*,[*]Microsoft.AspNetCore.OpenApi.*,[*]System.*</Exclude>
+          <IncludeTestAssembly>false</IncludeTestAssembly>
         </Configuration>
       </DataCollector>
     </DataCollectors>
