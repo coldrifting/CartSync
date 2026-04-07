@@ -3,7 +3,7 @@ import Prep from "$lib/scripts/classes/Prep.js";
 import Amount from "$lib/scripts/classes/Amount.js";
 
 class RecipeEntry {
-    recipeEntryId: string = "";
+    id: string = "";
     item: Item = new Item();
     prep: Prep | null = null;
     amount: Amount = new Amount();

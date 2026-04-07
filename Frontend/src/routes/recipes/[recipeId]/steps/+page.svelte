@@ -1,9 +1,9 @@
 <script lang="ts">
+    import {tick} from "svelte";
     import {enhance} from '$app/forms';
     import type {PageProps} from './$types';
     import Header from "$lib/components/Header.svelte";
     import ReorderableList from "$lib/components/dragAndDrop/ReorderableList.svelte";
-    import {tick} from "svelte";
     import ModalAddStep from "$lib/components/modal/steps/ModalAddStep.svelte";
     import ModalEditStep from "$lib/components/modal/steps/ModalEditStep.svelte";
 
@@ -31,13 +31,13 @@
         }
     ];
 
-    let items: SortableItem[] = $derived(data.recipe.steps.map(i => {
+    let items: SortableItem[] = $derived(data.recipe.steps.map(recipeStep => {
         return {
-            id: i.recipeStepId,
-            name: i.recipeStepContent,
-            subtitle: i.sortOrder.toString(),
+            id: recipeStep.id,
+            name: recipeStep.content,
+            subtitle: recipeStep.sortOrder.toString(),
             isContent: true,
-            isImage: i.isImage
+            isImage: recipeStep.isImage
         } as SortableItem;
     }))
 
@@ -65,13 +65,13 @@
 </script>
 
 <svelte:head>
-    <title>Recipes - {data.recipe.recipeName} - Steps</title>
+    <title>Recipes - {data.recipe.name} - Steps</title>
 </svelte:head>
 
 <ModalAddStep bind:this={modalAddStep} action="addStep"/>
 <ModalEditStep bind:this={modalEditStep} action="editStep"/>
 
-<Header back={[`/recipes/${data.recipe.recipeId}`, 'Recipe']} title={data.recipe.recipeName} subtitle="Recipe Steps"
+<Header back={[`/recipes/${data.recipe.id}`, 'Recipe']} title={data.recipe.name} subtitle="Recipe Steps"
         headerActions={headerActions}/>
 
 <ReorderableList listName="RecipeSteps" items={items} onReorder={onReorder} contextActions={contextActions}/>

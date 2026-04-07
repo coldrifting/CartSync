@@ -27,10 +27,10 @@
         let mapping: Record<string, any> = {};
         data.recipe.sections.forEach(section => {
             section.entries.forEach(entry => {
-                let preps: (Prep | null)[] = (data.validItemsAndPreps.sections.at(-1)?.validItems.find(i => i.itemId === entry.item.itemId)?.preps) ?? [];
+                let preps: (Prep | null)[] = (data.validItemsAndPreps.sections.at(-1)?.items.find(item => item.id === entry.item.id)?.preps) ?? [];
                 
-                mapping[entry.recipeEntryId] = {
-                    sectionId: section.recipeSectionId,
+                mapping[entry.id] = {
+                    sectionId: section.id,
                     item: entry.item,
                     prep: entry.prep,
                     preps: preps,
@@ -51,9 +51,9 @@
                 editDialog.show(
                     id, 
                     mapping.sectionId, 
-                    mapping.item.itemName,
+                    mapping.item.name,
                     mapping.preps,
-                    mapping.prep?.prepId,
+                    mapping.prep?.id,
                     mapping.amount.unitType,
                     mapping.amount.fraction
                 );
@@ -94,7 +94,7 @@
 </script>
 
 <svelte:head>
-    <title>Recipes - {data.recipe.recipeName}</title>
+    <title>Recipes - {data.recipe.name}</title>
 </svelte:head>
 
 <ModalAddIngredient bind:this={addDialog} action="addRecipeEntry" header="Add Recipe Entry"
@@ -108,12 +108,12 @@
 <ModalRename bind:this={urlEditDialog} action="editRecipeUrl" labelRename="Recipe URL"
              header="Edit Recipe URL"/>
 
-<Header back={['/recipes', 'Recipes']} title={data.recipe.recipeName} subtitle="Recipe Ingredients"
+<Header back={['/recipes', 'Recipes']} title={data.recipe.name} subtitle="Recipe Ingredients"
         headerActions={headerActions}/>
 
 <h4>Details</h4>
 <ul>
-    <ListElementLink id="Steps" label="Steps" link="/recipes/{data.recipe.recipeId}/steps"/>
+    <ListElementLink id="Steps" label="Steps" link="/recipes/{data.recipe.id}/steps"/>
     <ListElementLink id="Url" label="Url" info={urlHost} link={data.recipe.url} isExternalLink={true} contextActions={urlContextActions} />
 </ul>
 
@@ -121,10 +121,10 @@
     <h4>Ingredients</h4>
     <ul>
         {#each data.recipe.sections[0].entries as entry, i}
-            <ListElementCheckbox id={entry.recipeEntryId}
-                                 label={entry.item.itemName}
+            <ListElementCheckbox id={entry.id}
+                                 label={entry.item.name}
                                  info={Amount.asString(entry.amount)}
-                                 subInfo={entry.prep?.prepName}
+                                 subInfo={entry.prep?.name}
                                  name="RecipeEntry"
                                  checked={checkedEntries[i]}
                                  contextActions={contextActions}/>
@@ -133,15 +133,15 @@
 {:else}
     {#each data.recipe.sections as section, i}
         <button class="heading-button"
-                onclick={() => {renameDialog.show(section.recipeSectionId, section.recipeSectionName)}}>
-            {section.recipeSectionName}
+                onclick={() => {renameDialog.show(section.id, section.name)}}>
+            {section.name}
         </button>
         <ul>
             {#each section.entries as entry, j}
-                <ListElementCheckbox id={entry.recipeEntryId}
-                                     label={entry.item.itemName}
+                <ListElementCheckbox id={entry.id}
+                                     label={entry.item.name}
                                      info={Amount.asString(entry.amount)}
-                                     subInfo={entry.prep?.prepName}
+                                     subInfo={entry.prep?.name}
                                      name="RecipeEntry"
                                      checked={checkedEntries[(j * i) + j]}
                                      contextActions={contextActions}/>

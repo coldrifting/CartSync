@@ -4,19 +4,19 @@ import type Amount from "$lib/scripts/classes/Amount.ts";
 import type RecipeSection from "$lib/scripts/classes/RecipeSection.ts";
 
 export async function addStore(cookies: Cookies, storeName: string): Promise<void> {
-    await post(cookies, `/stores/add`, { storeName: storeName });
+    await post(cookies, `/stores/add`, { Name: storeName });
 }
 
 export async function addAisle(cookies: Cookies, storeId: string, aisleName: string): Promise<void> {
-    await post(cookies, `/aisles/add?storeId=${storeId}`, { aisleName: aisleName });
+    await post(cookies, `/aisles/add?storeId=${storeId}`, { Name: aisleName });
 }
 
 export async function addItem(cookies: Cookies, itemName: string): Promise<void> {
-    await post(cookies, `/items/add`, { itemName: itemName });
+    await post(cookies, `/items/add`, { Name: itemName });
 }
 
 export async function addPrep(cookies: Cookies, prepName: string): Promise<void> {
-    await post(cookies, `/preps/add`, { prepName: prepName });
+    await post(cookies, `/preps/add`, { Name: prepName });
 }
 
 export async function setCurrentStore(cookies: Cookies, storeId: string): Promise<void> {
@@ -24,15 +24,15 @@ export async function setCurrentStore(cookies: Cookies, storeId: string): Promis
 }
 
 export async function addRecipe(cookies: Cookies, recipeName: string): Promise<void> {
-    await post(cookies, `/recipes/add`, { recipeName: recipeName });
+    await post(cookies, `/recipes/add`, { Name: recipeName });
 }
 
 export async function addRecipeSection(cookies: Cookies, recipeId: string, recipeSectionName: string): Promise<string> {
     let recipeSection: RecipeSection = await postResults<RecipeSection>(cookies, `/recipes/sections/add?recipeId=${recipeId}`, { 
-        recipeSectionName: recipeSectionName
+        Name: recipeSectionName
     });
     
-    return recipeSection.recipeSectionId;
+    return recipeSection.id;
 }
 
 export async function addRecipeEntry(cookies: Cookies, recipeSectionId: string, itemId: string, prepId: string | null, amount: Amount): Promise<void> {
@@ -45,7 +45,7 @@ export async function addRecipeEntry(cookies: Cookies, recipeSectionId: string, 
 
 export async function addRecipeStep(cookies: Cookies, recipeId: string, content: string): Promise<void> {
     await post(cookies, `/recipes/steps/add?recipeId=${recipeId}`, { 
-        recipeStepContent: content,
+        Content: content,
         isImage: isContentImage(content)
     });
 }

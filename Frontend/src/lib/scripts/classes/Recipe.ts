@@ -1,6 +1,6 @@
 class Recipe {
-    recipeId: string = "";
-    recipeName: string = "";
+    id: string = "";
+    name: string = "";
     url: string = "";
     isPinned: boolean = false;
 }

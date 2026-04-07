@@ -1,8 +1,8 @@
 import type RecipeEntry from "$lib/scripts/classes/RecipeEntry.ts";
 
 class RecipeSection {
-    recipeSectionId: string = "";
-    recipeSectionName: string = "";
+    id: string = "";
+    name: string = "";
     sortOrder: number = 0;
     entries: RecipeEntry[] = [];
 }

@@ -3,27 +3,27 @@ import type RecipeDetails from "$lib/scripts/classes/RecipeDetails.ts";
 import type itemDetails from "$lib/scripts/classes/ItemDetails.ts";
 import type ItemDetails from "$lib/scripts/classes/ItemDetails.ts";
 
-export class ItemsAndPrepsBySection {
-    sections: ItemsAndPrepsSection[] = [];
+export class AllValidItems {
+    sections: ValidSection[] = [];
 
-    static fromData(recipe: RecipeDetails, items: itemDetails[]): ItemsAndPrepsBySection {
-        let sections: ItemsAndPrepsSection[] = [];
+    static fromData(recipe: RecipeDetails, items: itemDetails[]): AllValidItems {
+        let sections: ValidSection[] = [];
 
         let recipeSections = [...recipe.sections, undefined];
 
         recipeSections.forEach((section, i) => {
             // Populate all combinations
-            let validItems: ItemAndPreps[] = [];
+            let validItems: ValidItem[] = [];
             items.forEach((item) => {
-                let ValidItem = ItemAndPreps.fromItem(item);
-                validItems.push(ValidItem);
+                let v = ValidItem.fromItem(item);
+                validItems.push(v);
             })
             
             section?.entries.forEach((entry) => {
                 // Remove 
-                const itemIndex = validItems.map(i => i.itemId).indexOf(entry.item.itemId);
+                const itemIndex = validItems.map(itemAndPrep => itemAndPrep.id).indexOf(entry.item.id);
                 if (itemIndex !== -1) {
-                    const prepIndex = validItems[itemIndex].preps.map(p => p?.prepId).indexOf(entry.prep?.prepId);
+                    const prepIndex = validItems[itemIndex].preps.map(prep => prep?.id).indexOf(entry.prep?.id);
                     if (prepIndex !== -1) {
                         validItems[itemIndex].preps.splice(prepIndex, 1);
                         if (validItems[itemIndex].preps.length === 0) {
@@ -34,36 +34,36 @@ export class ItemsAndPrepsBySection {
             })
 
             sections[i] = {
-                sectionId: section?.recipeSectionId,
-                sectionName: section?.recipeSectionName,
-                validItems: validItems
+                id: section?.id,
+                name: section?.name,
+                items: validItems
             };
         })
 
         return {
             sections: sections,
-        } as ItemsAndPrepsBySection;
+        } as AllValidItems;
     }
 }
 
-export class ItemsAndPrepsSection {
-    sectionId?: string | undefined = "";
-    sectionName?: string | undefined = "";
-    validItems: ItemAndPreps[] = [];
+export class ValidSection {
+    id?: string | undefined = "";
+    name?: string | undefined = "";
+    items: ValidItem[] = [];
 }
 
-export class ItemAndPreps {
-    itemId: string = "";
-    itemName: string = "";
+export class ValidItem {
+    id: string = "";
+    name: string = "";
     defaultUnitType: string = "";
     preps: (Prep | null)[] = [];
 
-    static fromItem(item: ItemDetails): ItemAndPreps {
+    static fromItem(item: ItemDetails): ValidItem {
         return {
-            itemId: item.itemId,
-            itemName: item.itemName,
+            id: item.id,
+            name: item.name,
             defaultUnitType: item.defaultUnitType,
             preps: [null, ...item.preps]
-        } as ItemAndPreps;
+        } as ValidItem;
     }
 }

@@ -7,10 +7,10 @@ import type Store from "$lib/scripts/classes/Store.ts";
 
 export const load: PageServerLoad = async ({params, cookies}) => {
     const stores: Store[] = await getAllStores(cookies);
-    const selectedStore: Store = stores.filter((s: Store): boolean => s.isSelected)[0];
+    const selectedStore: Store = stores.filter(store => store.isSelected)[0];
     
     const [aisles, item] = await Promise.all([
-        getAllAisles(cookies, selectedStore.storeId),
+        getAllAisles(cookies, selectedStore.id),
         getItem(cookies, params.itemId)
     ]);
     

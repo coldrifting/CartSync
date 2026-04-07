@@ -1,7 +1,6 @@
 class Aisle {
-    aisleId: string = "";
-    storeId: string = "";
-    aisleName: string = "";
+    id: string = "";
+    name: string = "";
     sortOrder: number = 0;
 }
 

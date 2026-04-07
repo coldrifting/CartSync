@@ -12,11 +12,11 @@ import type Prep from "$lib/scripts/classes/Prep.ts";
 export const load: PageServerLoad = async ({params, cookies}) => {
     const item: ItemDetails = await getItem(cookies, params.itemId);
     const preps: Prep[] = await getAllPreps(cookies);
-    const selectedPreps: PrepSelect[] = preps.map(p => {
+    const selectedPreps: PrepSelect[] = preps.map(prep => {
         return {
-            prepId: p.prepId,
-            prepName: p.prepName,
-            isSelected: item.preps.map(p => p.prepId).includes(p.prepId)
+            prepId: prep.id,
+            prepName: prep.name,
+            isSelected: item.preps.map(itemPrep => itemPrep.id).includes(prep.id)
         }
     });
     

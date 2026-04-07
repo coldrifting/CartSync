@@ -15,7 +15,7 @@
     let filter = (items: ItemDetails[]) => {
         if (!filterText) return items;
         let searchText = filterText.toLowerCase().trim();
-        return items.filter(i => i.itemName.toLowerCase().includes(searchText));
+        return items.filter(item => item.name.toLowerCase().includes(searchText));
     }
 
     let filteredIngredients: ItemDetails[] = $derived(filter(data.ingredients));
@@ -88,10 +88,10 @@
 
 <ul>
     {#each filteredIngredients as ingredient}
-        <ListElementLink id={ingredient.itemId}
-                         label={ingredient.itemName}
+        <ListElementLink id={ingredient.id}
+                         label={ingredient.name}
                          info={ingredient.location?.aisleName ?? "(Not Set)"}
-                         link="/items/{ingredient.itemId}"
+                         link="/items/{ingredient.id}"
                          contextActions={contextActions}
         />
     {/each}

@@ -9,11 +9,11 @@
     
     let {data}: PageProps = $props();
     
-    const storeName = $derived(data.store.storeName);
+    const storeName = $derived(data.store.name);
     let aisles: SortableItem[] = $derived(data.aisles.map(a => {
         return {
-            id: a.aisleId,
-			name: a.aisleName,
+            id: a.id,
+			name: a.name,
 			subtitle: (a.sortOrder + 1).toString()
         } as SortableItem;
     }));

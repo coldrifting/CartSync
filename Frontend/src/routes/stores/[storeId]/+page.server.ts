@@ -13,8 +13,8 @@ export const load: PageServerLoad = async ({params, cookies}) => {
     storeId = params.storeId;
     
     const stores: Store[] = await getAllStores(cookies);
-    const store: Store = stores.filter(s => s.storeId === params.storeId)[0];
-    const aisles: Aisle[] = await getAllAisles(cookies, store.storeId);
+    const store: Store = stores.filter(store => store.id === params.storeId)[0];
+    const aisles: Aisle[] = await getAllAisles(cookies, store.id);
     
     return {
         store: store,

@@ -12,12 +12,12 @@
     let {data}: PageProps = $props();
     let item: ItemDetails = $derived(data.item);
 
-    let itemId: string = $derived(data.item.itemId);
-    let itemTemp: string = $derived(data.item.itemTemp);
+    let itemId: string = $derived(data.item.id);
+    let itemTemp: string = $derived(data.item.temp);
     let itemDefaultUnits: string = $derived(data.item.defaultUnitType);
 
     let prepText = $derived(data.item.preps
-            .map(p => p.prepName)
+            .map(prep => prep.name)
             .slice(0, 3)
             .join(", ") +
         (data.item.preps.length > 3 ? ", ..." : ""));
@@ -29,17 +29,17 @@
     let itemAisleBayForm: HTMLFormElement;
 
     let stores = $derived(data.stores);
-    let selectedStoreId = $derived(data.selectedStore.storeId);
-    let aisles = $derived(data.aisles.sort((a, b) => a.aisleName > b.aisleName ? 1 : -1));
+    let selectedStoreId = $derived(data.selectedStore.id);
+    let aisles = $derived(data.aisles.sort((a, b) => a.name > b.name ? 1 : -1));
     let aisleId = $derived(item.location?.aisleId ?? "");
     let bay = $derived(item.location?.bay ?? BayType.Types[1]);
 </script>
 
 <svelte:head>
-    <title>{data.item.itemName}</title>
+    <title>{data.item.name}</title>
 </svelte:head>
 
-<Header back={['/items', 'Items']} title={item.itemName}/>
+<Header back={['/items', 'Items']} title={item.name}/>
 
 <h4>Details</h4>
 <form method="POST"
@@ -93,7 +93,7 @@
                bind:value={selectedStoreId}
                onchange={() => storeForm.requestSubmit()}>
             {#each stores as store}
-                <option value="{store.storeId}">{store.storeName}</option>
+                <option value="{store.id}">{store.name}</option>
             {/each}
         </Input>
     </FormGroup>
@@ -113,7 +113,7 @@
                onchange={() => itemAisleForm.requestSubmit()}>
             <option value="" disabled selected hidden>Select an Aisle</option>
             {#each aisles as aisle}
-                <option value="{aisle.aisleId}">{aisle.aisleName}</option>
+                <option value="{aisle.id}">{aisle.name}</option>
             {/each}
         </Input>
     </FormGroup>

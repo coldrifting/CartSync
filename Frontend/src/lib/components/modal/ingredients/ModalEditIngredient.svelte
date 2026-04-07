@@ -50,7 +50,14 @@
         isOpen = !isOpen;
     }
 
-    export const show = (inputEntryId: string, inputSectionId: string, inputItemName: string, inputPreps: (Prep | null)[], inputPrepId: string | null, inputUnitType: string, inputFraction: Fraction) => {
+    export const show = (inputEntryId: string,
+                         inputSectionId: string,
+                         inputItemName: string,
+                         inputPreps: (Prep | null)[],
+                         inputPrepId: string | null,
+                         inputUnitType: string,
+                         inputFraction: Fraction
+    ) => {
         recipeEntryId = inputEntryId;
         sectionId = inputSectionId;
         itemName = inputItemName;
@@ -82,18 +89,16 @@
           use:enhance={submitFunction}>
         <div>
             <input name="recipeEntryId" bind:value={recipeEntryId} hidden required/>
-            
-            <FormGroup floating label="Item" disabled={true}>
-                <Input bind:value={itemName}  disabled={true} />
-            </FormGroup>
 
+            <h5>{itemName}</h5>
+            
             {#if showPrepsSelect}
                 <FormGroup floating label="Prep">
                     <Input type="select"
                            name="prepId"
                            bind:value={prepId}>
                         {#each preps as prep}
-                            <option value={prep?.prepId}>{prep?.prepName ?? '(None)'}</option>
+                            <option value={prep?.id}>{prep?.name ?? '(None)'}</option>
                         {/each}
                     </Input>
                 </FormGroup>

@@ -8,7 +8,7 @@ import {editStoreName} from "$lib/scripts/requests/patch.js";
 export const load: PageServerLoad = async ({cookies}) => {
     const stores = await getAllStores(cookies);
     return {
-        selectedStore: stores.filter(s => s.isSelected)[0],
+        selectedStore: stores.filter(store => store.isSelected)[0],
         stores: stores
     }
 }

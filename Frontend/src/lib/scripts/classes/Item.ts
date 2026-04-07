@@ -1,7 +1,7 @@
 class Item {
-    itemId: string = "";
-    itemName: string = "";
-    itemTemp: string = "";
+    id: string = "";
+    name: string = "";
+    temp: string = "";
 }
 
 export default Item;

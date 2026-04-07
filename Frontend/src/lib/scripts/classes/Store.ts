@@ -1,6 +1,6 @@
 class Store {
-    storeId: string = "";
-    storeName: string = "";
+    id: string = "";
+    name: string = "";
     isSelected: boolean = false;
 }
 

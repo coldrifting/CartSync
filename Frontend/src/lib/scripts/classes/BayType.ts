@@ -1,7 +1,7 @@
 class BayType {
     static Types: string[] = [
-        'Start',
-        'Middle',
+        'Begin',
+        'Center',
         'End'
     ];
 }

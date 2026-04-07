@@ -3,11 +3,11 @@ import {apiBaseUrl, checkForErrors, getToken, isContentImage} from "$lib/scripts
 import type Amount from "$lib/scripts/classes/Amount.ts";
 
 export async function editItemName(cookies: Cookies, itemId: string, itemName: string): Promise<void> {
-    await patch(cookies, `/items/${itemId}/edit`, { "/ItemName": itemName });
+    await patch(cookies, `/items/${itemId}/edit`, { "/Name": itemName });
 }
 
 export async function editItemTemp(cookies: Cookies, itemId: string, itemTemp: string): Promise<void> {
-    await patch(cookies, `/items/${itemId}/edit`, { "/ItemTemp": itemTemp });
+    await patch(cookies, `/items/${itemId}/edit`, { "/Temp": itemTemp });
 }
 
 export async function editItemDefaultUnits(cookies: Cookies, itemId: string, defaultUnits: string): Promise<void> {
@@ -19,7 +19,7 @@ export async function editItemPreps(cookies: Cookies, itemId: string, prepIds: s
 }
 
 export async function editPrepName(cookies: Cookies, prepId: string, prepName: string): Promise<void> {
-    await patch(cookies, `/preps/${prepId}/edit`, { "/PrepName": prepName });
+    await patch(cookies, `/preps/${prepId}/edit`, { "/Name": prepName });
 }
 
 export async function editItemAisle(cookies: Cookies, itemId: string, location: LocationEdit | undefined): Promise<void> {
@@ -27,11 +27,11 @@ export async function editItemAisle(cookies: Cookies, itemId: string, location: 
 }
 
 export async function editStoreName(cookies: Cookies, storeId: string, storeName: string): Promise<void> {
-    await patch(cookies, `/stores/${storeId}/edit`, { "/StoreName": storeName });
+    await patch(cookies, `/stores/${storeId}/edit`, { "/Name": storeName });
 }
 
 export async function editAisleName(cookies: Cookies, aisleId: string, aisleName: string): Promise<void> {
-    await patch(cookies, `/aisles/${aisleId}/edit`, { "/AisleName": aisleName });
+    await patch(cookies, `/aisles/${aisleId}/edit`, { "/Name": aisleName });
 }
 
 export async function editAisleOrder(cookies: Cookies, aisleId: string, sortOrder: number): Promise<void> {
@@ -39,7 +39,7 @@ export async function editAisleOrder(cookies: Cookies, aisleId: string, sortOrde
 }
 
 export async function editRecipeName(cookies: Cookies, recipeId: string, recipeName: string): Promise<void> {
-    await patch(cookies, `/recipes/${recipeId}/edit`, { "/RecipeName": recipeName });
+    await patch(cookies, `/recipes/${recipeId}/edit`, { "/Name": recipeName });
 }
 
 export async function editRecipeIsPinned(cookies: Cookies, recipeId: string, isPinned: boolean): Promise<void> {
@@ -51,7 +51,7 @@ export async function editRecipeStepOrder(cookies: Cookies, stepId: string, sort
 }
 
 export async function editRecipeSectionName(cookies: Cookies, recipeSectionId: string, sectionName: string): Promise<void> {
-    await patch(cookies, `/recipes/sections/${recipeSectionId}/edit`, { "/RecipeSectionName": sectionName });
+    await patch(cookies, `/recipes/sections/${recipeSectionId}/edit`, { "/Name": sectionName });
 }
 
 export async function editRecipeEntry(cookies: Cookies, recipeEntryId: string, prepId: string | null, amount: Amount): Promise<void> {

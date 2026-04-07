@@ -15,7 +15,7 @@
     
     let togglePinAction = (id: string, _: string | undefined) => {
         recipeId = id;
-        recipeIsPinned = !(data.allRecipes.filter(r => r.recipeId === id)[0].isPinned);
+        recipeIsPinned = !(data.allRecipes.filter(recipe => recipe.id === id)[0].isPinned);
         tick().then(() => {
             recipePinForm.requestSubmit()
         });
@@ -67,9 +67,9 @@
 <h4>Pinned</h4>
 <ul>
     {#each data.pinnedRecipes as recipe}
-        <ListElementLink id={recipe.recipeId}
-                         label={recipe.recipeName}
-                          link="/recipes/{recipe.recipeId}"
+        <ListElementLink id={recipe.id}
+                         label={recipe.name}
+                          link="/recipes/{recipe.id}"
                           contextActions={pinnedContextActions}
         />
     {/each}
@@ -78,9 +78,9 @@
 <h4>Unpinned</h4>
 <ul>
     {#each data.unPinnedRecipes as recipe}
-        <ListElementLink id={recipe.recipeId}
-                         label={recipe.recipeName}
-                          link="/recipes/{recipe.recipeId}"
+        <ListElementLink id={recipe.id}
+                         label={recipe.name}
+                          link="/recipes/{recipe.id}"
                           contextActions={unpinnedContextActions}
         />
     {/each}

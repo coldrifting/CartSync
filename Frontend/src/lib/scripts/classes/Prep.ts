@@ -1,6 +1,6 @@
 class Prep {
-    prepId: string = "";
-    prepName: string = "";
+    id: string = "";
+    name: string = "";
 }
 
 export default Prep;

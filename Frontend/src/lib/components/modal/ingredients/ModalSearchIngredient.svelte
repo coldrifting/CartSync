@@ -2,21 +2,21 @@
     import {Modal, ModalFooter, FormGroup, Input, Button} from "@sveltestrap/sveltestrap";
     import {tick} from "svelte";
     import FormLink from "$lib/components/FormLink.svelte";
-    import {ItemAndPreps, type ItemsAndPrepsBySection} from "$lib/scripts/classes/ValidItemsAndPreps.js";
+    import {ValidItem, type AllValidItems} from "$lib/scripts/classes/ValidItemsAndPreps.js";
 
     interface Props {
         isOpen: boolean;
-        items: ItemsAndPrepsBySection;
-        selectedItem: ItemAndPreps | undefined;
+        items: AllValidItems;
+        selectedItem: ValidItem | undefined;
     }
 
     let {isOpen = $bindable(), items, selectedItem = $bindable()}: Props = $props();
 
     let filterText: string = $state('');
     let sectionId: string | undefined = $state(undefined);
-    let filteredItems: ItemAndPreps[] = $derived(items.sections
-        .filter(s => s.sectionId === sectionId)[0].validItems
-        .filter(i => i.itemName.toLowerCase().includes(filterText.trim().toLowerCase())));
+    let filteredItems: ValidItem[] = $derived(items.sections
+        .filter(section => section.id === sectionId)[0].items
+        .filter(item => item.name.toLowerCase().includes(filterText.trim().toLowerCase())));
     
     const focus = () => {
         if (isOpen) {
@@ -39,7 +39,7 @@
         focus();
     }
     
-    const onclick = (item: ItemAndPreps) => {
+    const onclick = (item: ValidItem) => {
         selectedItem = item;
         isOpen = false;
     }
@@ -57,7 +57,7 @@
         </FormGroup>
         <ul>
         {#each filteredItems as item}
-            <FormLink text={item.itemName} onclick={() => {onclick(item)}} showArrow={false}/>
+            <FormLink text={item.name} onclick={() => {onclick(item)}} showArrow={false}/>
         {/each}
         </ul>
     </div>

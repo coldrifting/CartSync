@@ -10,8 +10,8 @@ export const load: PageServerLoad = async ({cookies}) => {
     const recipes: Recipe[] = await getAllRecipes(cookies);
     return {
         allRecipes: recipes,
-        pinnedRecipes: recipes.filter(r => r.isPinned),
-        unPinnedRecipes: recipes.filter(r => !r.isPinned)
+        pinnedRecipes: recipes.filter(recipe => recipe.isPinned),
+        unPinnedRecipes: recipes.filter(recipe => !recipe.isPinned)
     }
 };
 

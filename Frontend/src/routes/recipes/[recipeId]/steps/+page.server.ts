@@ -11,7 +11,7 @@ let recipeId: string;
 export const load: PageServerLoad = async ({cookies, params}) => {
     const recipe: RecipeDetails = await getRecipe(cookies, params.recipeId);
     
-    recipeId = recipe.recipeId;
+    recipeId = recipe.id;
     
     return {
         recipe: recipe,

@@ -2,8 +2,8 @@ import type RecipeStep from "$lib/scripts/classes/RecipeStep.ts";
 import type RecipeSection from "$lib/scripts/classes/RecipeSection.ts";
 
 class RecipeDetails {
-    recipeId: string = "";
-    recipeName: string = "";
+    id: string = "";
+    name: string = "";
     url: string = "";
     isPinned: boolean = false;
     steps: RecipeStep[] = [];

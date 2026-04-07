@@ -5,7 +5,7 @@ import type ItemDetails from "$lib/scripts/classes/ItemDetails.ts";
 import {getValue, getValueOrNull, getValueOrUndefined} from "$lib/scripts/requests/common.js";
 import Amount from "$lib/scripts/classes/Amount.js";
 import Fraction from "$lib/scripts/classes/Fraction.js";
-import {ItemsAndPrepsBySection} from "$lib/scripts/classes/ValidItemsAndPreps.js";
+import {AllValidItems} from "$lib/scripts/classes/ValidItemsAndPreps.js";
 import {addRecipeEntry, addRecipeSection} from "$lib/scripts/requests/post.js";
 import {deleteRecipeEntry} from "$lib/scripts/requests/delete.js";
 import {editRecipeEntry, editRecipeSectionName, editRecipeUrl} from "$lib/scripts/requests/patch.js";
@@ -16,9 +16,9 @@ export const load: PageServerLoad = async ({cookies, params}) => {
     const recipe: RecipeDetails = await getRecipe(cookies, params.recipeId);
     const items: ItemDetails[] = await getAllItems(cookies);
     
-    const validItemsAndPreps: ItemsAndPrepsBySection = ItemsAndPrepsBySection.fromData(recipe, items);
+    const validItemsAndPreps: AllValidItems = AllValidItems.fromData(recipe, items);
     
-    recipeId = recipe.recipeId;
+    recipeId = recipe.id;
     
     return {
         recipe: recipe,

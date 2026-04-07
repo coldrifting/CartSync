@@ -1,6 +1,6 @@
 class RecipeStep {
-    recipeStepId: string = "";
-    recipeStepContent: string = "";
+    id: string = "";
+    content: string = "";
     isImage: boolean = false;
     sortOrder: number = 0;
 }

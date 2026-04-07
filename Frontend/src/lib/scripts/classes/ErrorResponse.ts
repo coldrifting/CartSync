@@ -4,7 +4,7 @@ class ErrorResponse {
 	errors: Record<string, string | null> | null = null;
 	
 	static asString(errorResponse: ErrorResponse): string {
-		let error: string = errorResponse.statusCode + " " + errorResponse.message;
+		let error: string = errorResponse.statusCode + " " + errorResponse.message + "\n";
 		
 		if (errorResponse.errors) {
 			for (let key in errorResponse.errors) {

@@ -9,7 +9,7 @@
     import ListElementCheckbox from "$lib/components/ListElementCheckbox.svelte";
 
     let {data}: PageProps = $props();
-    let itemId: string = $derived(data.item.itemId);
+    let itemId: string = $derived(data.item.id);
     
     let preps = $derived(data.preps);
     
@@ -50,7 +50,7 @@
 </script>
 
 <svelte:head>
-    <title>{data.item.itemName} - Preps</title>
+    <title>{data.item.name} - Preps</title>
 </svelte:head>
 
 <ModalAdd bind:this={addDialog} action="addPrep" header="Add Prep" labelAdd="Prep Name" />
@@ -66,7 +66,7 @@
 </form>
 
 <Header back={[`/items/${itemId}`, 'Item']} 
-        title={data.item.itemName} 
+        title={data.item.name} 
         subtitle="Preps" 
         headerActions={headerActions} />
 

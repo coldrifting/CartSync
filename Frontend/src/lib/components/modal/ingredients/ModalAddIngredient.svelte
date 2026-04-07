@@ -9,13 +9,13 @@
     import Fraction from "$lib/scripts/classes/Fraction.js";
     import ModalSearchIngredient from "$lib/components/modal/ingredients/ModalSearchIngredient.svelte";
     import FormLink from "$lib/components/FormLink.svelte";
-    import {ItemAndPreps, type ItemsAndPrepsBySection} from "$lib/scripts/classes/ValidItemsAndPreps.js";
+    import {ValidItem, type AllValidItems} from "$lib/scripts/classes/ValidItemsAndPreps.js";
 
     interface Props {
         action: string;
         header: string;
         sections: RecipeSection[];
-        items: ItemsAndPrepsBySection;
+        items: AllValidItems;
         scrollOnAdd?: boolean;
     }
 
@@ -23,25 +23,25 @@
 
     let isOpen: boolean = $state(false);
 
-    let sectionId: string | undefined = $derived(sections.length > 0 ? sections[0].recipeSectionId : undefined);
+    let sectionId: string | undefined = $derived(sections.length > 0 ? sections[0].id : undefined);
     let newSectionName: string = $derived.by(() => {
         sectionId;
         return "New Section";
     })
 
-    let item: ItemAndPreps | undefined = $derived.by(() => {
+    let item: ValidItem | undefined = $derived.by(() => {
         sectionId; // Reset when section changes
         return undefined;
     });
     let itemId: string | undefined = $derived.by(() => {
-        return item?.itemId;
+        return item?.id;
     });
 
     let preps: (Prep | null)[] = $derived.by(() => {
         return item?.preps ?? []
     });
     let prepId: string | undefined = $derived.by(() => {
-        return preps[0]?.prepId ?? undefined;
+        return preps[0]?.id ?? undefined;
     });
     let showPrepsSelect: boolean = $derived.by(() => {
         return preps.length > 0 && (preps.length !== 1 || preps[0] !== null);
@@ -101,7 +101,7 @@
     };
 
     const reset = () => {
-        sectionId = sections.length > 0 ? sections[0].recipeSectionId : undefined;
+        sectionId = sections.length > 0 ? sections[0].id : undefined;
         item = undefined;
         prepId = undefined;
         fraction = '1';
@@ -131,7 +131,7 @@
                        id="sectionIdSelect"
                        bind:value={sectionId}>
                     {#each sections as section}
-                        <option value={section.recipeSectionId}>{section.recipeSectionName}</option>
+                        <option value={section.id}>{section.name}</option>
                     {/each}
                     <option value={undefined}>(New Section)</option>
                 </Input>
@@ -144,7 +144,7 @@
             {/if}
 
             <input name="itemId" bind:value={itemId} hidden required/>
-            <FormLink text={item?.itemName ?? "(No Item Selected)"} label="Ingredient Selection"
+            <FormLink text={item?.name ?? "(No Item Selected)"} label="Ingredient Selection"
                       onclick={() => modalSearchIngredient.show(sectionId)}/>
 
             {#if showPrepsSelect}
@@ -153,7 +153,7 @@
                            name="prepId"
                            bind:value={prepId}>
                         {#each preps as prep}
-                            <option value={prep?.prepId}>{prep?.prepName ?? '(None)'}</option>
+                            <option value={prep?.id}>{prep?.name ?? '(None)'}</option>
                         {/each}
                     </Input>
                 </FormGroup>

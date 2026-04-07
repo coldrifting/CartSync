@@ -11,8 +11,8 @@
     let {data}: PageProps = $props();
     
     let stores = $derived(data.stores);
-    let selectedStoreName = $derived(data.selectedStore.storeName);
-    let selectedStoreId = $derived(data.selectedStore.storeId);
+    let selectedStoreName = $derived(data.selectedStore.name);
+    let selectedStoreId = $derived(data.selectedStore.id);
     
     let addDialog: ModalAdd
     let renameDialog: ModalRename
@@ -55,8 +55,8 @@
     <ul>
         {#each stores as store}
             <ListElementRadio 
-                    id={store.storeId}
-                    label={store.storeName} 
+                    id={store.id}
+                    label={store.name} 
                     contextActions={contextActions.filter(a => a.label !== "Delete" || !store.isSelected)}
                     group="selectedStoreId"
                     selectedValue={selectedStoreId} />
