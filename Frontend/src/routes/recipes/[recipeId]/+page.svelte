@@ -49,8 +49,7 @@
                 let mapping = entryMappings[id];
                 
                 editDialog.show(
-                    id, 
-                    mapping.sectionId, 
+                    id,
                     mapping.item.name,
                     mapping.preps,
                     mapping.prep?.id,

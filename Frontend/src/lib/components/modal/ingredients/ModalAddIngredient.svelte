@@ -6,7 +6,6 @@
     import type RecipeSection from "$lib/scripts/classes/RecipeSection.ts";
     import type Prep from "$lib/scripts/classes/Prep.ts";
     import UnitType from "$lib/scripts/classes/UnitType.js";
-    import Fraction from "$lib/scripts/classes/Fraction.js";
     import ModalSearchIngredient from "$lib/components/modal/ingredients/ModalSearchIngredient.svelte";
     import FormLink from "$lib/components/FormLink.svelte";
     import {ValidItem, type AllValidItems} from "$lib/scripts/classes/ValidItemsAndPreps.js";
@@ -53,13 +52,13 @@
         return item?.defaultUnitType ?? UnitType.Types[0];
     });
 
-    let fraction: string = $derived.by(() => {
+    let fraction: number = $derived.by(() => {
         // Reset when item or section changes
         sectionId;
         item;
-        return '1';
+        return 1;
     });
-    let isFractionValid: boolean = $derived(Fraction.isValid(fraction));
+    let isFractionValid: boolean = $derived( fraction > 0 );
 
     const focus = () => {
         if (isOpen) {
@@ -104,7 +103,7 @@
         sectionId = sections.length > 0 ? sections[0].id : undefined;
         item = undefined;
         prepId = undefined;
-        fraction = '1';
+        fraction = 1;
         unitType = UnitType.Types[0];
     }
 
@@ -160,8 +159,7 @@
             {/if}
             <div class="d-flex flex-column flex-sm-row justify-content-between">
                 <FormGroup floating label="Amount" class="flex-sm-grow-1">
-                    <Input name="fraction"
-                           bind:value={fraction}>
+                    <Input name="fraction" type="number" min={0} step={0.001} bind:value={fraction}>
                     </Input>
                 </FormGroup>
                 <FormGroup floating label="Units" class="ms-sm-3">

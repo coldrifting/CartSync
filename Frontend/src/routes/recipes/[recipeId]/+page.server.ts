@@ -40,10 +40,11 @@ export const actions: Actions = {
         const sectionId: string = await getValue(data, "recipeSectionId");
         const itemId: string = await getValue(data, "itemId");
         const prepId: string | null = await getValueOrUndefined(data, "prepId") ?? null;
-        const fraction: string = await getValue(data, "fraction");
+        const fractionString: string = await getValue(data, "fraction");
+        const fraction: Fraction = Fraction.fromNumberString(fractionString);
         const unitType: string = await getValue(data, "unitType");
         
-        const amount: Amount = {fraction: Fraction.fromString(fraction), unitType: unitType} as Amount;
+        const amount: Amount = {fraction: fraction, unitType: unitType} as Amount;
         
         if (sectionId === "") {
             // Create new section first
@@ -62,9 +63,11 @@ export const actions: Actions = {
         
         const prepId: string | null = await getValueOrNull(data, "prepId");
         
-        const fraction: string = await getValue(data, "fraction");
+        const fractionString: string = await getValue(data, "fraction");
+        const fraction: Fraction = Fraction.fromNumberString(fractionString);
+        
         const unitType: string = await getValue(data, "unitType");
-        const amount: Amount = {fraction: Fraction.fromString(fraction), unitType: unitType} as Amount;
+        const amount: Amount = {fraction: fraction, unitType: unitType} as Amount;
         
         await editRecipeEntry(cookies, entryId, prepId, amount);
     },

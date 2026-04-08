@@ -17,7 +17,6 @@
     let isOpen: boolean = $state(false);
 
     let recipeEntryId: string = $state("");
-    let sectionId: string = $state("");
     let itemName: string = $state("");
     let preps: (Prep | null)[] = $state([]);
     let prepId: string | null = $state(null);
@@ -27,31 +26,22 @@
     });
     
     let unitType: string = $state(UnitType.Types[0]);
-    let fraction: string = $state('1');
-    let isFractionValid: boolean = $derived(Fraction.isValid(fraction));
+    let fraction: number = $state(1);
+    let isFractionValid: boolean = $derived( fraction > 0 );
 
     const focus = () => {
         if (isOpen) {
             tick().then(() => {
-                document.getElementById("sectionIdSelect")?.focus();
+                document.getElementById("fractionInput")?.focus();
             })
         }
     }
-    
-    $effect(() => {
-        if (sectionId === undefined) {
-            tick().then(() => {
-                document.getElementById("sectionNameEdit")?.focus();
-            })
-        }
-    })
 
     const toggle = () => {
         isOpen = !isOpen;
     }
 
     export const show = (inputEntryId: string,
-                         inputSectionId: string,
                          inputItemName: string,
                          inputPreps: (Prep | null)[],
                          inputPrepId: string | null,
@@ -59,12 +49,11 @@
                          inputFraction: Fraction
     ) => {
         recipeEntryId = inputEntryId;
-        sectionId = inputSectionId;
         itemName = inputItemName;
         preps = inputPreps;
         prepId = inputPrepId;
         unitType = inputUnitType;
-        fraction = Fraction.asString(inputFraction);
+        fraction = Fraction.asNumber(inputFraction);
 
         isOpen = true;
         focus();
@@ -105,7 +94,7 @@
             {/if}
             <div class="d-flex flex-column flex-sm-row justify-content-between">
                 <FormGroup floating label="Amount" class="flex-sm-grow-1">
-                    <Input name="fraction" bind:value={fraction}/>
+                    <Input id="fractionInput" name="fraction" type="number" min={0} step={0.001} bind:value={fraction}/>
                 </FormGroup>
                 <FormGroup floating label="Units" class="ms-sm-3">
                     <Input type="select"
