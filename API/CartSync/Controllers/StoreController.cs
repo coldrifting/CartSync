@@ -1,5 +1,8 @@
 using CartSync.Controllers.Core;
-using CartSync.Models;
+using CartSync.Data.Entities;
+using CartSync.Data.Requests;
+using CartSync.Data.Responses;
+using CartSync.Database;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc;
@@ -16,40 +19,31 @@ public class StoreController(CartSyncContext context) : ControllerCore(context)
     {
         Ulid selectedStoreId = await GetSelectedStoreId();
         List<StoreResponse> stores = await Db.Stores
-            .OrderBy(s => s.StoreName)
-            .Select(Store.ToResponse)
+            .OrderBy(store => store.StoreName)
+            .Select(StoreResponse.FromEntity(selectedStoreId))
             .ToListAsync();
-
-        for (int index = 0; index < stores.Count; index++)
-        {
-            StoreResponse storeResponse = stores[index];
-            if (storeResponse.Id == selectedStoreId)
-            {
-                stores[index] = storeResponse with { IsSelected = true };
-            }
-        }
 
         return TypedResults.Ok(stores);
     }
     
     [HttpPost]
     [Route("/api/stores/add")]
-    public async Task<Results<Created<StoreResponse>, BadRequest<Error>>> Add([FromBody] StoreAddRequest storeAddRequest)
+    public async Task<Results<Created<StoreResponse>, BadRequest<ErrorResponse>>> Add(AddRequest addRequest)
     {
         Store store = new()
         {
-            StoreName = storeAddRequest.Name,
+            StoreName = addRequest.Name,
         };
         
         Db.Add(store);
         await Db.SaveChangesAsync();
         
-        return TypedResults.Created($"/api/stores/{store.StoreId}", store.ToNewResponse);
+        return TypedResults.Created($"/api/stores/{store.StoreId}", StoreResponse.FromNewEntity(store));
     }
 
     [HttpPost]
     [Route("/api/stores/{storeId}/select")]
-    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Select(Ulid storeId, [FromBody] object? x = null)
+    public async Task<Results<NoContent, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> Select(Ulid storeId)
     {
         Store? store = await Db.Stores.FindAsync(storeId);
         if (store == null)
@@ -64,7 +58,7 @@ public class StoreController(CartSyncContext context) : ControllerCore(context)
     [HttpPatch]
     [Route("/api/stores/{storeId}/edit")]
     [Consumes("application/json-patch+json")]
-    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Edit(Ulid storeId, [FromBody] JsonPatchDocument<StoreEditRequest> storePatch)
+    public async Task<Results<NoContent, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> Edit(Ulid storeId, JsonPatchDocument<StoreEditRequest> jsonPatch)
     {
         Store? store = await Db.Stores.FindAsync(storeId);
         if (store == null)
@@ -72,12 +66,12 @@ public class StoreController(CartSyncContext context) : ControllerCore(context)
             return Store.NotFound(storeId);
         }
 
-        if (!TryGetEditObject(store, storePatch, out StoreEditRequest? storeEdit))
+        if (!store.TryGetPatch(ModelState, jsonPatch, out StoreEditRequest patch))
         {
-            return Error.BadRequestPatchInvalid(ModelState);
+            return ErrorResponse.BadRequestPatchInvalid(ModelState);
         }
 
-        store.UpdateFromEditRequest(storeEdit);
+        store.ApplyPatch(patch);
         await Db.SaveChangesAsync();
 
         return TypedResults.NoContent();
@@ -85,7 +79,7 @@ public class StoreController(CartSyncContext context) : ControllerCore(context)
     
     [HttpDelete]
     [Route("/api/stores/{storeId}/delete")]
-    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>, Conflict<Error>>> Delete(Ulid storeId)
+    public async Task<Results<NoContent, BadRequest<ErrorResponse>, NotFound<ErrorResponse>, Conflict<ErrorResponse>>> Delete(Ulid storeId)
     {
         Store? store = await Db.Stores.FindAsync(storeId);
         if (store == null)

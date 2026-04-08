@@ -1,6 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using CartSync.Controllers.Core;
-using CartSync.Models;
+using CartSync.Data.Entities;
+using CartSync.Data.Requests;
+using CartSync.Data.Responses;
+using CartSync.Database;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc;
@@ -13,7 +16,7 @@ public class RecipeEntryController(CartSyncContext context) : ControllerCore(con
 {
     [HttpPost]
     [Route("/api/recipes/entries/add")]
-    public async Task<Results<Created<RecipeEntryResponse>, BadRequest<Error>, NotFound<Error>, Conflict<Error>>> Add([Required] Ulid recipeSectionId, [Required] RecipeEntryAddRequest recipeEntryAddRequest)
+    public async Task<Results<Created<RecipeEntryResponse>, BadRequest<ErrorResponse>, NotFound<ErrorResponse>, Conflict<ErrorResponse>>> Add([Required] Ulid recipeSectionId, [Required] RecipeEntryAddRequest recipeEntryAddRequest)
     {
         RecipeSection? recipeSection = await Db.RecipeSections
             .Include(rs => rs.Entries)
@@ -49,7 +52,7 @@ public class RecipeEntryController(CartSyncContext context) : ControllerCore(con
             prep = null;
         }
 
-        RecipeEntry recipeEntry = new()
+        RecipeEntry entry = new()
         {
             RecipeSectionId = recipeSection.RecipeSectionId,
             ItemId = item.ItemId,
@@ -58,68 +61,71 @@ public class RecipeEntryController(CartSyncContext context) : ControllerCore(con
         };
 
         RecipeEntry? existing = await Db.RecipeEntries.FirstOrDefaultAsync(r =>
-            r.RecipeSectionId == recipeEntry.RecipeSectionId &&
-            r.ItemId == recipeEntry.ItemId &&
-            r.PrepId == recipeEntry.PrepId);
+            r.RecipeSectionId == entry.RecipeSectionId &&
+            r.ItemId == entry.ItemId &&
+            r.PrepId == entry.PrepId);
 
         if (existing is not null)
         {
-            return RecipeEntry.AlreadyExists(recipeEntry.ItemId, recipeEntry.PrepId);
+            return RecipeEntry.AlreadyExists(entry.ItemId, entry.PrepId);
         }
         
-        Db.Add(recipeEntry);
+        Db.Add(entry);
         await Db.SaveChangesAsync();
         
-        return TypedResults.Created($"/api/recipes/entries/{recipeEntry.RecipeEntryId}", recipeEntry.ToNewResponse);
+        return TypedResults.Created($"/api/recipes/entries/{entry.RecipeEntryId}", RecipeEntryResponse.FromNewEntity(entry));
     }
     
     [HttpPatch]
     [Route("/api/recipes/entries/{recipeEntryId}/edit")]
     [Consumes("application/json-patch+json")]
-    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>, Conflict<Error>>> Edit(Ulid recipeEntryId, [FromBody] JsonPatchDocument<RecipeEntryEditRequest> recipeEntryPatch)
+    public async Task<Results<NoContent, BadRequest<ErrorResponse>, NotFound<ErrorResponse>, Conflict<ErrorResponse>>> Edit(Ulid recipeEntryId, JsonPatchDocument<RecipeEntryEditRequest> jsonPatch)
     {
-        RecipeEntry? recipeEntry = await Db.RecipeEntries
-            .Include(recipeEntry => recipeEntry.RecipeSection)
+        RecipeEntry? entry = await Db.RecipeEntries
+            .Include(entry => entry.RecipeSection)
             .ThenInclude(recipeSection => recipeSection.Entries)
-            .FirstOrDefaultAsync(re => re.RecipeEntryId == recipeEntryId);
-        if (recipeEntry == null)
+            .FirstOrDefaultAsync(entry => entry.RecipeEntryId == recipeEntryId);
+        if (entry == null)
         {
             return RecipeEntry.NotFound(recipeEntryId);
         }
-        
-        if (!TryGetEditObject(recipeEntry, recipeEntryPatch, out RecipeEntryEditRequest? recipeSectionEntryEdit))
-        {
-            return Error.BadRequestPatchInvalid(ModelState);
-        }
 
-        if (recipeSectionEntryEdit.PrepId is { } prepId)
+        // Generate patch from input
+        if (!entry.TryGetPatch(ModelState, jsonPatch, out RecipeEntryEditRequest patch))
+        {
+            return ErrorResponse.BadRequestPatchInvalid(ModelState);
+        }
+        
+        // Validate input
+        if (patch.PrepId is { } prepId)
         {
             if (await Db.Preps.FindAsync(prepId) == null)
             {
                 return Prep.NotFound(prepId);
             }
-            List<Ulid> itemPreps = Db.ItemPreps.Where(ip => ip.ItemId == recipeEntry.ItemId).Select(ip => ip.Prep).Select(p => p.PrepId).ToList();
+            List<Ulid> itemPreps = Db.ItemPreps.Where(ip => ip.ItemId == entry.ItemId).Select(ip => ip.Prep).Select(p => p.PrepId).ToList();
             if (!itemPreps.Contains(prepId))
             {
-                return Prep.NotFoundUnder(prepId, recipeEntry.ItemId);
+                return Prep.NotFoundUnder(prepId, entry.ItemId);
             }
         }
 
         // Verify that changing part of the composite key will still be valid
-        if (recipeSectionEntryEdit.PrepId != recipeEntry.PrepId)
+        if (patch.PrepId != entry.PrepId)
         {
             RecipeEntry? existing = await Db.RecipeEntries.FirstOrDefaultAsync(r =>
-                r.RecipeSectionId == recipeEntry.RecipeSectionId &&
-                r.ItemId == recipeEntry.ItemId &&
-                r.PrepId == recipeSectionEntryEdit.PrepId);
+                r.RecipeSectionId == entry.RecipeSectionId &&
+                r.ItemId == entry.ItemId &&
+                r.PrepId == patch.PrepId);
 
             if (existing is not null)
             {
-                return RecipeEntry.AlreadyExists(recipeEntry.ItemId, recipeSectionEntryEdit.PrepId);
+                return RecipeEntry.AlreadyExists(entry.ItemId, patch.PrepId);
             }
         }
         
-        recipeEntry.UpdateFromEditRequest(recipeSectionEntryEdit);
+        // Apply patch
+        entry.ApplyPatch(patch);
         await Db.SaveChangesAsync();
         
         return TypedResults.NoContent();
@@ -127,7 +133,7 @@ public class RecipeEntryController(CartSyncContext context) : ControllerCore(con
     
     [HttpDelete]
     [Route("/api/recipes/entries/{recipeEntryId}/delete")]
-    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Delete(Ulid recipeEntryId)
+    public async Task<Results<NoContent, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> Delete(Ulid recipeEntryId)
     {
         RecipeEntry? recipeEntry = await Db.RecipeEntries
             .Include(recipeEntry => recipeEntry.RecipeSection)

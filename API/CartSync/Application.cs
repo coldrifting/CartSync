@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
-using CartSync.Controllers.Core;
-using CartSync.Models;
+using CartSync.Data.Responses;
+using CartSync.Database;
 using CartSync.Utils.Scalar;
 using CartSync.Utils.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -65,12 +65,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         jwtOptions.RequireHttpsMetadata = false;
     });
 
-builder.Services
-    .AddControllers()
-    .AddJsonOptions(opt =>
-    {
-        opt.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-    });
+// Required for general JSON serialization/deserialization
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.IgnoreReadOnlyProperties = true;
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
+// Required for JSON Patch serialization/deserialization
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.IgnoreReadOnlyProperties = true;
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 builder.Services.AddAuthorization();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -101,12 +107,9 @@ builder.Services.Configure<ApiBehaviorOptions>(apiBehaviorOptions => {
                 kvp => kvp.Value?.AttemptedValue
             );
 
-        return new BadRequestObjectResult(Error.BadRequestModelInvalid(errors).Value);
+        return new BadRequestObjectResult(ErrorResponse.BadRequestModelInvalid(errors).Value);
     };
 });
-
-builder.Services.Configure<JsonOptions>(opt =>
-    opt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 builder.Services.Configure<RouteOptions>(options =>
 {

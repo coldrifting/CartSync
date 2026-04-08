@@ -1,10 +1,6 @@
-using System.Diagnostics.CodeAnalysis;
-using CartSync.Models;
-using CartSync.Models.Interfaces;
-using CartSync.Models.Joins;
-using CartSync.Utils;
+using CartSync.Data.Entities;
+using CartSync.Database;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,14 +14,14 @@ public class ControllerCore(CartSyncContext context) : ControllerBase
 
     private async Task<Ulid> GetUserId()
     {
-        string? username = User.Username;
+        string? username = User.Claims.FirstOrDefault(x => x.Type == "sub")?.Value;
         return (await Db.Users.FirstAsync(u => u.Username == username)).UserId;
     }
     
     protected async Task<Ulid> GetSelectedStoreId()
     {
         Ulid userId = await GetUserId();
-        SelectedStore selStore = (await Db.SelectedStores.FindAsync(userId))!;
+        UserSelectedStore selStore = (await Db.UserSelectedStores.FindAsync(userId))!;
         return selStore.StoreId;
     }
     
@@ -39,10 +35,10 @@ public class ControllerCore(CartSyncContext context) : ControllerBase
     protected async Task SetSelectedStore(Ulid storeId)
     {
         Ulid userId = await GetUserId();
-        SelectedStore? selStore = await Db.SelectedStores.FindAsync(userId);
+        UserSelectedStore? selStore = await Db.UserSelectedStores.FindAsync(userId);
         if (selStore == null)
         {
-            Db.Add(new SelectedStore
+            Db.Add(new UserSelectedStore
             {
                 UserId = userId,
                 StoreId = storeId
@@ -54,21 +50,5 @@ public class ControllerCore(CartSyncContext context) : ControllerBase
         }
         
         await Db.SaveChangesAsync();
-    }
-        
-    protected bool TryGetEditObject<TEdit>(IEditable<TEdit> source, JsonPatchDocument<TEdit> patch, [NotNullWhen(true)] out TEdit? editRequest, Ulid? storeId = null)
-        where TEdit : class
-    {
-        editRequest = source.ToEditRequest(storeId);
-
-        patch.ApplyTo(editRequest, jsonPatchError =>
-        {
-            string key = jsonPatchError.AffectedObject.GetType().Name;
-            ModelState.AddModelError(key, jsonPatchError.ErrorMessage);
-        });
-
-        bool isModelValid = TryValidateModel(editRequest);
-        
-        return ModelState.IsValid && isModelValid;
     }
 }

@@ -3,8 +3,10 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using CartSync.Models;
-using CartSync.Models.Seeding;
+using CartSync.Data.Requests;
+using CartSync.Data.Responses;
+using CartSync.Database;
+using CartSync.SeedData;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc.Testing;
 

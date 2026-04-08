@@ -1,10 +1,10 @@
 using System.Net;
-using CartSync.Controllers.Core;
-using CartSync.Models;
+using CartSync.Data.Requests;
+using CartSync.Data.Responses;
 using CartSyncTests.Base;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson.Operations;
-using SeedData = CartSync.Models.Seeding.SeedData;
+using SeedData = CartSync.SeedData.SeedData;
 
 namespace CartSyncTests.ControllerTests;
 
@@ -29,14 +29,14 @@ public class AisleControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
     [Fact]
     public async Task TestAisleAll_StoreIdNotFound()
     {
-        Error error = await AisleController.All(Ulid.NotFound).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
+        ErrorResponse errorResponse = await AisleController.All(Ulid.NotFound).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.NotFound);
     }
 
     [Fact]
     public async Task TestAisleAdd()
     {
-        AisleAddRequest aisleNewRequest = new()
+        AddRequest aisleNewRequest = new()
         {
             Name = "New Aisle"
         };
@@ -55,11 +55,11 @@ public class AisleControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
     [Fact]
     public async Task TestAisleAdd_StoreNotFound()
     {
-        Error error = await AisleController.Add(Ulid.NotFound, new AisleAddRequest
+        ErrorResponse errorResponse = await AisleController.Add(Ulid.NotFound, new AddRequest
         {
             Name = "New Aisle"
         }).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
+        errorResponse.AssertStatus(HttpStatusCode.NotFound);
     }
 
     [Fact]
@@ -132,8 +132,8 @@ public class AisleControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
             }
         };
         
-        Error error = await AisleController.Edit(Ulid.NotFound, jsonPatch).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
+        ErrorResponse errorResponse = await AisleController.Edit(Ulid.NotFound, jsonPatch).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.NotFound);
         
         await TestAisleAll();
     }
@@ -165,8 +165,8 @@ public class AisleControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
     [Fact]
     public async Task TestAisleDelete_AisleNotFound()
     {
-        Error error = await AisleController.Delete(Ulid.NotFound).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
+        ErrorResponse errorResponse = await AisleController.Delete(Ulid.NotFound).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.NotFound);
         
         await TestAisleAll();
     }
@@ -174,8 +174,8 @@ public class AisleControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
     [Fact]
     public async Task TestAisleDelete_InvalidAisleId()
     {
-        Error error = await AisleController.Delete(SeedData.Stores[0].StoreId).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
+        ErrorResponse errorResponse = await AisleController.Delete(SeedData.Stores[0].StoreId).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.NotFound);
 
         await TestAisleAll();
     }

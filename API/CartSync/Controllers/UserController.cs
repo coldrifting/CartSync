@@ -1,5 +1,8 @@
 using CartSync.Controllers.Core;
-using CartSync.Models;
+using CartSync.Data.Entities;
+using CartSync.Data.Requests;
+using CartSync.Data.Responses;
+using CartSync.Database;
 using CartSync.Utils.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -14,13 +17,13 @@ public class UserController(CartSyncContext context, JwtAuthentication auth) : C
 {
     [HttpPost]
     [Route("/api/user/login")]
-    public async Task<Results<Ok<UserLoginSuccessResponse>, BadRequest<Error>>> Login(UserLoginRequest payload)
+    public async Task<Results<Ok<UserLoginSuccessResponse>, BadRequest<ErrorResponse>>> Login(UserLoginRequest payload)
     {
         User? user = await Db.Users.FirstOrDefaultAsync(u => u.Username == payload.Username);
 
         if (user is null || !JwtAuthentication.IsPasswordValid(payload.Password, user.Hash, user.Salt))
         {
-            return Error.BadRequestInvalidLogin();
+            return ErrorResponse.BadRequestInvalidLogin();
         }
 
         // Send JWT token to avoid expensive hash calls for each authenticated endpoint

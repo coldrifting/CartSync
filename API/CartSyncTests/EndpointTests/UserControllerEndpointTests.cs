@@ -1,5 +1,5 @@
 using System.Net;
-using CartSync.Models;
+using CartSync.Data.Requests;
 using CartSyncTests.Base;
 
 namespace CartSyncTests.EndpointTests;

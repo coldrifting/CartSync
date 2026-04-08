@@ -1,10 +1,10 @@
 ﻿using System.Net;
-using CartSync.Controllers.Core;
-using CartSync.Models;
+using CartSync.Data.Requests;
+using CartSync.Data.Responses;
 using CartSyncTests.Base;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson.Operations;
-using SeedData = CartSync.Models.Seeding.SeedData;
+using SeedData = CartSync.SeedData.SeedData;
 
 namespace CartSyncTests.ControllerTests;
 
@@ -22,7 +22,7 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
     [Fact]
     public async Task TestStoreAdd()
     {
-        StoreAddRequest newStore = new()
+        AddRequest newStore = new()
         {
             Name = "new store"
         };
@@ -43,8 +43,8 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
         Ulid store0 = SeedData.Stores[0].StoreId;
         Ulid store1 = SeedData.Stores[1].StoreId;
         
-        Error error = await StoreController.Delete(SeedData.Stores[0].StoreId).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.Conflict);
+        ErrorResponse errorResponse = await StoreController.Delete(SeedData.Stores[0].StoreId).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.Conflict);
         
         await StoreController.Select(store1).AssertIsSuccessful();
 
@@ -54,7 +54,7 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
 
         await StoreController.Delete(store0).AssertIsSuccessful();
         
-        Error error2 = await StoreController.Delete(store1).ErrorAsync();
+        ErrorResponse error2 = await StoreController.Delete(store1).ErrorAsync();
         error2.AssertStatus(HttpStatusCode.Conflict);
 
         List<StoreResponse> stores = await StoreController.All().ValueAsync();
@@ -106,8 +106,8 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
             }
         };
         
-        Error error = await StoreController.Edit(Ulid.NotFound, jsonPatch).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
+        ErrorResponse errorResponse = await StoreController.Edit(Ulid.NotFound, jsonPatch).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.NotFound);
         
         List<StoreResponse> stores = await StoreController.All().ValueAsync();
         
@@ -130,8 +130,8 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
             }
         };
         
-        Error error = await StoreController.Edit(SeedData.Stores[0].StoreId, jsonPatch).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.BadRequest);
+        ErrorResponse errorResponse = await StoreController.Edit(SeedData.Stores[0].StoreId, jsonPatch).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.BadRequest);
         
         List<StoreResponse> stores = await StoreController.All().ValueAsync();
         
@@ -155,8 +155,8 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
             }
         };
         
-        Error error = await StoreController.Edit(SeedData.Stores[0].StoreId, jsonPatch).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.BadRequest);
+        ErrorResponse errorResponse = await StoreController.Edit(SeedData.Stores[0].StoreId, jsonPatch).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.BadRequest);
         
         List<StoreResponse> stores = await StoreController.All().ValueAsync();
         
@@ -180,9 +180,9 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
             }
         };
         
-        Error error = await StoreController.Edit(SeedData.Stores[0].StoreId, jsonPatch).ErrorAsync();
+        ErrorResponse errorResponse = await StoreController.Edit(SeedData.Stores[0].StoreId, jsonPatch).ErrorAsync();
         
-        Assert.Equal((int)HttpStatusCode.BadRequest, error.StatusCode);
+        Assert.Equal((int)HttpStatusCode.BadRequest, errorResponse.StatusCode);
         
         List<StoreResponse> stores = await StoreController.All().ValueAsync();
         
@@ -204,8 +204,8 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
     [Fact]
     public async Task TestStoreDelete_SelectedShouldError()
     {
-        Error error = await StoreController.Delete(SeedData.Stores[0].StoreId).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.Conflict);
+        ErrorResponse errorResponse = await StoreController.Delete(SeedData.Stores[0].StoreId).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.Conflict);
 
         List<StoreResponse> stores = await StoreController.All().ValueAsync();
 
@@ -216,9 +216,9 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
     [Fact]
     public async Task TestStoreDelete_NotFound()
     {
-        Error error = await StoreController.Delete(Ulid.NotFound).ErrorAsync();
+        ErrorResponse errorResponse = await StoreController.Delete(Ulid.NotFound).ErrorAsync();
         
-        Assert.Equal((int)HttpStatusCode.NotFound, error.StatusCode);
+        Assert.Equal((int)HttpStatusCode.NotFound, errorResponse.StatusCode);
         
         List<StoreResponse> stores = await StoreController.All().ValueAsync();
         

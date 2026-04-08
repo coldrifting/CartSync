@@ -1,9 +1,12 @@
 using System.Collections.Immutable;
 using System.ComponentModel.DataAnnotations;
 using CartSync.Controllers.Core;
-using CartSync.Models;
-using CartSync.Models.Joins;
-using CartSync.Objects.Enums;
+using CartSync.Data.Entities;
+using CartSync.Data.Misc;
+using CartSync.Data.Requests;
+using CartSync.Data.Responses;
+using CartSync.Database;
+using CartSync.Objects;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -65,18 +68,18 @@ public class CartController(CartSyncContext context) : ControllerCore(context)
 
     [HttpGet]
     [Route("/api/cart")]
-    public async Task<Ok<CartResponse>> Get()
+    public async Task<Ok<CartEntryResponse>> Get()
     {
         Store store = await GetSelectedStore();
 
-        CartAisleResponse[] aisles = Db.CartEntries
+        CartEntryAisleResponse[] aisles = Db.CartEntries
             .Include(ce => ce.Aisle)
             .OrderBy(ce => ce.Aisle != null ? ce.Aisle.SortOrder : -1)
             .GroupBy(ce => ce.AisleId)
-            .Select(CartAisleResponse.FromAisleGroup)
+            .Select(CartEntryAisleResponse.FromAisleGroup)
             .ToArray();
 
-        return TypedResults.Ok(new CartResponse
+        return TypedResults.Ok(new CartEntryResponse
         {
             StoreId = store.StoreId,
             StoreName = store.StoreName,
@@ -86,7 +89,7 @@ public class CartController(CartSyncContext context) : ControllerCore(context)
 
     [HttpPost]
     [Route("/api/cart/items/{itemId}/edit")]
-    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Check(Ulid itemId, [FromQuery] Ulid? prepId)
+    public async Task<Results<NoContent, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> Check(Ulid itemId, [FromQuery] Ulid? prepId)
     {
         CartEntry? cartEntry = await Db.CartEntries.FirstOrDefaultAsync(ce => ce.ItemId == itemId && ce.PrepId == prepId);
         if (cartEntry is null)
@@ -107,11 +110,11 @@ public class CartController(CartSyncContext context) : ControllerCore(context)
         {
             Items = await Db.CartSelectItems
                 .Include(cartSelectItem => cartSelectItem.Item)
-                .Select(CartSelectItemResponse.FromCartSelectItem)
+                .Select(CartSelectItemResponse.FromEntity)
                 .ToArrayAsync(),
             Recipes = await Db.Recipes
                 .Where(recipe => recipe.CartQuantity > 0)
-                .Select(CartSelectRecipeResponse.FromRecipe)
+                .Select(CartSelectRecipeResponse.FromEntity)
                 .ToArrayAsync()
         };
 
@@ -120,11 +123,11 @@ public class CartController(CartSyncContext context) : ControllerCore(context)
     
     [HttpPut]
     [Route("/api/cart/selection/items/{itemId}/edit")]
-    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> EditItem(Ulid itemId, [FromQuery] Ulid? prepId, [FromBody] CartItemEditRequest payload)
+    public async Task<Results<NoContent, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> EditItem(Ulid itemId, [FromQuery] Ulid? prepId, CartSelectItemEditRequest payload)
     {
         if (payload.Amount.UnitType == UnitType.None || payload.Amount.Fraction.AsDouble <= 0.05)
         {
-            return Error.BadRequestCartAmountInvalid();
+            return ErrorResponse.BadRequestCartAmountInvalid();
         }
         
         Item? item = prepId is not null 
@@ -168,11 +171,11 @@ public class CartController(CartSyncContext context) : ControllerCore(context)
     
     [HttpPut]
     [Route("/api/cart/selection/recipes/{recipeId}/edit")]
-    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> EditRecipe([Required] Ulid recipeId, [FromBody] CartRecipeEditRequest payload)
+    public async Task<Results<NoContent, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> EditRecipe([Required] Ulid recipeId, CartSelectRecipeEditRequest payload)
     {
         if (payload.Quantity <= 0)
         {
-            return Error.BadRequestCartAmountInvalid();
+            return ErrorResponse.BadRequestCartAmountInvalid();
         }
         
         Recipe? recipe = await Db.Recipes.FindAsync(recipeId);
@@ -189,7 +192,7 @@ public class CartController(CartSyncContext context) : ControllerCore(context)
     
     [HttpDelete]
     [Route("/api/cart/selection/items/{itemId}/delete")]
-    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> RemoveItem(Ulid itemId, [FromQuery] Ulid? prepId)
+    public async Task<Results<NoContent, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> RemoveItem(Ulid itemId, [FromQuery] Ulid? prepId)
     {
         Item? item = await Db.Items.FindAsync(itemId);
         if (item is null)
@@ -220,7 +223,7 @@ public class CartController(CartSyncContext context) : ControllerCore(context)
     
     [HttpDelete]
     [Route("/api/cart/selection/recipes/{recipeId}/delete")]
-    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> RemoveRecipe([Required] Ulid recipeId)
+    public async Task<Results<NoContent, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> RemoveRecipe([Required] Ulid recipeId)
     {
         Recipe? recipe = await Db.Recipes.FindAsync(recipeId);
         if (recipe is null)

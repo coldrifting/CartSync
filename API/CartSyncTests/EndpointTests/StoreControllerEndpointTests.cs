@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
-using CartSync.Models;
+using CartSync.Data.Requests;
+using CartSync.Data.Responses;
 using CartSyncTests.Base;
 
 namespace CartSyncTests.EndpointTests;
@@ -11,7 +12,7 @@ public class StoreControllerEndpointTests(AppSetupFactory<Program> setupFactory)
     [Fact]
     public async Task TestStoreAdd_BadStoreNameEmptyString()
     {
-        HttpResponseMessage result = await PostAsync("api/stores/add", new StoreAddRequest { Name = "" });
+        HttpResponseMessage result = await PostAsync("api/stores/add", new AddRequest { Name = "" });
         Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
     }
     
@@ -19,7 +20,7 @@ public class StoreControllerEndpointTests(AppSetupFactory<Program> setupFactory)
     public async Task TestStoreAdd_HasLocationHeader()
     {
         const string url = "/api/stores/add";
-        HttpResponseMessage response = await PostAsync(url, new StoreAddRequest { Name = "New Store Name" });
+        HttpResponseMessage response = await PostAsync(url, new AddRequest { Name = "New Store Name" });
         
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         Uri? location = response.Headers.Location;

@@ -1,5 +1,8 @@
 using CartSync.Controllers.Core;
-using CartSync.Models;
+using CartSync.Data.Entities;
+using CartSync.Data.Requests;
+using CartSync.Data.Responses;
+using CartSync.Database;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc;
@@ -15,7 +18,7 @@ public class PrepController(CartSyncContext context) : ControllerCore(context)
     public async Task<Ok<List<PrepResponse>>> All()
     {
         List<PrepResponse> preps = await Db.Preps
-            .Select(Prep.ToResponse)
+            .Select(PrepResponse.FromEntity)
             .OrderBy(prep => prep.Name)
             .ThenBy(prep => prep.Id)
             .ToListAsync();
@@ -25,22 +28,22 @@ public class PrepController(CartSyncContext context) : ControllerCore(context)
 
     [HttpPost]
     [Route("/api/preps/add")]
-    public async Task<Results<Created<PrepResponse>, BadRequest<Error>>> Add([FromBody] PrepAddRequest prepAddRequest)
+    public async Task<Results<Created<PrepResponse>, BadRequest<ErrorResponse>>> Add(AddRequest addRequest)
     {
         Prep prep = new()
         {
-            PrepName = prepAddRequest.Name
+            PrepName = addRequest.Name
         };
         
         Db.Add(prep);
         await Db.SaveChangesAsync();
         
-        return TypedResults.Created($"/api/preps/{prep.PrepId}", prep.ToNewResponse);
+        return TypedResults.Created($"/api/preps/{prep.PrepId}", PrepResponse.FromNewEntity(prep));
     }
     
     [HttpGet]
     [Route("/api/preps/{prepId}/usages")]
-    public async Task<Results<Ok<PrepUsagesResponse>, BadRequest<Error>, NotFound<Error>>> Usages(Ulid prepId)
+    public async Task<Results<Ok<PrepUsagesResponse>, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> Usages(Ulid prepId)
     {
         PrepUsagesResponse? prepUsages = await Db.Preps
             .Include(p => p.Items)
@@ -48,7 +51,7 @@ public class PrepController(CartSyncContext context) : ControllerCore(context)
             .Include(p => p.RecipeSectionEntries)
             .ThenInclude(r => r.RecipeSection)
             .ThenInclude(r => r.Recipe)
-            .Select(Prep.ToUsagesResponse)
+            .Select(PrepUsagesResponse.FromEntity)
             .FirstOrDefaultAsync(prepUsages => prepUsages.Id == prepId);
         if (prepUsages == null)
         {
@@ -61,20 +64,20 @@ public class PrepController(CartSyncContext context) : ControllerCore(context)
     [HttpPatch]
     [Route("/api/preps/{prepId}/edit")]
     [Consumes("application/json-patch+json")]
-    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Edit(Ulid prepId, [FromBody] JsonPatchDocument<PrepEditRequest> prepPatch)
+    public async Task<Results<NoContent, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> Edit(Ulid prepId, JsonPatchDocument<PrepEditRequest> jsonPatch)
     {
         Prep? prep = await Db.Preps.FindAsync(prepId);
         if (prep == null)
         {
             return Prep.NotFound(prepId);
         }
-        
-        if (!TryGetEditObject(prep, prepPatch, out PrepEditRequest? prepEdit))
+
+        if (!prep.TryGetPatch(ModelState, jsonPatch, out PrepEditRequest patch))
         {
-            return Error.BadRequestPatchInvalid(ModelState);
+            return ErrorResponse.BadRequestPatchInvalid(ModelState);
         }
-        
-        prep.UpdateFromEditRequest(prepEdit);
+
+        prep.ApplyPatch(patch);
         await Db.SaveChangesAsync();
         
         return TypedResults.NoContent();
@@ -82,7 +85,7 @@ public class PrepController(CartSyncContext context) : ControllerCore(context)
     
     [HttpDelete]
     [Route("/api/preps/{prepId}/delete")]
-    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Delete(Ulid prepId)
+    public async Task<Results<NoContent, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> Delete(Ulid prepId)
     {
         Prep? prep = await Db.Preps.FindAsync(prepId);
         if (prep == null)

@@ -1,8 +1,8 @@
 using System.Security.Claims;
 using CartSync.Controllers;
 using CartSync.Controllers.Core;
-using CartSync.Models;
-using CartSync.Models.Seeding;
+using CartSync.Database;
+using CartSync.SeedData;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 

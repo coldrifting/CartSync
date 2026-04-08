@@ -1,6 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using CartSync.Controllers.Core;
-using CartSync.Models;
+using CartSync.Data.Entities;
+using CartSync.Data.Requests;
+using CartSync.Data.Responses;
+using CartSync.Database;
 using CartSync.Utils;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
@@ -14,7 +17,7 @@ public class RecipeSectionController(CartSyncContext context) : ControllerCore(c
 {
     [HttpPost]
     [Route("/api/recipes/sections/add")]
-    public async Task<Results<Created<RecipeSectionResponse>, BadRequest<Error>, NotFound<Error>>> Add([Required] Ulid recipeId, [FromBody] RecipeSectionAddRequest recipeSectionAddRequest)
+    public async Task<Results<Created<RecipeSectionResponse>, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> Add([Required] Ulid recipeId, AddRequest addRequest)
     {
         Recipe? recipe = await Db.Recipes
             .Include(r => r.Sections)
@@ -27,43 +30,44 @@ public class RecipeSectionController(CartSyncContext context) : ControllerCore(c
         RecipeSection recipeSection = new()
         {
             RecipeId = recipeId,
-            RecipeSectionName = recipeSectionAddRequest.Name,
+            RecipeSectionName = addRequest.Name,
             SortOrder = recipe.Sections.Count
         };
         
         Db.Add(recipeSection);
         await Db.SaveChangesAsync();
         
-        return TypedResults.Created($"/api/recipes/sections/{recipeSection.RecipeSectionId}", recipeSection.ToNewResponse);
+        return TypedResults.Created($"/api/recipes/sections/{recipeSection.RecipeSectionId}", RecipeSectionResponse.FromNewEntity(recipeSection));
     }
     
     [HttpPatch]
     [Route("/api/recipes/sections/{recipeSectionId}/edit")]
     [Consumes("application/json-patch+json")]
-    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Edit(Ulid recipeSectionId, [FromBody] JsonPatchDocument<RecipeSectionEditRequest> recipeSectionEditPatch)
+    public async Task<Results<NoContent, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> Edit(Ulid recipeSectionId, JsonPatchDocument<RecipeSectionEditRequest> jsonPatch)
     {
-        RecipeSection? recipeSection = await Db.RecipeSections
-            .Include(recipeSection => recipeSection.Recipe)
+        RecipeSection? section = await Db.RecipeSections
+            .Include(section => section.Recipe)
             .ThenInclude(recipe => recipe.Sections)
-            .FirstOrDefaultAsync(recipeSection => recipeSection.RecipeSectionId == recipeSectionId);
-        if (recipeSection == null)
+            .FirstOrDefaultAsync(section => section.RecipeSectionId == recipeSectionId);
+        if (section == null)
         {
             return RecipeSection.NotFound(recipeSectionId);
         }
-        
-        if (!TryGetEditObject(recipeSection, recipeSectionEditPatch, out RecipeSectionEditRequest? recipeSectionEdit))
+
+        if (!section.TryGetPatch(ModelState, jsonPatch, out RecipeSectionEditRequest patch))
         {
-            return Error.BadRequestPatchInvalid(ModelState);
+            return ErrorResponse.BadRequestPatchInvalid(ModelState);
         }
 
-        recipeSection.UpdateFromEditRequest(recipeSectionEdit);
+        section.ApplyPatch(patch);
         await Db.SaveChangesAsync();
+        
         return TypedResults.NoContent();
     }
     
     [HttpDelete]
     [Route("/api/recipes/sections/{recipeSectionId}/delete")]
-    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Delete(Ulid recipeSectionId)
+    public async Task<Results<NoContent, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> Delete(Ulid recipeSectionId)
     {
         RecipeSection? recipeSection = await Db.RecipeSections
             .Include(recipeSection => recipeSection.Recipe)
@@ -77,7 +81,7 @@ public class RecipeSectionController(CartSyncContext context) : ControllerCore(c
         Db.RecipeSections.Remove(recipeSection);
         
         // Refresh Sort Order
-        recipeSection.Recipe.Sections.RefreshOrder();
+        Sort.RefreshOrder(recipeSection.Recipe.Sections);
 
         await Db.SaveChangesAsync();
         

@@ -1,27 +1,20 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace CartSync.Objects;
 
 // Needed for deserialization
-[SuppressMessage("ReSharper", "AutoPropertyCanBeMadeGetOnly.Global")]
+// ReSharper disable AutoPropertyCanBeMadeGetOnly.Global
 public class Fraction
 {
     public int Num { get; init; }
     public int Dem { get; init; } = 1;
 
-    [JsonIgnore]
     public int AsInt => Num / Dem;
     
-    [JsonIgnore]
     public double AsDouble => Num / (double)Dem;
     
-    [JsonIgnore]
     public string DecimalString => ((int)(Num * 1000.0) / (double)(Dem) / 1000.0).ToString(CultureInfo.InvariantCulture);
     
-    [JsonIgnore]
     public bool IsPlural => (Num / (float)Dem) > 1.0 || ToString().Contains('.');
 
     public Fraction(FixedPoint input)
@@ -68,7 +61,7 @@ public class Fraction
 
         for (int divisor = 2; divisor <= 16; divisor++)
         {
-            if (((frac * divisor) % 1000) == 0)
+            if (frac * divisor % 1000 == 0)
             {
                 Num = (whole * divisor) + ((frac * divisor) / 1000);
                 Dem = divisor;
@@ -199,8 +192,8 @@ public class Fraction
     {
         return new Fraction(left.Num, left.Dem * right).Simplify();
     }
-    
-    public Fraction Simplify()
+
+    private Fraction Simplify()
     {
         for (int div = Dem; div >= 2; div--)
         {
@@ -211,33 +204,5 @@ public class Fraction
         }
 
         return this;
-    }
-}
-
-public class FractionJsonConverter : JsonConverter<Fraction>
-{
-    public override Fraction? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        string? s = reader.GetString();
-        if (s is null)
-        {
-            return null;
-        }
-
-        if (!s.Contains('/'))
-        {
-            return new Fraction(int.Parse(s), 1);
-        }
-
-        string[] arr = s.Split('/');
-        return arr.Length != 2
-            ? null
-            : new Fraction(int.Parse(arr[0]), int.Parse(arr[1]));
-    }
-
-    public override void Write(Utf8JsonWriter writer, Fraction value, JsonSerializerOptions options)
-    {
-        string asString = $"{value.Num}/{value.Dem}";
-        JsonSerializer.Serialize(writer, asString, value.GetType(), options);
     }
 }

@@ -1,8 +1,9 @@
 using System.Net;
-using CartSync.Controllers.Core;
-using CartSync.Models;
-using CartSync.Models.Seeding;
+using CartSync.Data.Entities;
+using CartSync.Data.Requests;
+using CartSync.Data.Responses;
 using CartSync.Objects;
+using CartSync.SeedData;
 using CartSyncTests.Base;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson.Operations;
@@ -112,8 +113,8 @@ public class RecipeEntryControllerTests(DatabaseSetup fixture) : DatabaseFixture
             PrepId = SeedData.Preps[3].PrepId
         };
         
-        Error error = await RecipeEntryController.Add(sectionId, recipeEntryAddRequest).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.Conflict);
+        ErrorResponse errorResponse = await RecipeEntryController.Add(sectionId, recipeEntryAddRequest).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.Conflict);
 
         RecipeEntry entry = await Context.RecipeEntries
             .SingleAsync(rse => 
@@ -138,8 +139,8 @@ public class RecipeEntryControllerTests(DatabaseSetup fixture) : DatabaseFixture
             PrepId = SeedData.Preps[0].PrepId
         };
         
-        Error error = await RecipeEntryController.Add(sectionId, recipeEntryAddRequest).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
+        ErrorResponse errorResponse = await RecipeEntryController.Add(sectionId, recipeEntryAddRequest).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.NotFound);
 
         RecipeEntry? entry = await Context.RecipeEntries
             .FirstOrDefaultAsync(rse => rse.ItemId == recipeEntryAddRequest.ItemId &&
@@ -244,8 +245,8 @@ public class RecipeEntryControllerTests(DatabaseSetup fixture) : DatabaseFixture
             PrepId = null
         });
         
-        Error error = await RecipeEntryController.Edit(recipeEntryId, jsonPatch).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.Conflict);
+        ErrorResponse errorResponse = await RecipeEntryController.Edit(recipeEntryId, jsonPatch).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.Conflict);
         
         RecipeEntry entry = await Context.RecipeEntries
             .SingleAsync(r => r.RecipeSectionId == sectionId && r.ItemId == itemId && r.PrepId == null, TestContext.Current.CancellationToken);

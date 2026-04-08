@@ -5,14 +5,12 @@ from inspect import currentframe, getframeinfo
 import shutil
 import subprocess
 
-migrationFolder = "_Migrations"
-
 scriptFile = getframeinfo(currentframe()).filename
 rootDir = Path(scriptFile).resolve().parent.parent
 
 apiPath = rootDir / "API" / "CartSync"
 projectPath = apiPath / "CartSync.csproj"
-migrationPath = apiPath / migrationFolder
+migrationPath = apiPath / "Database" / "Migrations"
 
 if migrationPath.is_dir():
     shutil.rmtree(migrationPath)

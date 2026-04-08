@@ -1,4 +1,3 @@
-using CartSync.Objects.Enums;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 

@@ -1,6 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using CartSync.Controllers.Core;
-using CartSync.Models;
+using CartSync.Data.Entities;
+using CartSync.Data.Requests;
+using CartSync.Data.Responses;
+using CartSync.Database;
 using CartSync.Utils;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
@@ -14,7 +17,7 @@ public class AisleController(CartSyncContext context) : ControllerCore(context)
 {
     [HttpGet]
     [Route("/api/aisles")]
-    public async Task<Results<Ok<List<AisleResponse>>, BadRequest<Error>, NotFound<Error>>> All([Required] Ulid storeId)
+    public async Task<Results<Ok<List<AisleResponse>>, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> All([Required] Ulid storeId)
     {
         Store? s = await Db.Stores
             .Include(s => s.Aisles)
@@ -28,7 +31,7 @@ public class AisleController(CartSyncContext context) : ControllerCore(context)
         List<AisleResponse> aisles = s.Aisles
             .OrderBy(a => a.SortOrder)
             .AsQueryable()
-            .Select(Aisle.ToResponse)
+            .Select(AisleResponse.FromEntity)
             .ToList();
         
         return TypedResults.Ok(aisles);
@@ -36,7 +39,7 @@ public class AisleController(CartSyncContext context) : ControllerCore(context)
 
     [HttpPost]
     [Route("/api/aisles/add")]
-    public async Task<Results<Created<AisleResponse>, BadRequest<Error>, NotFound<Error>>> Add([Required] Ulid storeId, AisleAddRequest aisleAddRequest)
+    public async Task<Results<Created<AisleResponse>, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> Add([Required] Ulid storeId, AddRequest addRequest)
     {
         Store? s = await Db.Stores
             .Include(store => store.Aisles)
@@ -49,20 +52,20 @@ public class AisleController(CartSyncContext context) : ControllerCore(context)
         Aisle aisle = new()
         {
             StoreId = s.StoreId,
-            AisleName = aisleAddRequest.Name,
+            AisleName = addRequest.Name,
             SortOrder = s.Aisles.Count
         };
         
         Db.Add(aisle);
         await Db.SaveChangesAsync();
 
-        return TypedResults.Created($"/api/aisles/{aisle.AisleId}", aisle.ToNewResponse);
+        return TypedResults.Created($"/api/aisles/{aisle.AisleId}", AisleResponse.FromNewEntity(aisle));
     }
 
     [HttpPatch]
     [Route("/api/aisles/{aisleId}/edit")]
     [Consumes("application/json-patch+json")]
-    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Edit(Ulid aisleId, JsonPatchDocument<AisleEditRequest> aislePatch)
+    public async Task<Results<NoContent, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> Edit(Ulid aisleId, JsonPatchDocument<AisleEditRequest> jsonPatch)
     {
         Aisle? aisle = await Db.Aisles
             .Include(aisle => aisle.Store)
@@ -72,13 +75,13 @@ public class AisleController(CartSyncContext context) : ControllerCore(context)
         {
             return Aisle.NotFound(aisleId);
         }
-
-        if (!TryGetEditObject(aisle, aislePatch, out AisleEditRequest? aisleEdit))
-        {
-            return Error.BadRequestPatchInvalid(ModelState);
-        }
         
-        aisle.UpdateFromEditRequest(aisleEdit);
+        if (!aisle.TryGetPatch(ModelState, jsonPatch, out AisleEditRequest patch))
+        {
+            return ErrorResponse.BadRequestPatchInvalid(ModelState);
+        }
+
+        aisle.ApplyPatch(patch);
         await Db.SaveChangesAsync();
         
         return TypedResults.NoContent();
@@ -86,7 +89,7 @@ public class AisleController(CartSyncContext context) : ControllerCore(context)
     
     [HttpDelete]
     [Route("/api/aisles/{aisleId}/delete")]
-    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Delete(Ulid aisleId)
+    public async Task<Results<NoContent, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> Delete(Ulid aisleId)
     {
         Aisle? aisle = await Db.Aisles
             .Include(aisle => aisle.Store)
@@ -100,7 +103,7 @@ public class AisleController(CartSyncContext context) : ControllerCore(context)
         Db.Aisles.Remove(aisle);
         
         // Refresh Sort Order
-        aisle.Store.Aisles.RefreshOrder();
+        Sort.RefreshOrder(aisle.Store.Aisles);
         
         await Db.SaveChangesAsync();
         

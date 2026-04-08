@@ -1,55 +1,106 @@
 using System.Net;
-using CartSync.Controllers.Core;
-using CartSync.Models;
-using CartSync.Models.Joins;
-using CartSync.Objects.Enums;
+using CartSync.Data.Requests;
+using CartSync.Data.Responses;
+using CartSync.Objects;
 using CartSyncTests.Base;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson.Operations;
-using SeedData = CartSync.Models.Seeding.SeedData;
+using SeedData = CartSync.SeedData.SeedData;
 
 namespace CartSyncTests.ControllerTests;
+
+public readonly struct ItemIndexLocation(int itemIndex, IndexedLocation? location)
+{
+    public readonly int ItemIndex = itemIndex;
+    public readonly IndexedLocation? Location = location;
+}
+
+public readonly struct IndexedLocation(int aisleIndex, Bay bay)
+{
+    public readonly int AisleIndex = aisleIndex;
+    public readonly Bay Bay = bay;
+}
 
 [Collection("DatabaseTests")]
 public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixture)
 {
     [Theory]
-    [InlineData(0, 0, 20, 21)]
-    [InlineData(1, 23, -1, -1)]
-    public async Task TestItemAll(int storeIndex, int aisleIndex1, int aisleIndex2, int aisleIndex3)
+    [InlineData(0)]
+    [InlineData(1)]
+    public async Task TestItemAll(int storeIndex)
     {
+        ItemIndexLocation[] expectedLocations =
+            storeIndex == 0
+                ?
+                [
+                    new ItemIndexLocation(0, new IndexedLocation(0, Bay.Center)),
+                    new ItemIndexLocation(30, new IndexedLocation(2, Bay.Begin)),
+                    new ItemIndexLocation(41, new IndexedLocation(2, Bay.End)),
+                    new ItemIndexLocation(180, new IndexedLocation(20, Bay.Center)),
+                    new ItemIndexLocation(209, new IndexedLocation(21, Bay.Center)),
+                ]
+                :
+                [
+                    new ItemIndexLocation(0, new IndexedLocation(23, Bay.Begin)),
+                    new ItemIndexLocation(30, null),
+                    new ItemIndexLocation(41, null),
+                    new ItemIndexLocation(180, null),
+                    new ItemIndexLocation(209, null),
+                ];
+
         Ulid storeId = SeedData.Stores[storeIndex].StoreId;
-        
         await StoreController.Select(storeId);
-        
-        List<ItemByStoreResponse> items = await ItemController.All().ValueAsync();
+        List<ItemResponse> items = await ItemController.All().ValueAsync();
         Assert.Equal(SeedData.Items.Count, items.Count);
-        
-        Assert.Contains(items, item => item.Id == SeedData.Items[0].ItemId);
-        AssertItemEqual(items.Single(item => item.Id == SeedData.Items[0].ItemId), 0, [aisleIndex1]);
-        
-        Assert.Contains(items, item => item.Id == SeedData.Items[180].ItemId);
-        AssertItemEqual(items.Single(item => item.Id == SeedData.Items[180].ItemId), 180, [aisleIndex2]);
-        
-        Assert.Contains(items, item => item.Id == SeedData.Items[209].ItemId);
-        AssertItemEqual(items.Single(item => item.Id == SeedData.Items[209].ItemId), 209, [aisleIndex3]);
+
+        foreach (ItemIndexLocation locationData in expectedLocations)
+        {
+            ItemResponse? item = items.FirstOrDefault(item => item.Id == SeedData.Items[locationData.ItemIndex].ItemId);
+            Assert.NotNull(item);
+            AssertItemEqual(item, locationData.ItemIndex, locationData.Location);
+        }
     }
 
-    [Fact]
-    public async Task TestItemDetails()
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    public async Task TestItemDetails(int storeIndex)
     {
-        AssertItemEqual(await ItemController.Details(SeedData.Items[0].ItemId).ValueAsync(), 0, [0, 23]);
-        AssertItemEqual(await ItemController.Details(SeedData.Items[30].ItemId).ValueAsync(), 30, [2]);
-        AssertItemEqual(await ItemController.Details(SeedData.Items[179].ItemId).ValueAsync(), 179, [20]);
-        AssertItemEqual(await ItemController.Details(SeedData.Items[181].ItemId).ValueAsync(), 181,[20]);
-        AssertItemEqual(await ItemController.Details(SeedData.Items[209].ItemId).ValueAsync(), 209, [21]);
+        ItemIndexLocation[] expectedLocations =
+            storeIndex == 0
+                ?
+                [
+                    new ItemIndexLocation(0, new IndexedLocation(0, Bay.Center)),
+                    new ItemIndexLocation(30, new IndexedLocation(2, Bay.Begin)),
+                    new ItemIndexLocation(41, new IndexedLocation(2, Bay.End)),
+                    new ItemIndexLocation(179, new IndexedLocation(20, Bay.Center)),
+                    new ItemIndexLocation(181, new IndexedLocation(20, Bay.Center)),
+                    new ItemIndexLocation(209, new IndexedLocation(21, Bay.Center)),
+                ]
+                :
+                [
+                    new ItemIndexLocation(0, new IndexedLocation(23, Bay.Begin)),
+                    new ItemIndexLocation(30, null),
+                    new ItemIndexLocation(179, null),
+                    new ItemIndexLocation(181, null),
+                    new ItemIndexLocation(209, null),
+                ];
+        
+        Ulid storeId = SeedData.Stores[storeIndex].StoreId;
+        await StoreController.Select(storeId);
+        
+        foreach (ItemIndexLocation locationData in expectedLocations)
+        {
+            ItemResponse item = await ItemController.Details(SeedData.Items[locationData.ItemIndex].ItemId).ValueAsync();
+            AssertItemEqual(item, locationData.ItemIndex, locationData.Location);
+        }
     }
 
     [Fact]
     public async Task TestItemDetails_ItemNotFound()
     {
-        Error error = await ItemController.Details(Ulid.NotFound).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
+        ErrorResponse errorResponse = await ItemController.Details(Ulid.NotFound).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.NotFound);
     }
 
     [Fact]
@@ -161,30 +212,30 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     [Fact]
     public async Task TestItemUsage_ItemNotFound()
     {
-        Error error = await ItemController.Usages(Ulid.NotFound).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
+        ErrorResponse errorResponse = await ItemController.Usages(Ulid.NotFound).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.NotFound);
     }
     
     [Fact]
     public async Task TestItemAdd()
     {
-        ItemAddRequest newItem = new()
+        AddRequest newItem = new()
         {
             Name = "New Item Name",
         };
 
-        (ItemResponse item, string location) result = await ItemController.Add(newItem).ValueAsync();
+        (ItemMinimalResponse item, string location) result = await ItemController.Add(newItem).ValueAsync();
         Assert.Equal(newItem.Name, result.item.Name);
         Assert.Equal(result.location.Split('/').Last().ToLower(), result.item.Id.ToString().ToLower());
 
-        ItemByStoreResponse fetch = await ItemController.Details(result.item.Id).ValueAsync();
+        ItemResponse fetch = await ItemController.Details(result.item.Id).ValueAsync();
         Assert.Equal(newItem.Name, fetch.Name);
 
-        List<ItemByStoreResponse> results = await ItemController.All().ValueAsync();
+        List<ItemResponse> results = await ItemController.All().ValueAsync();
         Assert.Equal(SeedData.Items.Count + 1, results.Count);
         Assert.Contains(results, item => item.Id == result.item.Id);
         
-        ItemByStoreResponse item = results.First(item => item.Id == result.item.Id);
+        ItemResponse item = results.First(item => item.Id == result.item.Id);
         Assert.Equal(newItem.Name, item.Name);
     }
 
@@ -208,7 +259,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         
         await ItemController.Edit(itemId, jsonPatch).AssertIsSuccessful();
         
-        List<ItemByStoreResponse> items = await ItemController.All().ValueAsync();
+        List<ItemResponse> items = await ItemController.All().ValueAsync();
         Assert.Equal(SeedData.Items.Count, items.Count);
         Assert.Contains("New Item", items.Where(item => item.Id == itemId).Select(i => i.Name));
     }
@@ -224,7 +275,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
                 {
                     op = "replace",
                     path = "/Temp",
-                    value = "Frozen"
+                    value = Temp.Frozen
                 }
             }
         };
@@ -233,7 +284,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         
         await ItemController.Edit(itemId, jsonPatch).AssertIsSuccessful();
         
-        List<ItemByStoreResponse> items = await ItemController.All().ValueAsync();
+        List<ItemResponse> items = await ItemController.All().ValueAsync();
         Assert.Equal(SeedData.Items.Count, items.Count);
         Assert.Contains(Temp.Frozen, items.Where(item => item.Id == itemId).Select(i => i.Temp));
     }
@@ -243,7 +294,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         Ulid itemId = SeedData.Items[54].ItemId;
         
-        ItemAisleEditRequest location = new()
+        LocationEditRequest locationEditRequest = new()
         {
             AisleId = SeedData.Aisles[23].AisleId,
             Bay = Bay.End
@@ -257,7 +308,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
                 {
                     op = "replace",
                     path = "/Location",
-                    value = location
+                    value = locationEditRequest
                 }
             }
         };
@@ -265,10 +316,10 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         await StoreController.Select(SeedData.Stores[1].StoreId);
         await ItemController.Edit(itemId, jsonPatch).AssertIsSuccessful();
         
-        ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
+        ItemResponse item = await ItemController.Details(itemId).ValueAsync();
 
-        Assert.Equal(location.AisleId, item.Location?.AisleId);
-        Assert.Equal(location.Bay, item.Location?.Bay);
+        Assert.Equal(locationEditRequest.AisleId, item.Location?.AisleId);
+        Assert.Equal(locationEditRequest.Bay, item.Location?.Bay);
     }
 
     [Theory]
@@ -278,7 +329,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         Ulid itemId = SeedData.Items[itemIndex].ItemId;
         
-        ItemAisleEditRequest location = new()
+        LocationEditRequest locationEditRequest = new()
         {
             AisleId = SeedData.Aisles[17].AisleId,
             Bay = Bay.Begin
@@ -292,17 +343,17 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
                 {
                     op = "replace",
                     path = "/Location",
-                    value = location
+                    value = locationEditRequest
                 }
             }
         };
         
         await ItemController.Edit(itemId, jsonPatch).AssertIsSuccessful();
         
-        ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
+        ItemResponse item = await ItemController.Details(itemId).ValueAsync();
 
-        Assert.Equal(location.AisleId, item.Location?.AisleId);
-        Assert.Equal(location.Bay, item.Location?.Bay);
+        Assert.Equal(locationEditRequest.AisleId, item.Location?.AisleId);
+        Assert.Equal(locationEditRequest.Bay, item.Location?.Bay);
     }
 
     [Fact]
@@ -310,7 +361,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         Ulid itemId = SeedData.Items[54].ItemId;
         
-        ItemAisleEditRequest location = new()
+        LocationEditRequest locationEditRequest = new()
         {
             AisleId = Ulid.NotFound,
             Bay = Bay.End
@@ -324,15 +375,15 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
                 {
                     op = "replace",
                     path = "/Location",
-                    value = location
+                    value = locationEditRequest
                 }
             }
         };
         
-        Error error = await ItemController.Edit(itemId, jsonPatch).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
+        ErrorResponse errorResponse = await ItemController.Edit(itemId, jsonPatch).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.NotFound);
         
-        ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
+        ItemResponse item = await ItemController.Details(itemId).ValueAsync();
 
         Assert.Equal(SeedData.Aisles[4].AisleId, item.Location?.AisleId);
         Assert.Equal(Bay.Center, item.Location?.Bay);
@@ -343,7 +394,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         Ulid itemId = SeedData.Items[54].ItemId;
 
-        ItemAisleEditRequest location = new()
+        LocationEditRequest locationEditRequest = new()
         {
             AisleId = SeedData.Aisles[4].AisleId,
             Bay = Bay.End
@@ -357,17 +408,17 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
                 {
                     op = "replace",
                     path = "/Location",
-                    value = location
+                    value = locationEditRequest
                 }
             }
         };
         
         await StoreController.Select(SeedData.Stores[1].StoreId);
         
-        Error error = await ItemController.Edit(itemId, jsonPatch).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
+        ErrorResponse errorResponse = await ItemController.Edit(itemId, jsonPatch).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.NotFound);
         
-        ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
+        ItemResponse item = await ItemController.Details(itemId).ValueAsync();
 
         Assert.Null(item.Location?.AisleId);
         Assert.Null(item.Location?.Bay);
@@ -392,7 +443,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         
         await ItemController.Edit(itemId, jsonPatch).AssertIsSuccessful();
         
-        ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
+        ItemResponse item = await ItemController.Details(itemId).ValueAsync();
 
         Assert.Null(item.Location?.AisleId);
     }
@@ -419,7 +470,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         await StoreController.Select(SeedData.Stores[storeIndex].StoreId);
         await ItemController.Edit(itemId, jsonPatch).AssertIsSuccessful();
         
-        ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
+        ItemResponse item = await ItemController.Details(itemId).ValueAsync();
 
         Ulid? expected = null;
         Ulid? actual = item.Location?.AisleId;
@@ -447,7 +498,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
 
         await ItemController.Edit(itemId, jsonPatch).AssertIsSuccessful();
         
-        ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
+        ItemResponse item = await ItemController.Details(itemId).ValueAsync();
 
         IEnumerable<Ulid> expected = [ prepId ];
         IEnumerable<Ulid> actual = item.Preps
@@ -478,7 +529,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
 
         await ItemController.Edit(itemId, jsonPatch).AssertIsSuccessful();
         
-        ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
+        ItemResponse item = await ItemController.Details(itemId).ValueAsync();
 
         IEnumerable<Ulid> expected = [ prepId, SeedData.Preps[3].PrepId, SeedData.Preps[4].PrepId ];
         IEnumerable<Ulid> actual = item.Preps
@@ -507,10 +558,10 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
             }
         };
         
-        Error error = await ItemController.Edit(itemId, jsonPatch).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
+        ErrorResponse errorResponse = await ItemController.Edit(itemId, jsonPatch).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.NotFound);
         
-        ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
+        ItemResponse item = await ItemController.Details(itemId).ValueAsync();
 
         IEnumerable<Ulid> expected = [ SeedData.Preps[3].PrepId, SeedData.Preps[4].PrepId ];
         IEnumerable<Ulid> actual = item.Preps
@@ -541,7 +592,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         
         await ItemController.Edit(itemId, jsonPatch).AssertIsSuccessful();
         
-        ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
+        ItemResponse item = await ItemController.Details(itemId).ValueAsync();
 
         IEnumerable<Ulid> expected = [ SeedData.Preps[prepIndex].PrepId ];
         IEnumerable<Ulid> actual = item.Preps
@@ -568,10 +619,10 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
             }
         };
         
-        Error error = await ItemController.Edit(itemId, jsonPatch).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.BadRequest);
+        ErrorResponse errorResponse = await ItemController.Edit(itemId, jsonPatch).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.BadRequest);
         
-        ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
+        ItemResponse item = await ItemController.Details(itemId).ValueAsync();
 
         IEnumerable<Ulid> expected = [ ];
         IEnumerable<Ulid> actual = item.Preps
@@ -599,10 +650,10 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
             }
         };
         
-        Error error = await ItemController.Edit(itemId, jsonPatch).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.BadRequest);
+        ErrorResponse errorResponse = await ItemController.Edit(itemId, jsonPatch).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.BadRequest);
         
-        ItemByStoreResponse item = await ItemController.Details(itemId).ValueAsync();
+        ItemResponse item = await ItemController.Details(itemId).ValueAsync();
 
         Ulid expected = SeedData.Aisles[0].AisleId;
         Ulid? actual = item.Location?.AisleId;
@@ -614,8 +665,8 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     public async Task TestItemEdit_ItemNotFound()
     {
         JsonPatchDocument<ItemEditRequest> jsonPatch = new();
-        Error error = await ItemController.Edit(Ulid.NotFound, jsonPatch).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
+        ErrorResponse errorResponse = await ItemController.Edit(Ulid.NotFound, jsonPatch).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.NotFound);
     }
 
     [Fact]
@@ -624,7 +675,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         Ulid itemId = SeedData.Items[66].ItemId;
         await ItemController.Delete(itemId).AssertIsSuccessful();
         
-        List<ItemByStoreResponse> items = await ItemController.All().ValueAsync();
+        List<ItemResponse> items = await ItemController.All().ValueAsync();
         Assert.Equal(SeedData.Items.Count - 1, items.Count);
         Assert.DoesNotContain(items, item => item.Id == itemId);
     }
@@ -632,52 +683,41 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     [Fact]
     public async Task TestItemDelete_ItemNotFound()
     {
-        Error error = await ItemController.Delete(Ulid.NotFound).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
+        ErrorResponse errorResponse = await ItemController.Delete(Ulid.NotFound).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.NotFound);
     }
 
     // Helper function
-    private static void AssertItemEqual(ItemByStoreResponse itemResponse, int itemIndex, int[]? aisleIndices = null)
-    {
-        ItemResponse item = new()
-        {
-            Id = itemResponse.Id,
-            Name = itemResponse.Name,
-            Temp =  itemResponse.Temp,
-            DefaultUnitType = itemResponse.DefaultUnitType,
-            UncapCartUnits = itemResponse.UncapCartUnits,
-            Preps = itemResponse.Preps,
-            Locations = itemResponse.Location != null ? [itemResponse.Location] : [],
-        };
-        AssertItemEqual(item, itemIndex, aisleIndices);
-    }
-
-    private static void AssertItemEqual(ItemResponse itemResponse, int itemIndex, int[]? aisleIndices = null)
+    private static void AssertItemEqual(ItemResponse itemResponse, int itemIndex, IndexedLocation? location)
     {
         Assert.Equal(SeedData.Items[itemIndex].ItemId, itemResponse.Id);
         Assert.Equal(SeedData.Items[itemIndex].ItemName, itemResponse.Name);
         Assert.Equal(SeedData.Items[itemIndex].Temp, itemResponse.Temp);
         Assert.Equal(SeedData.Items[itemIndex].DefaultUnitType, itemResponse.DefaultUnitType);
 
-        if (itemResponse.Preps.Count <= 0)
+        if (itemResponse.Preps.Count > 0)
         {
-            return;
+            List<PrepResponse> expectedPreps = SeedData.ItemPreps
+                .Where(ip => ip.ItemId == SeedData.Items[itemIndex].ItemId)
+                .Select(ip => SeedData.Preps.Single(p => p.PrepId == ip.PrepId))
+                .AsQueryable()
+                .Select(PrepResponse.FromEntity)
+                .OrderBy(prep => prep.Name)
+                .ThenBy(prep => prep.Id)
+                .ToList();
+            
+            Assert.Equal(itemResponse.Preps, expectedPreps);
         }
 
-        List<PrepResponse> expectedPreps = SeedData.ItemPreps
-            .Where(ip => ip.ItemId == SeedData.Items[itemIndex].ItemId)
-            .Select(ip => SeedData.Preps.Single(p => p.PrepId == ip.PrepId))
-            .AsQueryable()
-            .Select(Prep.ToResponse)
-            .OrderBy(prep => prep.Name)
-            .ThenBy(prep => prep.Id)
-            .ToList();
-        
-        Assert.Equal(itemResponse.Preps, expectedPreps);
-
-        if (aisleIndices is null || aisleIndices.Length == 0 || aisleIndices is [-1])
+        if (location != null)
         {
-            Assert.Empty(itemResponse.Locations);
+            Assert.Equal(SeedData.Aisles[location.Value.AisleIndex].AisleId, itemResponse.Location?.AisleId);
+            Assert.Equal(SeedData.Aisles[location.Value.AisleIndex].AisleName, itemResponse.Location?.AisleName);
+            Assert.Equal(location.Value.Bay, itemResponse.Location?.Bay);
+        }
+        else
+        {
+            Assert.Null(itemResponse.Location);
         }
     }
 }

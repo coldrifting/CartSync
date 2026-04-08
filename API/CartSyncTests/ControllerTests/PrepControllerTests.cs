@@ -1,10 +1,10 @@
 using System.Net;
-using CartSync.Controllers.Core;
-using CartSync.Models;
+using CartSync.Data.Requests;
+using CartSync.Data.Responses;
 using CartSyncTests.Base;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson.Operations;
-using SeedData = CartSync.Models.Seeding.SeedData;
+using SeedData = CartSync.SeedData.SeedData;
 
 namespace CartSyncTests.ControllerTests;
 
@@ -16,7 +16,7 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         List<PrepResponse> expectedPreps = SeedData.Preps
             .AsQueryable()
-            .Select(Prep.ToResponse)
+            .Select(PrepResponse.FromEntity)
             .OrderBy(prep => prep.Name)
             .ThenBy(prep => prep.Id)
             .ToList();
@@ -118,8 +118,8 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     [Fact]
     public async Task TestPrepUsages_PrepNotFound()
     {
-        Error error = await PrepController.Usages(Ulid.NotFound).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
+        ErrorResponse errorResponse = await PrepController.Usages(Ulid.NotFound).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.NotFound);
     }
     
     [Fact]
@@ -127,12 +127,12 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         List<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
-            .Select(Prep.ToResponse)
+            .Select(PrepResponse.FromEntity)
             .OrderBy(prep => prep.Name)
             .ThenBy(prep => prep.Id)
             .ToList();
 
-        PrepAddRequest addRequest = new()
+        AddRequest addRequest = new()
         {
             Name = "New Prep Name"
         };
@@ -151,7 +151,7 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         List<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
-            .Select(Prep.ToResponse)
+            .Select(PrepResponse.FromEntity)
             .OrderBy(prep => prep.Name)
             .ThenBy(prep => prep.Id)
             .ToList();
@@ -184,7 +184,7 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         List<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
-            .Select(Prep.ToResponse)
+            .Select(PrepResponse.FromEntity)
             .OrderBy(prep => prep.Name)
             .ThenBy(prep => prep.Id)
             .ToList();
@@ -203,8 +203,8 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         };
         
         Ulid prepId = SeedData.Preps[3].PrepId;
-        Error error = await PrepController.Edit(Ulid.NotFound, jsonPatch).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
+        ErrorResponse errorResponse = await PrepController.Edit(Ulid.NotFound, jsonPatch).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.NotFound);
         
         List<PrepResponse> preps = await PrepController.All()
             .ValueAsync();
@@ -218,7 +218,7 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         List<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
-            .Select(Prep.ToResponse)
+            .Select(PrepResponse.FromEntity)
             .OrderBy(prep => prep.Name)
             .ThenBy(prep => prep.Id)
             .ToList();
@@ -238,8 +238,8 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         };
         
         Ulid prepId = SeedData.Preps[3].PrepId;
-        Error error = await PrepController.Edit(prepId, jsonPatch).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.BadRequest);
+        ErrorResponse errorResponse = await PrepController.Edit(prepId, jsonPatch).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.BadRequest);
         
         List<PrepResponse> preps = await PrepController.All()
             .ValueAsync();
@@ -254,7 +254,7 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         List<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
-            .Select(Prep.ToResponse)
+            .Select(PrepResponse.FromEntity)
             .OrderBy(prep => prep.Name)
             .ThenBy(prep => prep.Id)
             .ToList();
@@ -273,8 +273,8 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         };
         
         Ulid prepId = SeedData.Preps[3].PrepId;
-        Error error = await PrepController.Edit(prepId, jsonPatch).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.BadRequest);
+        ErrorResponse errorResponse = await PrepController.Edit(prepId, jsonPatch).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.BadRequest);
         
         List<PrepResponse> preps = await PrepController.All()
             .ValueAsync();
@@ -289,7 +289,7 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         List<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
-            .Select(Prep.ToResponse)
+            .Select(PrepResponse.FromEntity)
             .OrderBy(prep => prep.Name)
             .ThenBy(prep => prep.Id)
             .ToList();
@@ -307,8 +307,8 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         };
         
         Ulid prepId = SeedData.Preps[3].PrepId;
-        Error error = await PrepController.Edit(prepId, jsonPatch).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.BadRequest);
+        ErrorResponse errorResponse = await PrepController.Edit(prepId, jsonPatch).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.BadRequest);
         
         List<PrepResponse> preps = await PrepController.All()
             .ValueAsync();
@@ -322,7 +322,7 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         List<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
-            .Select(Prep.ToResponse)
+            .Select(PrepResponse.FromEntity)
             .OrderBy(prep => prep.Name)
             .ThenBy(prep => prep.Id)
             .ToList();
@@ -333,7 +333,7 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
             .ValueAsync();
         
         Assert.Equal(previousPreps.Count - 1, preps.Count);
-        Assert.DoesNotContain(preps, p => Equals(p, Prep.ToResponse.Compile()(SeedData.Preps[3])));
+        Assert.DoesNotContain(preps, p => Equals(p, PrepResponse.FromEntity.Compile()(SeedData.Preps[3])));
     }
     
     [Fact]
@@ -341,12 +341,12 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         List<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
-            .Select(Prep.ToResponse)
+            .Select(PrepResponse.FromEntity)
             .OrderBy(prep => prep.Name)
             .ThenBy(prep => prep.Id)
             .ToList();
 
-        PrepAddRequest addRequest = new()
+        AddRequest addRequest = new()
         {
             Name = "New Prep Name"
         };
@@ -364,8 +364,8 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
 
         await PrepController.Delete(prepId).AssertIsSuccessful();
         
-        Error error = await PrepController.Delete(prepId).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
+        ErrorResponse errorResponse = await PrepController.Delete(prepId).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.NotFound);
         
         List<PrepResponse> preps = await PrepController.All()
             .ValueAsync();
@@ -377,7 +377,7 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     [Fact]
     public async Task TestPrepDelete_PrepNotFound()
     {
-        Error error = await PrepController.Delete(Ulid.NotFound).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
+        ErrorResponse errorResponse = await PrepController.Delete(Ulid.NotFound).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.NotFound);
     }
 }

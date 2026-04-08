@@ -1,12 +1,12 @@
 using System.Collections.Immutable;
 using System.Net;
-using CartSync.Controllers.Core;
-using CartSync.Models;
+using CartSync.Data.Requests;
+using CartSync.Data.Responses;
 using CartSync.Objects;
 using CartSyncTests.Base;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson.Operations;
-using SeedData = CartSync.Models.Seeding.SeedData;
+using SeedData = CartSync.SeedData.SeedData;
 
 namespace CartSyncTests.ControllerTests;
 
@@ -20,7 +20,7 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
             .AsQueryable()
             .OrderBy(recipe => recipe.RecipeName)
             .ThenBy(recipe => recipe.RecipeId)
-            .Select(Recipe.ToMinimalResponse)
+            .Select(RecipeMinimalResponse.FromEntity)
             .ToImmutableList()
             .WithValueSemantics();
         
@@ -32,17 +32,63 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
     public async Task TestRecipeDetails()
     {
         ReadOnlyList<RecipeResponse> expected = SeedData.Recipes
-            .AsQueryable()
             .OrderBy(recipe => recipe.RecipeName)
             .ThenBy(recipe => recipe.RecipeId)
-            .Select(Recipe.ToResponse)
+            .Select(recipe => new RecipeResponse
+            {
+                Id = recipe.RecipeId,
+                Name = recipe.RecipeName,
+                Url = recipe.Url,
+                IsPinned = recipe.IsPinned,
+                Steps = SeedData.RecipeSteps
+                    .Where(step => step.RecipeId == recipe.RecipeId)
+                    .AsQueryable()
+                    .Select(RecipeStepResponse.FromEntity)
+                    .OrderBy(step => step.SortOrder)
+                    .ToImmutableList()
+                    .WithValueSemantics(),
+                Sections = SeedData.RecipeSections
+                    .Where(section => section.RecipeId == recipe.RecipeId)
+                    .Select(section => new RecipeSectionResponse
+                    {
+                        Id = section.RecipeSectionId,
+                        Name = section.RecipeSectionName,
+                        SortOrder = section.SortOrder,
+                        Entries = SeedData.RecipeEntries
+                            .Where(entry => entry.RecipeSectionId == section.RecipeSectionId)
+                            .Select(entry => new RecipeEntryResponse
+                            {
+                                Id = entry.RecipeEntryId,
+                                Amount = entry.Amount,
+                                Item = SeedData.Items
+                                    .Where(item => item.ItemId == entry.ItemId)
+                                    .AsQueryable()
+                                    .Select(ItemMinimalResponse.FromEntity)
+                                    .First(),
+                                Prep = SeedData.Preps
+                                    .Where(prep => prep.PrepId == entry.PrepId)
+                                    .AsQueryable()
+                                    .Select(PrepResponse.FromEntity)
+                                    .FirstOrDefault()
+                            })
+                            .OrderBy(entry => entry.Item.Temp)
+                            .ThenBy(entry => entry.Item.Name)
+                            .ThenBy(entry => entry.Item.Id)
+                            .ThenBy(entry => entry.Prep != null ? entry.Prep.Name : "$None" )
+                            .ToImmutableList()
+                            .WithValueSemantics()
+                    })
+                    .OrderBy(section => section.SortOrder)
+                    .ToImmutableList()
+                    .WithValueSemantics()
+            })
             .ToImmutableList()
             .WithValueSemantics();
         
         foreach (RecipeResponse expectedRecipe in expected)
         {
-            RecipeResponse result = await RecipeController.Details(expectedRecipe.Id).ValueAsync();
-            Assert.Equal(expectedRecipe.ToMinimalResponse, result.ToMinimalResponse);
+            RecipeResponse actualRecipe = await RecipeController.Details(expectedRecipe.Id).ValueAsync();
+            Assert.Equal(expectedRecipe, actualRecipe);
         }
 
         Ulid recipeId = SeedData.Recipes[1].RecipeId;
@@ -51,7 +97,7 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
             .AsQueryable()
             .Where(recipe => recipe.RecipeId == recipeId)
             .OrderBy(recipe => recipe.SortOrder)
-            .Select(RecipeStep.ToResponse)
+            .Select(RecipeStepResponse.FromEntity)
             .ToImmutableList()
             .WithValueSemantics();
         
@@ -62,7 +108,7 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
             .AsQueryable()
             .Where(section => section.RecipeId == recipeId)
             .OrderBy(section => section.SortOrder)
-            .Select(RecipeSection.ToResponse)
+            .Select(RecipeSectionResponse.FromEntity)
             .ToImmutableList()
             .WithValueSemantics();
         
@@ -103,12 +149,12 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
     [Fact]
     public async Task TestRecipeAdd()
     {
-        RecipeAddRequest recipeAddRequest = new()
+        AddRequest recipeAddRequest = new()
         {
             Name = "New Recipe"
         };
         
-        (RecipeResponse recipe, string location) result = await RecipeController.Add(recipeAddRequest).ValueAsync();
+        (RecipeMinimalResponse recipe, string location) result = await RecipeController.Add(recipeAddRequest).ValueAsync();
         Assert.Equal(recipeAddRequest.Name, result.recipe.Name);
         Assert.Equal(result.location.Split('/').Last().ToLower(), result.recipe.Id.ToString().ToLower());
         
@@ -196,8 +242,8 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
             }
         };
         
-        Error error = await RecipeController.Edit(recipeId, jsonPatch).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
+        ErrorResponse errorResponse = await RecipeController.Edit(recipeId, jsonPatch).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.NotFound);
 
         List<RecipeMinimalResponse> results = await RecipeController.All().ValueAsync();
         Assert.Equal(4, results.Count);
@@ -220,8 +266,8 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
             }
         };
         
-        Error error = await RecipeController.Edit(recipeId, jsonPatch).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.BadRequest);
+        ErrorResponse errorResponse = await RecipeController.Edit(recipeId, jsonPatch).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.BadRequest);
 
         List<RecipeMinimalResponse> results = await RecipeController.All().ValueAsync();
         Assert.Equal(4, results.Count);
@@ -235,13 +281,13 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
         Ulid recipeId2 = SeedData.Recipes[1].RecipeId;
         await RecipeController.Delete(recipeId).AssertIsSuccessful();
         
-        Error error = await RecipeController.Details(recipeId).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
+        ErrorResponse errorResponse = await RecipeController.Details(recipeId).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.NotFound);
         
         List<RecipeMinimalResponse> results = await RecipeController.All().ValueAsync();
         Assert.Equal(3, results.Count);
         
-        Error error2 = await RecipeController.Delete(recipeId).ErrorAsync();
+        ErrorResponse error2 = await RecipeController.Delete(recipeId).ErrorAsync();
         error2.AssertStatus(HttpStatusCode.NotFound);
         
         await RecipeController.Delete(recipeId2).AssertIsSuccessful();
@@ -254,8 +300,8 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
     public async Task TestRecipeDelete_RecipeNotFound()
     {
         Ulid recipeId = Ulid.NotFound;
-        Error error = await RecipeController.Delete(recipeId).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
+        ErrorResponse errorResponse = await RecipeController.Delete(recipeId).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.NotFound);
         
         List<RecipeMinimalResponse> results = await RecipeController.All().ValueAsync();
         Assert.Equal(4, results.Count);

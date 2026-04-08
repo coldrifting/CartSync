@@ -1,6 +1,6 @@
 using System.Net;
-using CartSync.Models;
-using CartSync.Models.Seeding;
+using CartSync.Data.Requests;
+using CartSync.SeedData;
 using CartSyncTests.Base;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson.Operations;
@@ -16,7 +16,7 @@ public class PrepControllerEndpointTests(AppSetupFactory<Program> setupFactory) 
         HttpResponseMessage allPrepsResult = await GetAsyncAnonymous("/api/preps");
         Assert.Equal(HttpStatusCode.Unauthorized, allPrepsResult.StatusCode);
 
-        PrepAddRequest prepAddRequest = new() { Name = "New Prep Name" };
+        AddRequest prepAddRequest = new() { Name = "New Prep Name" };
         HttpResponseMessage addPrepResult = await PostAsyncAnonymous("/api/preps/add", prepAddRequest);
         Assert.Equal(HttpStatusCode.Unauthorized, addPrepResult.StatusCode);
         Assert.DoesNotContain(prepAddRequest.Name, Context.Preps.Select(p => p.PrepName));

@@ -1,5 +1,5 @@
 using System.Net;
-using CartSync.Models;
+using CartSync.Data.Requests;
 using CartSyncTests.Base;
 
 namespace CartSyncTests.EndpointTests;
@@ -10,7 +10,7 @@ public class RecipeControllerEndpointTests(AppSetupFactory<Program> setupFactory
     [Fact]
     public async Task TestRecipeAdd_EmptyStringShouldError()
     {
-        HttpResponseMessage result = await PostAsync("api/recipes/add", new RecipeAddRequest { Name = "" });
+        HttpResponseMessage result = await PostAsync("api/recipes/add", new AddRequest { Name = "" });
         Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
     }
 }

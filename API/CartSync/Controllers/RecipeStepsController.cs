@@ -1,6 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using CartSync.Controllers.Core;
-using CartSync.Models;
+using CartSync.Data.Entities;
+using CartSync.Data.Requests;
+using CartSync.Data.Responses;
+using CartSync.Database;
 using CartSync.Utils;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
@@ -14,7 +17,7 @@ public class RecipeStepsController(CartSyncContext context) : ControllerCore(con
 {
     [HttpPost]
     [Route("/api/recipes/steps/add")]
-    public async Task<Results<Created<RecipeStepResponse>, BadRequest<Error>, NotFound<Error>>> Add([Required] Ulid recipeId, [FromBody] RecipeStepAddRequest recipeStepAddRequest)
+    public async Task<Results<Created<RecipeStepResponse>, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> Add([Required] Ulid recipeId, RecipeStepAddRequest recipeStepAddRequest)
     {
         Recipe? recipe = await Db.Recipes
             .Include(r => r.Steps)
@@ -35,35 +38,36 @@ public class RecipeStepsController(CartSyncContext context) : ControllerCore(con
         Db.Add(recipeStep);
         await Db.SaveChangesAsync();
         
-        return TypedResults.Created($"/api/recipes/steps/{recipeStep.RecipeStepId}", recipeStep.ToNewResponse);
+        return TypedResults.Created($"/api/recipes/steps/{recipeStep.RecipeStepId}", RecipeStepResponse.FromNewEntity(recipeStep));
     }
     
     [HttpPatch]
     [Route("/api/recipes/steps/{recipeStepId}/edit")]
-    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Edit(Ulid recipeStepId, [FromBody] JsonPatchDocument<RecipeStepEditRequest> recipeStepPatch)
+    public async Task<Results<NoContent, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> Edit(Ulid recipeStepId, JsonPatchDocument<RecipeStepEditRequest> jsonPatch)
     {
-        RecipeStep? recipeStep = await Db.RecipeSteps
-            .Include(recipeStep => recipeStep.Recipe)
+        RecipeStep? step = await Db.RecipeSteps
+            .Include(step => step.Recipe)
             .ThenInclude(recipe => recipe.Steps)
-            .FirstOrDefaultAsync(recipeStep => recipeStep.RecipeStepId == recipeStepId);
-        if (recipeStep == null)
+            .FirstOrDefaultAsync(step => step.RecipeStepId == recipeStepId);
+        if (step == null)
         {
             return RecipeStep.NotFound(recipeStepId);
         }
 
-        if (!TryGetEditObject(recipeStep, recipeStepPatch, out RecipeStepEditRequest? recipeStepEdit))
+        if (!step.TryGetPatch(ModelState, jsonPatch, out RecipeStepEditRequest patch))
         {
-            return Error.BadRequestPatchInvalid(ModelState);
+            return ErrorResponse.BadRequestPatchInvalid(ModelState);
         }
 
-        recipeStep.UpdateFromEditRequest(recipeStepEdit);
+        step.ApplyPatch(patch);
         await Db.SaveChangesAsync();
+        
         return TypedResults.NoContent();
     }
     
     [HttpDelete]
     [Route("/api/recipes/steps/{recipeStepId}/delete")]
-    public async Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> Delete(Ulid recipeStepId)
+    public async Task<Results<NoContent, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> Delete(Ulid recipeStepId)
     {
         RecipeStep? recipeStep = await Db.RecipeSteps
             .Include(recipeStep => recipeStep.Recipe)
@@ -77,7 +81,7 @@ public class RecipeStepsController(CartSyncContext context) : ControllerCore(con
         Db.RecipeSteps.Remove(recipeStep);
         
         // Refresh Sort Order
-        recipeStep.Recipe.Steps.RefreshOrder();
+        Sort.RefreshOrder(recipeStep.Recipe.Steps);
 
         await Db.SaveChangesAsync();
         

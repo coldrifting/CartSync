@@ -1,5 +1,5 @@
 using System.Net;
-using CartSync.Controllers.Core;
+using CartSync.Data.Responses;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -12,62 +12,62 @@ public static class Extensions
         public static Ulid NotFound => Ulid.Parse("40400000000000000000000404");
     }
 
-    extension(Error error)
+    extension(ErrorResponse errorResponse)
     {
         public void AssertStatus(HttpStatusCode statusCode)
         {
-            Assert.Equal((int)statusCode, error.StatusCode);
+            Assert.Equal((int)statusCode, errorResponse.StatusCode);
         }
     }
 
     public static async Task<T> ValueAsync<T>(this Task<Ok<T>> results) => GetValue<T>(await results);
 
-    extension<T>(Task<Results<Ok<T>, BadRequest<Error>>> results)
+    extension<T>(Task<Results<Ok<T>, BadRequest<ErrorResponse>>> results)
     {
         public async Task<T>     ValueAsync() => GetValue<T>((await results).Result);
-        public async Task<Error> ErrorAsync() => GetValue<Error>((await results).Result);
+        public async Task<ErrorResponse> ErrorAsync() => GetValue<ErrorResponse>((await results).Result);
     }
 
-    extension<T>(Task<Results<Ok<T>, BadRequest<Error>, NotFound<Error>>> results)
+    extension<T>(Task<Results<Ok<T>, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> results)
     {
         public async Task<T>     ValueAsync() => GetValue<T>((await results).Result);
-        public async Task<Error> ErrorAsync() => GetValue<Error>((await results).Result);
+        public async Task<ErrorResponse> ErrorAsync() => GetValue<ErrorResponse>((await results).Result);
     }
 
-    extension<T>(Task<Results<Created<T>, BadRequest<Error>>> results)
+    extension<T>(Task<Results<Created<T>, BadRequest<ErrorResponse>>> results)
     {
         public async Task<(T, string)> ValueAsync() => GetValueCreated<T>((await results).Result);
-        public async Task<Error>       ErrorAsync() => GetValue<Error>((await results).Result);
+        public async Task<ErrorResponse>       ErrorAsync() => GetValue<ErrorResponse>((await results).Result);
     }
 
-    extension<T>(Task<Results<Created<T>, BadRequest<Error>, NotFound<Error>>> results)
+    extension<T>(Task<Results<Created<T>, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> results)
     {
         public async Task<(T, string)> ValueAsync() => GetValueCreated<T>((await results).Result);
-        public async Task<Error>       ErrorAsync() => GetValue<Error>((await results).Result);
+        public async Task<ErrorResponse>       ErrorAsync() => GetValue<ErrorResponse>((await results).Result);
     }
 
-    extension<T>(Task<Results<Created<T>, BadRequest<Error>, NotFound<Error>, Conflict<Error>>> results)
+    extension<T>(Task<Results<Created<T>, BadRequest<ErrorResponse>, NotFound<ErrorResponse>, Conflict<ErrorResponse>>> results)
     {
         public async Task<(T, string)> ValueAsync() => GetValueCreated<T>((await results).Result);
-        public async Task<Error>       ErrorAsync() => GetValue<Error>((await results).Result);
+        public async Task<ErrorResponse>       ErrorAsync() => GetValue<ErrorResponse>((await results).Result);
     }
 
-    extension(Task<Results<NoContent, BadRequest<Error>>> results)
+    extension(Task<Results<NoContent, BadRequest<ErrorResponse>>> results)
     {
         public async Task AssertIsSuccessful() => AssertIsNoContent((await results).Result);
-        public async Task<Error> ErrorAsync() => GetValue<Error>((await results).Result);
+        public async Task<ErrorResponse> ErrorAsync() => GetValue<ErrorResponse>((await results).Result);
     }
     
-    extension(Task<Results<NoContent, BadRequest<Error>, NotFound<Error>>> results)
+    extension(Task<Results<NoContent, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> results)
     {
         public async Task AssertIsSuccessful() => AssertIsNoContent((await results).Result);
-        public async Task<Error> ErrorAsync() => GetValue<Error>((await results).Result);
+        public async Task<ErrorResponse> ErrorAsync() => GetValue<ErrorResponse>((await results).Result);
     }
     
-    extension(Task<Results<NoContent, BadRequest<Error>, NotFound<Error>, Conflict<Error>>> results)
+    extension(Task<Results<NoContent, BadRequest<ErrorResponse>, NotFound<ErrorResponse>, Conflict<ErrorResponse>>> results)
     {
         public async Task AssertIsSuccessful() => AssertIsNoContent((await results).Result);
-        public async Task<Error> ErrorAsync() => GetValue<Error>((await results).Result);
+        public async Task<ErrorResponse> ErrorAsync() => GetValue<ErrorResponse>((await results).Result);
     }
     
     private static T GetValue<T>(IResult input)

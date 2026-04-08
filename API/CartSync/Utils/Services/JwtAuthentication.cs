@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using CartSync.Models;
+using CartSync.Data.Entities;
 using JetBrains.Annotations;
 using Microsoft.IdentityModel.Tokens;
 

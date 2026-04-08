@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using CartSync.Objects.Enums;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 

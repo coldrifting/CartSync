@@ -1,6 +1,6 @@
 using System.Net;
-using CartSync.Models;
-using CartSync.Models.Seeding;
+using CartSync.Data.Requests;
+using CartSync.SeedData;
 using CartSyncTests.Base;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson.Operations;

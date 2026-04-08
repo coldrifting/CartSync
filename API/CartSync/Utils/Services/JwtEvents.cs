@@ -1,5 +1,5 @@
-using CartSync.Controllers.Core;
-using CartSync.Models;
+using CartSync.Data.Responses;
+using CartSync.Database;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -19,7 +19,8 @@ public static class JwtEvents
 	            context.Response.ContentType = "application/json";
 	            context.Response.StatusCode = 401;
 
-	            return context.Response.WriteAsJsonAsync(Error.Unauthorized);
+	            ErrorResponse error = ErrorResponse.Unauthorized();
+	            return context.Response.WriteAsJsonAsync(error);
 		    },
 		    OnAuthenticationFailed = context =>
 		    {
@@ -34,7 +35,7 @@ public static class JwtEvents
 		    {
 			    CartSyncContext dbContext = context.HttpContext.RequestServices.GetRequiredService<CartSyncContext>();
 
-			    string? username = context.Principal?.Username;
+			    string? username = context.Principal?.Claims.FirstOrDefault(x => x.Type == "sub")?.Value;
 			    if (dbContext.Users.Any(u => u.Username == username))
 			    {
 				    return Task.CompletedTask;

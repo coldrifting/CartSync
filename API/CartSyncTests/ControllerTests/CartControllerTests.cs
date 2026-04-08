@@ -1,12 +1,13 @@
 using System.Collections.Immutable;
 using System.Net;
-using CartSync.Controllers.Core;
-using CartSync.Models;
+using CartSync.Data.Entities;
+using CartSync.Data.Misc;
+using CartSync.Data.Requests;
+using CartSync.Data.Responses;
 using CartSync.Objects;
-using CartSync.Objects.Enums;
 using CartSyncTests.Base;
 using Microsoft.EntityFrameworkCore;
-using SeedData = CartSync.Models.Seeding.SeedData;
+using SeedData = CartSync.SeedData.SeedData;
 
 namespace CartSyncTests.ControllerTests;
 
@@ -18,7 +19,7 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         Ulid itemId = SeedData.Items[37].ItemId;
         Amount cartAmount = Amount.VolumeCups(5, 2);
-        await CartController.EditItem(itemId, null, new CartItemEditRequest { Amount = cartAmount }).AssertIsSuccessful();
+        await CartController.EditItem(itemId, null, new CartSelectItemEditRequest { Amount = cartAmount }).AssertIsSuccessful();
 
         CartSelectItem? cartItem = await Context.CartSelectItems.FirstOrDefaultAsync(ci => ci.ItemId == itemId && ci.PrepId == null, TestContext.Current.CancellationToken);
         Assert.NotNull(cartItem);
@@ -31,7 +32,7 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         Ulid itemId = SeedData.Items[207].ItemId;
         Ulid prepId = SeedData.Preps[2].PrepId;
         Amount cartAmount = Amount.Count(1, 2);
-        await CartController.EditItem(itemId, prepId, new CartItemEditRequest { Amount = cartAmount }).AssertIsSuccessful();
+        await CartController.EditItem(itemId, prepId, new CartSelectItemEditRequest { Amount = cartAmount }).AssertIsSuccessful();
 
         CartSelectItem? cartItem = await Context.CartSelectItems.FirstOrDefaultAsync(ci => ci.ItemId == itemId && ci.PrepId == prepId, TestContext.Current.CancellationToken);
         Assert.NotNull(cartItem);
@@ -45,13 +46,13 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         Ulid prepId = SeedData.Preps[2].PrepId;
         Amount cartAmount1 = Amount.Count(0);
         Amount cartAmount2 = Amount.None;
-        Error error1 = await CartController.EditItem(itemId, prepId, new CartItemEditRequest { Amount = cartAmount1 }).ErrorAsync();
+        ErrorResponse error1 = await CartController.EditItem(itemId, prepId, new CartSelectItemEditRequest { Amount = cartAmount1 }).ErrorAsync();
         error1.AssertStatus(HttpStatusCode.BadRequest);
-        Error error2 = await CartController.EditItem(itemId, prepId, new CartItemEditRequest { Amount = cartAmount2 }).ErrorAsync();
+        ErrorResponse error2 = await CartController.EditItem(itemId, prepId, new CartSelectItemEditRequest { Amount = cartAmount2 }).ErrorAsync();
         error2.AssertStatus(HttpStatusCode.BadRequest);
-        Error error3 = await CartController.EditItem(itemId, null, new CartItemEditRequest { Amount = cartAmount1 }).ErrorAsync();
+        ErrorResponse error3 = await CartController.EditItem(itemId, null, new CartSelectItemEditRequest { Amount = cartAmount1 }).ErrorAsync();
         error3.AssertStatus(HttpStatusCode.BadRequest);
-        Error error4 = await CartController.EditItem(itemId, null, new CartItemEditRequest { Amount = cartAmount2 }).ErrorAsync();
+        ErrorResponse error4 = await CartController.EditItem(itemId, null, new CartSelectItemEditRequest { Amount = cartAmount2 }).ErrorAsync();
         error4.AssertStatus(HttpStatusCode.BadRequest);
         
         CartSelectItem? cartItem = await Context.CartSelectItems.FirstOrDefaultAsync(ci => ci.ItemId == itemId && ci.PrepId == prepId, TestContext.Current.CancellationToken);
@@ -67,8 +68,8 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         Ulid prepId = SeedData.Preps[2].PrepId;
         Amount cartAmount1 = Amount.Count(1, 2);
         Amount cartAmount2 = Amount.VolumeTablespoons(4);
-        await CartController.EditItem(itemId, prepId, new CartItemEditRequest { Amount = cartAmount1 }).AssertIsSuccessful();
-        await CartController.EditItem(itemId, null, new CartItemEditRequest { Amount = cartAmount2 }).AssertIsSuccessful();
+        await CartController.EditItem(itemId, prepId, new CartSelectItemEditRequest { Amount = cartAmount1 }).AssertIsSuccessful();
+        await CartController.EditItem(itemId, null, new CartSelectItemEditRequest { Amount = cartAmount2 }).AssertIsSuccessful();
 
         CartSelectItem? cartItem1 = await Context.CartSelectItems.FirstOrDefaultAsync(ci => ci.ItemId == itemId && ci.PrepId == prepId, TestContext.Current.CancellationToken);
         Assert.NotNull(cartItem1);
@@ -84,7 +85,7 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         Ulid itemId = SeedData.Items[114].ItemId;
         Amount cartAmount = Amount.VolumeCups(5, 2);
-        await CartController.EditItem(itemId, null, new CartItemEditRequest { Amount = cartAmount }).AssertIsSuccessful();
+        await CartController.EditItem(itemId, null, new CartSelectItemEditRequest { Amount = cartAmount }).AssertIsSuccessful();
 
         CartSelectItem? cartItem = await Context.CartSelectItems.FirstOrDefaultAsync(ci => ci.ItemId == itemId && ci.PrepId == null, TestContext.Current.CancellationToken);
         Assert.NotNull(cartItem);
@@ -98,8 +99,8 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         Ulid itemId = Ulid.NotFound;
         Amount cartAmount = Amount.VolumeCups(5, 2);
-        Error error = await CartController.EditItem(itemId, null, new CartItemEditRequest { Amount = cartAmount }).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
+        ErrorResponse errorResponse = await CartController.EditItem(itemId, null, new CartSelectItemEditRequest { Amount = cartAmount }).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.NotFound);
     }
     
     [Fact]
@@ -108,8 +109,8 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         Ulid itemId = SeedData.Items[181].ItemId;
         Ulid prepId = SeedData.Preps[4].PrepId;
         Amount cartAmount = Amount.VolumeCups(5, 2);
-        Error error = await CartController.EditItem(itemId, Ulid.NotFound, new CartItemEditRequest { Amount = cartAmount }).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
+        ErrorResponse errorResponse = await CartController.EditItem(itemId, Ulid.NotFound, new CartSelectItemEditRequest { Amount = cartAmount }).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.NotFound);
         
         CartSelectItem? cartItem = await Context.CartSelectItems.FirstOrDefaultAsync(ci => ci.ItemId == itemId && ci.PrepId == prepId, TestContext.Current.CancellationToken);
         Assert.NotNull(cartItem);
@@ -122,7 +123,7 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         Ulid recipeId = SeedData.Recipes[2].RecipeId;
         const int quantity = 2;
-        await CartController.EditRecipe(recipeId, new CartRecipeEditRequest()
+        await CartController.EditRecipe(recipeId, new CartSelectRecipeEditRequest
         {
             Quantity = quantity
         }).AssertIsSuccessful();
@@ -139,11 +140,11 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         Ulid recipeId = Ulid.NotFound;
         const int quantity = 2;
-        Error error = await CartController.EditRecipe(recipeId, new CartRecipeEditRequest
+        ErrorResponse errorResponse = await CartController.EditRecipe(recipeId, new CartSelectRecipeEditRequest
         {
             Quantity = quantity
         }).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
+        errorResponse.AssertStatus(HttpStatusCode.NotFound);
     }
 
     [Fact]
@@ -151,7 +152,7 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         Ulid recipeId = SeedData.Recipes[1].RecipeId;
         const int quantity = 4;
-        await CartController.EditRecipe(recipeId, new CartRecipeEditRequest()
+        await CartController.EditRecipe(recipeId, new CartSelectRecipeEditRequest
         {
             Quantity = quantity
         }).AssertIsSuccessful();
@@ -169,11 +170,11 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     public async Task TestCartEditRecipe_BadAmount_ShouldError(int quantity)
     {
         Ulid recipeId = SeedData.Recipes[1].RecipeId;
-        Error error = await CartController.EditRecipe(recipeId, new CartRecipeEditRequest
+        ErrorResponse errorResponse = await CartController.EditRecipe(recipeId, new CartSelectRecipeEditRequest
         {
             Quantity = quantity
         }).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.BadRequest);
+        errorResponse.AssertStatus(HttpStatusCode.BadRequest);
 
         Recipe? recipe = await Context.Recipes.FindAsync([recipeId], TestContext.Current.CancellationToken);
         Assert.NotNull(recipe);
@@ -219,10 +220,10 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         Ulid itemId = SeedData.Items[182].ItemId;
         Ulid prepId = SeedData.Preps[4].PrepId;
-        Error error = await CartController.RemoveItem(itemId, prepId).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
+        ErrorResponse errorResponse = await CartController.RemoveItem(itemId, prepId).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.NotFound);
         
-        Error error2 = await CartController.RemoveItem(itemId, null).ErrorAsync();
+        ErrorResponse error2 = await CartController.RemoveItem(itemId, null).ErrorAsync();
         error2.AssertStatus(HttpStatusCode.NotFound);
     }
 
@@ -230,8 +231,8 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     public async Task TestCartRemoveItem_ItemNotFound_ShouldError()
     {
         Ulid itemId = Ulid.NotFound;
-        Error error = await CartController.RemoveItem(itemId, null).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
+        ErrorResponse errorResponse = await CartController.RemoveItem(itemId, null).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.NotFound);
     }
 
     [Fact]
@@ -239,8 +240,8 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         Ulid itemId = SeedData.Items[183].ItemId;
         Ulid prepId = SeedData.Preps[3].PrepId;
-        Error error = await CartController.RemoveItem(itemId, Ulid.NotFound).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
+        ErrorResponse errorResponse = await CartController.RemoveItem(itemId, Ulid.NotFound).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.NotFound);
         
         Assert.NotNull(Context.CartSelectItems.FirstOrDefault(ci => ci.ItemId == itemId && ci.PrepId == null));
         Assert.NotNull(Context.CartSelectItems.FirstOrDefault(ci => ci.ItemId == itemId && ci.PrepId == prepId));
@@ -259,8 +260,8 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     public async Task TestCartRemoveRecipe_NotFound_ShouldError()
     {
         Ulid recipeId = Ulid.NotFound;
-        Error error = await CartController.RemoveRecipe(recipeId).ErrorAsync();
-        error.AssertStatus(HttpStatusCode.NotFound);
+        ErrorResponse errorResponse = await CartController.RemoveRecipe(recipeId).ErrorAsync();
+        errorResponse.AssertStatus(HttpStatusCode.NotFound);
         
         Assert.Null(Context.Recipes.FirstOrDefault(r => r.RecipeId == recipeId));
     }
@@ -268,79 +269,25 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     [Fact]
     public async Task TestCartGetSelection()
     {
-        CartSelectResponse selection = await CartController.GetSelection().ValueAsync();
-        Assert.Equal(4, selection.Items.Length);
-        Assert.Equal(2, selection.Recipes.Length);
+        CartSelectItemResponse expectedItem1 = IndicesToItemAndPrep(114, null, 0);
+        CartSelectItemResponse expectedItem2 = IndicesToItemAndPrep(181, 4, 1);
+        CartSelectItemResponse expectedItem3 = IndicesToItemAndPrep(183, null, 2);
+        CartSelectItemResponse expectedItem4 = IndicesToItemAndPrep(183, 3, 3);
 
-        Assert.Contains(new CartSelectItemResponse
-        {
-            Item = new ItemMinimalResponse
-            {
-                Id = SeedData.Items[114].ItemId,
-                Name = SeedData.Items[114].ItemName,
-                Temp = SeedData.Items[114].Temp
-            },
-            Prep = null,
-            Amount = SeedData.CartItems[0].Amounts.Amount
-        }, selection.Items);
+        CartSelectRecipeResponse expectedRecipe1 = IndicesToRecipe(1);
+        CartSelectRecipeResponse expectedRecipe2 = IndicesToRecipe(3);
         
-        Assert.Contains(new CartSelectItemResponse
-        {
-            Item = new ItemMinimalResponse
-            {
-                Id = SeedData.Items[181].ItemId,
-                Name = SeedData.Items[181].ItemName,
-                Temp = SeedData.Items[181].Temp
-            },
-            Prep = new PrepResponse
-            {
-                Id = SeedData.Preps[4].PrepId,
-                Name = SeedData.Preps[4].PrepName,
-            },
-            Amount = SeedData.CartItems[1].Amounts.Amount
-        }, selection.Items);
-        
-        Assert.Contains(new CartSelectItemResponse
-        {
-            Item = new ItemMinimalResponse
-            {
-                Id = SeedData.Items[183].ItemId,
-                Name = SeedData.Items[183].ItemName,
-                Temp = SeedData.Items[183].Temp
-            },
-            Prep = null,
-            Amount = SeedData.CartItems[2].Amounts.Amount
-        }, selection.Items);
-        
-        Assert.Contains(new CartSelectItemResponse
-        {
-            Item = new ItemMinimalResponse
-            {
-                Id = SeedData.Items[183].ItemId,
-                Name = SeedData.Items[183].ItemName,
-                Temp = SeedData.Items[183].Temp
-            },
-            Prep = new PrepResponse
-            {
-                Id = SeedData.Preps[3].PrepId,
-                Name = SeedData.Preps[3].PrepName,
-            },
-            Amount = SeedData.CartItems[3].Amounts.Amount
-        }, selection.Items);
+        CartSelectResponse actual = await CartController.GetSelection().ValueAsync();
+        Assert.Equal(4, actual.Items.Length);
+        Assert.Equal(2, actual.Recipes.Length);
 
-        Assert.Contains(new CartSelectRecipeResponse
-        {
-            RecipeId = SeedData.Recipes[1].RecipeId,
-            RecipeName = SeedData.Recipes[1].RecipeName,
-            Quantity = SeedData.Recipes[1].CartQuantity
-        }, selection.Recipes);
-
-        Assert.Contains(new CartSelectRecipeResponse
-        {
-            RecipeId = SeedData.Recipes[3].RecipeId,
-            RecipeName = SeedData.Recipes[3].RecipeName,
-            Quantity = SeedData.Recipes[3].CartQuantity
-        }, selection.Recipes);
+        Assert.Contains(expectedItem1, actual.Items);
+        Assert.Contains(expectedItem2, actual.Items);
+        Assert.Contains(expectedItem3, actual.Items);
+        Assert.Contains(expectedItem4, actual.Items);
+        
+        Assert.Contains(expectedRecipe1, actual.Recipes);
+        Assert.Contains(expectedRecipe2, actual.Recipes);
     }
 
     [Fact]
@@ -377,7 +324,7 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         Ulid itemId = SeedData.Items[181].ItemId;
         Ulid? prepId = null;
         Amount amount = Amount.WeightPounds(1, 2);
-        await CartController.EditItem(itemId, prepId, new CartItemEditRequest
+        await CartController.EditItem(itemId, prepId, new CartSelectItemEditRequest
         {
             Amount = amount
         }).AssertIsSuccessful();
@@ -493,7 +440,7 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
             Amounts = Amount.WeightOunces(8),
         });
 
-        await CartController.EditRecipe(SeedData.Recipes[1].RecipeId, new CartRecipeEditRequest
+        await CartController.EditRecipe(SeedData.Recipes[1].RecipeId, new CartSelectRecipeEditRequest
         {
             Quantity = 2
         });
@@ -551,6 +498,37 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
             PrepId = prepIndex is not null ? SeedData.Preps[prepIndex.Value].PrepId : null,
             Amounts = amounts,
             IsChecked = false
+        };
+    }
+
+    private static CartSelectItemResponse IndicesToItemAndPrep(int itemIndex, int? prepIndex, int cartItemIndex)
+    {
+        return new CartSelectItemResponse
+        {
+            Item = new ItemMinimalResponse
+            {
+                Id = SeedData.Items[itemIndex].ItemId,
+                Name = SeedData.Items[itemIndex].ItemName,
+                Temp = SeedData.Items[itemIndex].Temp
+            },
+            Prep = prepIndex != null
+                ? new PrepResponse
+                {
+                    Id = SeedData.Preps[prepIndex.Value].PrepId,
+                    Name = SeedData.Preps[prepIndex.Value].PrepName,
+                }
+                : null,
+            Amount = SeedData.CartItems[cartItemIndex].Amounts.Amount
+        };
+    }
+
+    private static CartSelectRecipeResponse IndicesToRecipe(int recipeIndex)
+    {
+        return new CartSelectRecipeResponse
+        {
+            RecipeId = SeedData.Recipes[recipeIndex].RecipeId,
+            RecipeName = SeedData.Recipes[recipeIndex].RecipeName,
+            Quantity = SeedData.Recipes[recipeIndex].CartQuantity
         };
     }
 }

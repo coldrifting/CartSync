@@ -4,8 +4,6 @@ from pathlib import Path
 from inspect import currentframe, getframeinfo
 import subprocess
 
-migrationFolder = "_Migrations"
-
 scriptFile = getframeinfo(currentframe()).filename
 rootDir = Path(scriptFile).resolve().parent.parent
 

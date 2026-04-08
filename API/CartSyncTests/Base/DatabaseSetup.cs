@@ -1,4 +1,4 @@
-using CartSync.Models;
+using CartSync.Database;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 
