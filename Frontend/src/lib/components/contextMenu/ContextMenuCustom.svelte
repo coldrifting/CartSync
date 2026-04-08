@@ -21,7 +21,7 @@
     <ContextMenu.Portal>
         <ContextMenu.Content class="context-menu">
             {#each contextActions as action}
-                <ContextMenu.Item class="context-menu-item {action.label === 'Delete' ? 'destructive' : ''}"
+                <ContextMenu.Item class="context-menu-item {action.label === 'Delete' || action.label === 'Remove' ? 'destructive' : ''}"
                                   textValue={action.label}
                                   onSelect={() => action.action(id, name)}>
                     <div>

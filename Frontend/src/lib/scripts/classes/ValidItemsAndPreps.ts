@@ -2,6 +2,7 @@ import type Prep from "$lib/scripts/classes/Prep.ts";
 import type RecipeDetails from "$lib/scripts/classes/RecipeDetails.ts";
 import type itemDetails from "$lib/scripts/classes/ItemDetails.ts";
 import type ItemDetails from "$lib/scripts/classes/ItemDetails.ts";
+import type Item from "$lib/scripts/classes/Item.ts";
 
 export class AllValidItems {
     sections: ValidSection[] = [];

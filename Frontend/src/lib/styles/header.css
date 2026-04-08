@@ -16,6 +16,14 @@ header {
         padding-right: 0.25rem;
     }
     
+    .header-title {
+        font-size: 1.6rem;
+        
+        @media (width >= 576px) {
+            font-size: 1.9rem;
+        }
+    }
+    
     .header-main {
         min-width: 320px;
         max-width: 960px;

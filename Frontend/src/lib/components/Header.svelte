@@ -35,7 +35,7 @@
                     {#if back}
                         <LinkHeader url={back[0]} title={back[1]}/>
                     {:else}
-                        <h1>{title}</h1>
+                        <h1 class="header-title text-nowrap">{title}</h1>
                     {/if}
                 </div>
             </div>
@@ -52,10 +52,10 @@
             </div>
 
             <div class="end">
-                <div>
+                <div class="d-flex flex-row gap-2">
                     {#each headerActions as action}
                         <div>
-                            <Button color="primary" block type="button" aria-label={action.label}
+                            <Button color={action.icon.endsWith('refresh') ? "success" : "primary"} block type="button" aria-label={action.label}
                                     onclick={action.action}>
                                 <span>{action.label}</span>
                                 <i class="fa {action.icon}"></i>

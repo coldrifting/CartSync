@@ -150,3 +150,38 @@ button {
 .text-area {
     min-height: 10rem !important;
 }
+
+.modal-body {
+    padding: 0;
+    
+    div > .list-item {
+        margin-bottom: 1rem;
+    }
+    
+    ul {
+        .list-item {
+            margin-bottom: 0 !important;
+        }
+    }
+}
+
+.modal-body > form > div, .modal-body > div {
+    padding: 1rem;
+}
+
+.modal-body > form > div > p{
+    padding: 0 0 0 3rem;
+}
+
+.modal-header {
+    border-bottom: none;
+}
+
+.modal-footer {
+    padding: 0;
+    border-top: none;
+}
+
+.form-floating > .form-control-plaintext ~ label::after, .form-floating > .form-control:focus ~ label::after, .form-floating > .form-control:not(:placeholder-shown) ~ label::after, .form-floating > .form-select ~ label::after {
+    background-color: transparent;
+}

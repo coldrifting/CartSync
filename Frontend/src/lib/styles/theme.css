@@ -9,31 +9,6 @@
     @media (width >= 1024px) {
         --sidebar-width: 12rem;
     }
-
-    .modal-body {
-        padding: 0;
-    }
-
-    .modal-body > form > div, .modal-body > div {
-        padding: 1rem;
-    }
-
-    .modal-body > form > div > p{
-        padding: 0 0 0 3rem;
-    }
-
-    .modal-header {
-        border-bottom: none;
-    }
-
-    .modal-footer {
-        padding: 0;
-        border-top: none;
-    }
-
-    .form-floating > .form-control-plaintext ~ label::after, .form-floating > .form-control:focus ~ label::after, .form-floating > .form-control:not(:placeholder-shown) ~ label::after, .form-floating > .form-select ~ label::after {
-        background-color: transparent;
-    }
 }
 
 ul {

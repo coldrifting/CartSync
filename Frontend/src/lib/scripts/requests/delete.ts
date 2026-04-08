@@ -29,6 +29,14 @@ export async function deleteRecipeEntry(cookies: Cookies, entryId: string): Prom
     await del(cookies, `/recipes/entries/${entryId}/delete`);
 }
 
+export async function deleteCartRecipe(cookies: Cookies, recipeId: string): Promise<void> {
+    await del(cookies, `/cart/selection/recipes/${recipeId}/delete`);
+}
+
+export async function deleteCartItem(cookies: Cookies, itemId: string, prepId: string | null): Promise<void> {
+    await del(cookies, `/cart/selection/items/${itemId}/delete` + (prepId !== null ? `?prepId=${prepId}` : ''));
+}
+
 async function del(cookies: Cookies, url: string): Promise<void> {
     const token = getToken(cookies);
     const response = await fetch(apiBaseUrl + url, {

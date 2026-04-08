@@ -64,7 +64,7 @@ export async function getValueNumber(formData: FormData, formElementName: string
 
 export async function getValueBoolean(formData: FormData, formElementName: string): Promise<boolean> {
     const elementValue: string | null = formData.get(formElementName) as string | null
-    return elementValue === "on";
+    return elementValue?.toLowerCase() === "on" || elementValue?.toLowerCase() === "true";
 }
 
 export function isContentImage(content: string): boolean {
