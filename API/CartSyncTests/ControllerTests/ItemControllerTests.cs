@@ -115,19 +115,22 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
                 {
                     Id = SeedData.Recipes[2].RecipeId,
                     Name = SeedData.Recipes[2].RecipeName,
-                    IsPinned =  SeedData.Recipes[2].IsPinned,
+                    IsPinned = SeedData.Recipes[2].IsPinned,
+                    Url = SeedData.Recipes[2].Url
                 },
                 new RecipeMinimalResponse
                 {
                     Id = SeedData.Recipes[0].RecipeId,
                     Name = SeedData.Recipes[0].RecipeName,
-                    IsPinned =  SeedData.Recipes[0].IsPinned,
+                    IsPinned = SeedData.Recipes[0].IsPinned,
+                    Url = SeedData.Recipes[0].Url
                 },
                 new RecipeMinimalResponse
                 {
                     Id = SeedData.Recipes[3].RecipeId,
                     Name = SeedData.Recipes[3].RecipeName,
-                    IsPinned =  SeedData.Recipes[3].IsPinned,
+                    IsPinned = SeedData.Recipes[3].IsPinned,
+                    Url = SeedData.Recipes[3].Url
                 }
             ],
             Preps = []
@@ -172,13 +175,15 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
                 {
                     Id = SeedData.Recipes[0].RecipeId,
                     Name = SeedData.Recipes[0].RecipeName,
-                    IsPinned =  SeedData.Recipes[0].IsPinned,
+                    IsPinned = SeedData.Recipes[0].IsPinned,
+                    Url = SeedData.Recipes[0].Url
                 },
                 new RecipeMinimalResponse
                 {
                     Id = SeedData.Recipes[3].RecipeId,
                     Name = SeedData.Recipes[3].RecipeName,
-                    IsPinned =  SeedData.Recipes[3].IsPinned,
+                    IsPinned = SeedData.Recipes[3].IsPinned,
+                    Url = SeedData.Recipes[3].Url
                 }
             ],
             Preps = [

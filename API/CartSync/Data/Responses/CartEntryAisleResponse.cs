@@ -20,7 +20,8 @@ public record CartEntryAisleResponse
                     {
                         Id = ce.ItemId,
                         Name = ce.Item.ItemName,
-                        Temp = ce.Item.Temp
+                        Temp = ce.Item.Temp,
+                        DefaultUnitType = ce.Item.DefaultUnitType,
                     },
                     Prep = ce.Prep != null ? PrepResponse.FromEntity.Compile()(ce.Prep) : null,
                     Bay = ce.Bay,

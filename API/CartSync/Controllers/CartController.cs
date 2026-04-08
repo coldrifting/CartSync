@@ -106,16 +106,55 @@ public class CartController(CartSyncContext context) : ControllerCore(context)
     [Route("/api/cart/selection")]
     public async Task<Ok<CartSelectResponse>> GetSelection()
     {
+        List<Recipe> allRecipes = await Db.Recipes.ToListAsync();
+        ReadOnlyList<CartSelectRecipeResponse> cartRecipes = allRecipes
+            .Where(recipe => recipe.CartQuantity > 0)
+            .AsQueryable()
+            .Select(CartSelectRecipeResponse.FromEntity)
+            .OrderBy(recipe => recipe.Name)
+            .ThenBy(recipe => recipe.Id)
+            .ToReadOnlyList();
+
+        ReadOnlyList<RecipeMinimalResponse> remainingRecipes = allRecipes.Where(recipe => recipe.CartQuantity <= 0)
+            .AsQueryable()
+            .Select(RecipeMinimalResponse.FromEntity)
+            .ToReadOnlyList();
+
+        ReadOnlyList<CartSelectItemResponse> cartItems = Db.CartSelectItems
+            .Include(cartSelectItem => cartSelectItem.Item)
+            .Select(CartSelectItemResponse.FromEntity)
+            .AsEnumerable()
+            .OrderBy(item => item.Item.Name)
+            .ThenBy(item => item.Item.Id)
+            .ThenBy(item => item.Prep?.Name ?? "$None")
+            .ThenBy(item => item.Prep?.Id ?? Ulid.Empty)
+            .ToReadOnlyList();
+
+        // Determine remaining valid item-prep combinations
+        Dictionary<Ulid, ReadOnlyList<PrepResponse?>> cartItemsWithPrep = cartItems
+            .GroupBy(item => item.Item.Id)
+            .ToDictionary(g => g.Key, g =>
+                g.Select(CartSelectItemResponse.ToPrep)
+                    .OrderBy(prep => prep?.Name ?? "$None")
+                    .ThenBy(prep => prep?.Id ?? Ulid.Empty)
+                    .ToReadOnlyList());
+
+        List<ItemWithPrepsResponse> allItemsWithPrep = Db.Items
+            .Include(item => item.Preps)
+            .Select(ItemWithPrepsResponse.FromEntity)
+            .ToList();
+
+        ReadOnlyList<ItemWithPrepsResponse> remainingItems = allItemsWithPrep
+            .Where(item => !item.Preps.Equals(cartItemsWithPrep.GetValueOrDefault(item.Item.Id)))
+            .Select(item => item with { Preps = item.Preps.Except(cartItemsWithPrep.GetValueOrDefault(item.Item.Id) ?? []).ToReadOnlyList() })
+            .ToReadOnlyList();
+        
         CartSelectResponse result = new()
         {
-            Items = await Db.CartSelectItems
-                .Include(cartSelectItem => cartSelectItem.Item)
-                .Select(CartSelectItemResponse.FromEntity)
-                .ToArrayAsync(),
-            Recipes = await Db.Recipes
-                .Where(recipe => recipe.CartQuantity > 0)
-                .Select(CartSelectRecipeResponse.FromEntity)
-                .ToArrayAsync()
+            Items = cartItems,
+            Recipes = cartRecipes,
+            RemainingItems = remainingItems,
+            RemainingRecipes = remainingRecipes
         };
 
         return TypedResults.Ok(result);

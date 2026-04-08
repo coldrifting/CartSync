@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using System.Linq.Expressions;
 using CartSync.Data.Entities;
 using CartSync.Objects;
@@ -22,8 +21,7 @@ public record ItemUsagesResponse
                 .OrderBy(p => p.PrepName)
                 .ThenBy(p => p.PrepId)
                 .Select(PrepResponse.FromEntity)
-                .ToImmutableList()
-                .WithValueSemantics(),
+                .ToReadOnlyList(),
             Recipes = item.RecipeSectionEntries
                 .AsQueryable()
                 .Select(r => r.RecipeSection.Recipe)
@@ -31,7 +29,6 @@ public record ItemUsagesResponse
                 .OrderBy(r => r.RecipeName)
                 .ThenBy(r => r.RecipeId)
                 .Select(RecipeMinimalResponse.FromEntity)
-                .ToImmutableList()
-                .WithValueSemantics()
+                .ToReadOnlyList()
         };
 }

@@ -21,8 +21,7 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
             .OrderBy(recipe => recipe.RecipeName)
             .ThenBy(recipe => recipe.RecipeId)
             .Select(RecipeMinimalResponse.FromEntity)
-            .ToImmutableList()
-            .WithValueSemantics();
+            .ToReadOnlyList();
         
         List<RecipeMinimalResponse> result = await RecipeController.All().ValueAsync();
         Assert.Equal(expected, result);
@@ -45,8 +44,7 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
                     .AsQueryable()
                     .Select(RecipeStepResponse.FromEntity)
                     .OrderBy(step => step.SortOrder)
-                    .ToImmutableList()
-                    .WithValueSemantics(),
+                    .ToReadOnlyList(),
                 Sections = SeedData.RecipeSections
                     .Where(section => section.RecipeId == recipe.RecipeId)
                     .Select(section => new RecipeSectionResponse
@@ -74,16 +72,13 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
                             .OrderBy(entry => entry.Item.Temp)
                             .ThenBy(entry => entry.Item.Name)
                             .ThenBy(entry => entry.Item.Id)
-                            .ThenBy(entry => entry.Prep != null ? entry.Prep.Name : "$None" )
-                            .ToImmutableList()
-                            .WithValueSemantics()
+                            .ThenBy(entry => entry.Prep != null ? entry.Prep.Name : "$None")
+                            .ToReadOnlyList()
                     })
                     .OrderBy(section => section.SortOrder)
-                    .ToImmutableList()
-                    .WithValueSemantics()
+                    .ToReadOnlyList()
             })
-            .ToImmutableList()
-            .WithValueSemantics();
+            .ToReadOnlyList();
         
         foreach (RecipeResponse expectedRecipe in expected)
         {
@@ -92,25 +87,23 @@ public class RecipeControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixt
         }
 
         Ulid recipeId = SeedData.Recipes[1].RecipeId;
-        
+
         ReadOnlyList<RecipeStepResponse> expectedSteps = SeedData.RecipeSteps
             .AsQueryable()
             .Where(recipe => recipe.RecipeId == recipeId)
             .OrderBy(recipe => recipe.SortOrder)
             .Select(RecipeStepResponse.FromEntity)
-            .ToImmutableList()
-            .WithValueSemantics();
+            .ToReadOnlyList();
         
         RecipeResponse result2 = await RecipeController.Details(recipeId).ValueAsync();
         Assert.Equal(expectedSteps, result2.Steps);
-        
+
         ReadOnlyList<RecipeSectionResponse> expectedSections = SeedData.RecipeSections
             .AsQueryable()
             .Where(section => section.RecipeId == recipeId)
             .OrderBy(section => section.SortOrder)
             .Select(RecipeSectionResponse.FromEntity)
-            .ToImmutableList()
-            .WithValueSemantics();
+            .ToReadOnlyList();
         
         Ulid? recipeSectionId = expectedSections[0].Id;
         ImmutableList<RecipeSectionEntryMinimal> expectedSectionEntries = SeedData.RecipeEntries

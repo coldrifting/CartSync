@@ -18,6 +18,7 @@ public record CartSelectItemResponse
                 Id = cartSelectItem.ItemId,
                 Name = cartSelectItem.Item.ItemName,
                 Temp = cartSelectItem.Item.Temp,
+                DefaultUnitType = cartSelectItem.Item.DefaultUnitType,
             },
             Prep = (cartSelectItem.PrepId == null
                 ? null
@@ -28,4 +29,7 @@ public record CartSelectItemResponse
                 })!,
             Amount = cartSelectItem.Amounts.Amount
         };
+
+    public static Func<CartSelectItemResponse, PrepResponse?> ToPrep => 
+        item => item.Prep != null ? new PrepResponse { Id = item.Prep.Id, Name = item.Prep.Name } : null;
 }

@@ -278,8 +278,8 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         CartSelectRecipeResponse expectedRecipe2 = IndicesToRecipe(3);
         
         CartSelectResponse actual = await CartController.GetSelection().ValueAsync();
-        Assert.Equal(4, actual.Items.Length);
-        Assert.Equal(2, actual.Recipes.Length);
+        Assert.Equal(4, actual.Items.Count);
+        Assert.Equal(2, actual.Recipes.Count);
 
         Assert.Contains(expectedItem1, actual.Items);
         Assert.Contains(expectedItem2, actual.Items);
@@ -305,14 +305,15 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
             {
                 Id = SeedData.Items[183].ItemId,
                 Name = SeedData.Items[183].ItemName,
-                Temp = SeedData.Items[183].Temp
+                Temp = SeedData.Items[183].Temp,
+                DefaultUnitType = SeedData.Items[183].DefaultUnitType,
             },
             Prep = new PrepResponse
             {
                 Id = SeedData.Preps[3].PrepId,
                 Name = SeedData.Preps[3].PrepName,
             },
-            Amount = SeedData.CartItems[3].Amounts.Amount
+            Amount = SeedData.CartItems[3].Amounts.Amount,
         }, selection.Items);
         Assert.DoesNotContain(new Tuple<Ulid, Ulid?>(SeedData.Items[183].ItemId, null), 
             selection.Items.Select(i => new Tuple<Ulid, Ulid?>(i.Item.Id, i.Prep?.Id)));
@@ -337,7 +338,8 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
             {
                 Id = SeedData.Items[181].ItemId,
                 Name = SeedData.Items[181].ItemName,
-                Temp = SeedData.Items[181].Temp
+                Temp = SeedData.Items[181].Temp,
+                DefaultUnitType = SeedData.Items[181].DefaultUnitType
             },
             Prep = new PrepResponse
             {
@@ -353,7 +355,8 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
             {
                 Id = SeedData.Items[181].ItemId,
                 Name = SeedData.Items[181].ItemName,
-                Temp = SeedData.Items[181].Temp
+                Temp = SeedData.Items[181].Temp,
+                DefaultUnitType = SeedData.Items[181].DefaultUnitType
             },
             Prep = null,
             Amount = amount
@@ -509,7 +512,8 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
             {
                 Id = SeedData.Items[itemIndex].ItemId,
                 Name = SeedData.Items[itemIndex].ItemName,
-                Temp = SeedData.Items[itemIndex].Temp
+                Temp = SeedData.Items[itemIndex].Temp,
+                DefaultUnitType = SeedData.Items[itemIndex].DefaultUnitType
             },
             Prep = prepIndex != null
                 ? new PrepResponse
@@ -526,8 +530,8 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     {
         return new CartSelectRecipeResponse
         {
-            RecipeId = SeedData.Recipes[recipeIndex].RecipeId,
-            RecipeName = SeedData.Recipes[recipeIndex].RecipeName,
+            Id = SeedData.Recipes[recipeIndex].RecipeId,
+            Name = SeedData.Recipes[recipeIndex].RecipeName,
             Quantity = SeedData.Recipes[recipeIndex].CartQuantity
         };
     }

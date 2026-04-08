@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using System.Linq.Expressions;
 using CartSync.Data.Entities;
 using CartSync.Objects;
@@ -28,8 +27,7 @@ public record ItemResponse
                 .OrderBy(p => p.PrepName)
                 .ThenBy(p => p.PrepId)
                 .Select(PrepResponse.FromEntity)
-                .ToImmutableList()
-                .WithValueSemantics(),
+                .ToReadOnlyList(),
             Location = item.ItemAisles
                 .AsQueryable()
                 .Select(ItemAisleResponse.FromEntity)

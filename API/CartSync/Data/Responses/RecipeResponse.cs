@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using System.Linq.Expressions;
 using CartSync.Data.Entities;
 using CartSync.Objects;
@@ -27,13 +26,11 @@ public record RecipeResponse
                 .AsQueryable()
                 .OrderBy(step => step.SortOrder)
                 .Select(RecipeStepResponse.FromEntity)
-                .ToImmutableList()
-                .WithValueSemantics(),
+                .ToReadOnlyList(),
             Sections = recipe.Sections
                 .AsQueryable()
                 .OrderBy(section => section.SortOrder)
                 .Select(RecipeSectionResponse.FromEntity)
-                .ToImmutableList()
-                .WithValueSemantics(),
+                .ToReadOnlyList()
         };
 }

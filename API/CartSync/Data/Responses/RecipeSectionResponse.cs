@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using System.Linq.Expressions;
 using CartSync.Data.Entities;
 using CartSync.Objects;
@@ -25,8 +24,7 @@ public record RecipeSectionResponse
                 .ThenBy(entry => entry.Item.ItemId)
                 .ThenBy(entry => entry.Prep != null ? entry.Prep.PrepName : "$None" )
                 .Select(RecipeEntryResponse.FromEntity)
-                .ToImmutableList()
-                .WithValueSemantics()
+                .ToReadOnlyList()
         };
     
     public static RecipeSectionResponse FromNewEntity(RecipeSection section) => FromEntity.Compile()(section);

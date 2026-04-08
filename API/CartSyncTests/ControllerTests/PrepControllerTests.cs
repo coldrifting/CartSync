@@ -40,36 +40,42 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
                     Id = SeedData.Items[179].ItemId,
                     Name = SeedData.Items[179].ItemName,
                     Temp = SeedData.Items[179].Temp,
+                    DefaultUnitType = SeedData.Items[179].DefaultUnitType
                 },
                 new ItemMinimalResponse
                 {
                     Id = SeedData.Items[180].ItemId,
                     Name = SeedData.Items[180].ItemName,
                     Temp = SeedData.Items[180].Temp,
+                    DefaultUnitType = SeedData.Items[180].DefaultUnitType
                 },
                 new ItemMinimalResponse
                 {
                     Id = SeedData.Items[181].ItemId,
                     Name = SeedData.Items[181].ItemName,
                     Temp = SeedData.Items[181].Temp,
+                    DefaultUnitType = SeedData.Items[181].DefaultUnitType
                 },
                 new ItemMinimalResponse
                 {
                     Id = SeedData.Items[182].ItemId,
                     Name = SeedData.Items[182].ItemName,
                     Temp = SeedData.Items[182].Temp,
+                    DefaultUnitType = SeedData.Items[182].DefaultUnitType
                 },
                 new ItemMinimalResponse
                 {
                     Id = SeedData.Items[183].ItemId,
                     Name = SeedData.Items[183].ItemName,
                     Temp = SeedData.Items[183].Temp,
+                    DefaultUnitType = SeedData.Items[183].DefaultUnitType
                 },
                 new ItemMinimalResponse
                 {
                     Id = SeedData.Items[184].ItemId,
                     Name = SeedData.Items[184].ItemName,
                     Temp = SeedData.Items[184].Temp,
+                    DefaultUnitType = SeedData.Items[184].DefaultUnitType
                 }
             ],
             Recipes = [
@@ -77,13 +83,15 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
                 {
                     Id = SeedData.Recipes[1].RecipeId,
                     Name = SeedData.Recipes[1].RecipeName,
-                    IsPinned =  SeedData.Recipes[1].IsPinned,
+                    IsPinned = SeedData.Recipes[1].IsPinned,
+                    Url = SeedData.Recipes[1].Url
                 },
                 new RecipeMinimalResponse
                 {
                     Id = SeedData.Recipes[3].RecipeId,
                     Name = SeedData.Recipes[3].RecipeName,
-                    IsPinned =  SeedData.Recipes[3].IsPinned,
+                    IsPinned = SeedData.Recipes[3].IsPinned,
+                    Url = SeedData.Recipes[3].Url
                 }
             ]
         };
@@ -106,6 +114,7 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
                     Id = SeedData.Items[56].ItemId,
                     Name = SeedData.Items[56].ItemName,
                     Temp = SeedData.Items[56].Temp,
+                    DefaultUnitType = SeedData.Items[56].DefaultUnitType
                 },
             ],
             Recipes = []
