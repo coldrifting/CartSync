@@ -42,6 +42,54 @@ public record CartEntry
         Error.NotFoundCompositeKey("CartEntry", itemId, "Item", prepId, "Prep");
 }
 
+public record ItemPrepPair
+{
+    public required Ulid ItemId { get; init; }
+    public required Ulid? PrepId { get; init; }
+
+    public static Func<CartEntryPrototype, ItemPrepPair> FromCartEntryPrototype =>
+        cartEntryPrototype => new ItemPrepPair
+        {
+            ItemId = cartEntryPrototype.ItemId, 
+            PrepId = cartEntryPrototype.PrepId
+        };
+}
+
+public record CartEntryPrototype
+{
+    public required Ulid ItemId { get; init; }
+    public required Ulid? PrepId { get; init; }
+    public required AmountGroup Amounts { get; init; }
+    public required bool UncapUnits { get; init; }
+    
+    public static Expression<Func<CartSelectItem, CartEntryPrototype>> FromCartItem =>
+        cartItem => new CartEntryPrototype
+        {
+            ItemId = cartItem.ItemId,
+            PrepId = cartItem.PrepId,
+            Amounts = cartItem.Amounts,
+            UncapUnits = cartItem.Item.UncapCartUnits
+        };
+    
+    public static Expression<Func<RecipeEntry, CartEntryPrototype>> FromRecipeEntry =>
+        recipeEntry => new CartEntryPrototype
+        {
+            ItemId = recipeEntry.ItemId,
+            PrepId = recipeEntry.PrepId,
+            Amounts = recipeEntry.Amount.Multiply(recipeEntry.RecipeSection.Recipe.CartQuantity, recipeEntry.Item.UncapCartUnits),
+            UncapUnits = recipeEntry.Item.UncapCartUnits
+        };
+    
+    public static Func<IGrouping<ItemPrepPair, CartEntryPrototype>, CartEntryPrototype> Aggregate =>
+    cartEntryGroup => new CartEntryPrototype
+    {
+        ItemId = cartEntryGroup.Key.ItemId,
+        PrepId = cartEntryGroup.Key.PrepId,
+        Amounts = cartEntryGroup.Aggregate(AmountGroup.None, (totalAmount, cartInfo) => cartInfo.Amounts.Add(totalAmount, cartEntryGroup.First().UncapUnits)),
+        UncapUnits = cartEntryGroup.First().UncapUnits
+    };
+}
+
 public record CartEntryValue
 {
     public required Ulid ItemId { get; init; }
@@ -75,6 +123,31 @@ public record CartAisleResponse
     public required Ulid? AisleId { get; init; }
     public required string? AisleName { get; init; }
     public required CartItemResponse[] Items { get; init; }
+    
+    public static Expression<Func<IGrouping<Ulid?, CartEntry>, CartAisleResponse>> FromAisleGroup =>
+    aisleGroup => new CartAisleResponse
+    {
+        AisleId = aisleGroup.Key,
+        AisleName = aisleGroup.FirstOrDefault() != null ? aisleGroup.FirstOrDefault()!.Aisle!.AisleName : null,
+        Items = aisleGroup.Select(ce => new CartItemResponse
+            {
+                Item = new ItemMinimalResponse
+                {
+                    Id = ce.ItemId,
+                    Name = ce.Item.ItemName,
+                    Temp = ce.Item.Temp
+                },
+                Prep = ce.Prep,
+                Bay = ce.Bay,
+                Amounts = ce.Amounts
+            })
+            .OrderBy(cir => cir.Bay)
+            .ThenBy(cir => cir.Item.Name)
+            .ThenBy(cir => cir.Item.Id)
+            .ThenBy(cir => cir.Prep != null ? cir.Prep.PrepName : "")
+            .ThenBy(cir => cir.Prep != null ? cir.Prep.PrepId : Ulid.Empty)
+            .ToArray()
+    };
 }
 
 public record CartItemResponse

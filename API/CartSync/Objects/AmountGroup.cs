@@ -36,22 +36,16 @@ public class AmountGroup
     {
         return new AmountGroup
         {
-            Count = Count.Add(other.Count, uncapUnits),
-            Volume = Volume.Add(other.Volume, uncapUnits),
-            Weight = Weight.Add(other.Weight, uncapUnits)
+            Count =  IsNonEmpty(Count, other.Count) ? Count.Add(other.Count, uncapUnits) : Amount.None,
+            Volume = IsNonEmpty(Volume, other.Volume) ? Volume.Add(other.Volume, uncapUnits) : Amount.None,
+            Weight = IsNonEmpty(Weight, other.Weight) ? Weight.Add(other.Weight, uncapUnits) : Amount.None,
         };
     }
 
-    public AmountGroup Multiply(int factor, bool uncapUnits = false)
+    private static bool IsNonEmpty(Amount left, Amount right)
     {
-        return new AmountGroup
-        {
-            Count = Count.Multiply(factor, uncapUnits),
-            Volume = Volume.Multiply(factor, uncapUnits),
-            Weight = Weight.Multiply(factor, uncapUnits)
-        };
+        return !left.Equals(Amount.None) || !right.Equals(Amount.None);
     }
-    
     
     public override bool Equals(object? obj)
     {

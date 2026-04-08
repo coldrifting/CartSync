@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations;
 using CartSync.Controllers.Core;
 using CartSync.Models;
 using CartSync.Models.Joins;
-using CartSync.Objects;
 using CartSync.Objects.Enums;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -18,48 +17,36 @@ public class CartController(CartSyncContext context) : ControllerCore(context)
     [Route("/api/cart/generate")]
     public async Task<NoContent> Generate()
     {
-        ImmutableList<CartInfo> cartItemsExtra = Db.CartItems
-            .Include(ci => ci.Item)
-            .Select(CartInfo.FromCartItem)
+        ImmutableList<CartEntryPrototype> cartItemsExtra = Db.CartSelectItems
+            .Include(cartSelectItem => cartSelectItem.Item)
+            .Select(CartEntryPrototype.FromCartItem)
             .ToImmutableList();
 
-        ImmutableList<CartInfo> cartItemsFromRecipes = Db.Recipes
+        ImmutableList<CartEntryPrototype> cartItemsFromRecipes = Db.Recipes
             .Include(recipe => recipe.Sections)
             .ThenInclude(recipeSection => recipeSection.Entries)
-            .ThenInclude(rse => rse.Item)
-            .Where(r => r.CartQuantity > 0)
-            .SelectMany(r => r.Sections)
-            .SelectMany(s => s.Entries)
-            .Select(e => new CartInfo
-            {
-                ItemId = e.ItemId,
-                PrepId = e.PrepId,
-                Amounts = e.Amount.Multiply(e.RecipeSection.Recipe.CartQuantity, e.Item.UncapCartUnits),
-                UncapUnits = e.Item.UncapCartUnits
-            })
+            .ThenInclude(entry => entry.Item)
+            .Where(recipe => recipe.CartQuantity > 0)
+            .SelectMany(recipe => recipe.Sections)
+            .SelectMany(section => section.Entries)
+            .Select(CartEntryPrototype.FromRecipeEntry)
             .ToImmutableList();
         
-        ImmutableList<CartInfo> finalCartInfo = cartItemsFromRecipes
+        ImmutableList<CartEntryPrototype> finalCartInfo = cartItemsFromRecipes
             .Concat(cartItemsExtra)
-            .GroupBy(ci => new { ci.ItemId, ci.PrepId })
-            .Select(g => new CartInfo
-            {
-                ItemId = g.Key.ItemId,
-                PrepId = g.Key.PrepId,
-                Amounts = g.Aggregate(AmountGroup.None, (totalAmount, cartInfo) => cartInfo.Amounts.Add(totalAmount, g.First().UncapUnits)),
-                UncapUnits = g.First().UncapUnits
-            })
+            .GroupBy(ItemPrepPair.FromCartEntryPrototype)
+            .Select(CartEntryPrototype.Aggregate)
             .ToImmutableList();
 
         Store store = await GetSelectedStore();
         List<ItemAisle> lookup = Db.ItemAisles
-            .Include(ia => ia.Aisle)
-            .Where(ia => ia.StoreId == store.StoreId)
+            .Include(itemAisle => itemAisle.Aisle)
+            .Where(itemAisle => itemAisle.StoreId == store.StoreId)
             .ToList();
 
         // Reset cart
         await Db.CartEntries.ExecuteDeleteAsync();
-        foreach (CartInfo cartInfo in finalCartInfo)
+        foreach (CartEntryPrototype cartInfo in finalCartInfo)
         {
             ItemAisle? aisleInfo = lookup.FirstOrDefault(i => i.ItemId == cartInfo.ItemId);
             Db.CartEntries.Add(new CartEntry
@@ -86,29 +73,7 @@ public class CartController(CartSyncContext context) : ControllerCore(context)
             .Include(ce => ce.Aisle)
             .OrderBy(ce => ce.Aisle != null ? ce.Aisle.SortOrder : -1)
             .GroupBy(ce => ce.AisleId)
-            .Select(g => new CartAisleResponse
-            {
-                AisleId = g.Key,
-                AisleName = g.FirstOrDefault() != null ? g.FirstOrDefault()!.Aisle!.AisleName : null,
-                Items = g.Select(ce => new CartItemResponse
-                    {
-                        Item = new ItemMinimalResponse
-                        {
-                            Id = ce.ItemId,
-                            Name = ce.Item.ItemName,
-                            Temp = ce.Item.Temp
-                        },
-                        Prep = ce.Prep,
-                        Bay = ce.Bay,
-                        Amounts = ce.Amounts
-                    })
-                    .OrderBy(cir => cir.Bay)
-                    .ThenBy(cir => cir.Item.Name)
-                    .ThenBy(cir => cir.Item.Id)
-                    .ThenBy(cir => cir.Prep != null ? cir.Prep.PrepName : "")
-                    .ThenBy(cir => cir.Prep != null ? cir.Prep.PrepId : Ulid.Empty)
-                    .ToArray()
-            })
+            .Select(CartAisleResponse.FromAisleGroup)
             .ToArray();
 
         return TypedResults.Ok(new CartResponse
@@ -140,20 +105,16 @@ public class CartController(CartSyncContext context) : ControllerCore(context)
     {
         CartSelectResponse result = new()
         {
-            Items = await Db.CartItems
-                .Include(ci => ci.Item)
-                .Select(CartItem.ToResponse)
+            Items = await Db.CartSelectItems
+                .Include(cartSelectItem => cartSelectItem.Item)
+                .Select(CartSelectItemResponse.FromCartSelectItem)
                 .ToArrayAsync(),
             Recipes = await Db.Recipes
-                .Where(r => r.CartQuantity > 0)
-                .Select(r => new CartSelectRecipeResponse
-            {
-                RecipeId = r.RecipeId,
-                RecipeName = r.RecipeName,
-                Quantity = r.CartQuantity
-            }).ToArrayAsync()
+                .Where(recipe => recipe.CartQuantity > 0)
+                .Select(CartSelectRecipeResponse.FromRecipe)
+                .ToArrayAsync()
         };
-        
+
         return TypedResults.Ok(result);
     }
     
@@ -167,7 +128,8 @@ public class CartController(CartSyncContext context) : ControllerCore(context)
         }
         
         Item? item = prepId is not null 
-            ? await Db.Items.Include(i => i.Preps).FirstOrDefaultAsync(i => i.ItemId == itemId) 
+            ? await Db.Items.Include(item => item.Preps)
+                .FirstOrDefaultAsync(item => item.ItemId == itemId) 
             : await Db.Items.FindAsync(itemId);
         if (item is null)
         {
@@ -183,14 +145,15 @@ public class CartController(CartSyncContext context) : ControllerCore(context)
             }
         }
 
-        CartItem? cartItem = await Db.CartItems.FirstOrDefaultAsync(ci => ci.ItemId == itemId && ci.PrepId == prepId);
+        CartSelectItem? cartItem = await Db.CartSelectItems
+            .FirstOrDefaultAsync(cartSelectItem => cartSelectItem.ItemId == itemId && cartSelectItem.PrepId == prepId);
         if (cartItem is not null)
         {
             cartItem.Amounts = payload.Amount;
         }
         else
         {
-            Db.CartItems.Add(new CartItem
+            Db.CartSelectItems.Add(new CartSelectItem
             {
                 ItemId = itemId,
                 PrepId = prepId,
@@ -243,13 +206,13 @@ public class CartController(CartSyncContext context) : ControllerCore(context)
             }
         }
 
-        CartItem? cartItem = await Db.CartItems.FirstOrDefaultAsync(ci => ci.ItemId == itemId && ci.PrepId == prepId);
+        CartSelectItem? cartItem = await Db.CartSelectItems.FirstOrDefaultAsync(ci => ci.ItemId == itemId && ci.PrepId == prepId);
         if (cartItem is null)
         {
-            return CartItem.NotFound(itemId, prepId);
+            return CartSelectItem.NotFound(itemId, prepId);
         }
         
-        Db.CartItems.Remove(cartItem);
+        Db.CartSelectItems.Remove(cartItem);
         await Db.SaveChangesAsync();
         
         return TypedResults.NoContent();

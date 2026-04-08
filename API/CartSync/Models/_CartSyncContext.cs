@@ -25,7 +25,7 @@ public class CartSyncContext(DbContextOptions options) : DbContext(options)
     public DbSet<RecipeEntry> RecipeEntries { get; set; }
     
     public DbSet<SelectedStore> SelectedStores { get; set; }
-    public DbSet<CartItem> CartItems { get; set; } 
+    public DbSet<CartSelectItem> CartSelectItems { get; set; } 
     public DbSet<CartEntry> CartEntries { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -50,7 +50,7 @@ public class CartSyncContext(DbContextOptions options) : DbContext(options)
             .HasIndex(r => new {r.RecipeSectionId, r.ItemId, r.PrepId})
             .IsUnique();
         
-        modelBuilder.Entity<CartItem>()
+        modelBuilder.Entity<CartSelectItem>()
             .HasIndex(ci => new {ci.ItemId, ci.PrepId})
             .IsUnique();
         
