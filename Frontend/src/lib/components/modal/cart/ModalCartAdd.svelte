@@ -1,14 +1,15 @@
 <script lang="ts">
-    import {tick} from "svelte";
     import {enhance} from '$app/forms';
+    import {trapFocus} from 'trap-focus-svelte'
     import {Modal, ModalFooter, FormGroup, Input, Button} from "@sveltestrap/sveltestrap";
     import type {SubmitFunction} from "@sveltejs/kit";
-    import type Prep from "$lib/scripts/classes/Prep.ts";
-    import UnitType from "$lib/scripts/classes/UnitType.js";
-    import type Recipe from "$lib/scripts/classes/Recipe.ts";
-    import ModalSearch from "$lib/components/modal/ModalSearch.svelte";
+    import type Prep from "$lib/models/Prep.ts";
+    import UnitType from "$lib/models/UnitType.js";
+    import type Recipe from "$lib/models/Recipe.ts";
     import FormLink from "$lib/components/FormLink.svelte";
-    import ItemWithPreps from "$lib/scripts/classes/ItemWithPreps.js";
+    import ItemWithPreps from "$lib/models/ItemWithPreps.js";
+    import ModalHeaderCustom from "$lib/components/modal/ModalHeaderCustom.svelte";
+    import ModalSearch from "$lib/components/modal/generic/ModalSearch.svelte";
 
     interface Props {
         formUrl: string;
@@ -67,24 +68,11 @@
     });
     let isFractionValid: boolean = $derived(fraction > 0);
 
-    const focus = () => {
-        if (isOpen) {
-            tick().then(() => {
-                document.getElementById("isRecipeTypeInput")?.focus();
-            })
-        }
-    }
-
-    const toggle = () => {
-        isOpen = !isOpen;
-    }
-
     export const show = () => {
         recipe = undefined;
         item = undefined;
         prepId = undefined;
         isOpen = true;
-        focus();
     }
 
     const submitFunction: SubmitFunction = () => {
@@ -110,6 +98,11 @@
         }
     }
     
+    const onfocus = (e: Event) => {
+        let element = e.target as HTMLInputElement;
+        element.select();
+    }
+    
     const onRecipeClick = () => {
         // Preselect next element for when modal closes
         document.getElementById("recipeQuantityInput")?.focus();
@@ -120,11 +113,6 @@
         // Preselect next element for when modal closes
         document.getElementById("fractionInput")?.focus();
         modalSearchItem.show();
-    }
-    
-    const onfocus = (e: Event) => {
-        let element = e.target as HTMLInputElement;
-        element.select();
     }
     
     const onfocusout = (_: Event) => {
@@ -156,16 +144,19 @@
              getItemName={getItemName} 
              bind:selectedItem={item}/>
 
-<Modal body header="Add Cart {isRecipeSelectionEnabled ? 'Recipe' : 'Item'}"
+<Modal body
        isOpen={isOpen}
-       toggle={toggle}
+       toggle={() => isOpen = !isOpen}
        autoFocus={false}
+       on:open={() => document.getElementById("isRecipeTypeInput")?.focus()}
        keyboard={allowEscapeKey}
        centered={true}>
     <form method="POST"
           action="?/{formUrl}"
           id={formUrl}
+          use:trapFocus={false}
           use:enhance={submitFunction}>
+        <ModalHeaderCustom title="Add Cart {isRecipeSelectionEnabled ? 'Recipe' : 'Item'}" bind:isOpen={isOpen} />
         <div>
             <FormGroup floating label="Cart Item Type">
                 <Input id="isRecipeTypeInput" name="isRecipeType" type="select" bind:value={isRecipeSelectionEnabled}>
@@ -183,7 +174,7 @@
                 <FormGroup floating label="Quantity">
                     <Input id="recipeQuantityInput"
                            name="recipeQuantity" 
-                           type="number" 
+                           type="number"
                            min={0} 
                            step={1} 
                            onfocus={onfocus}
@@ -229,7 +220,7 @@
 
         </div>
         <ModalFooter>
-            <Button color="secondary" type="button" onclick={toggle}>Cancel</Button>
+            <Button color="secondary" type="button" onclick={() => isOpen = false}>Cancel</Button>
             <Button color="primary" type="submit" disabled={isDisabled()}>Add</Button>
         </ModalFooter>
     </form>

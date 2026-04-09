@@ -15,6 +15,7 @@ declare global {
         subtitle: string;
 		isContent: boolean | undefined;
 		isImage: boolean | undefined;
+		actionRight: ButtonAction | undefined;
 	}
 	
 	interface HeaderAction {
@@ -40,9 +41,11 @@ declare global {
 		icon: string;
 	}
 	
-	class ContextAction {
+	class ButtonAction {
 		label: string;
-		action: (id: string, value: string | undefined) => void;
+		icon: string
+		color: string;
+		action: () => void;
 	}
 }
 

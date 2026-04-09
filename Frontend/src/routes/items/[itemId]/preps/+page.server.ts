@@ -1,13 +1,13 @@
 import type {Actions, PageServerLoad} from './$types';
 import {fail} from "@sveltejs/kit";
-import {getAllPreps, getItem, getPrepUsages} from "$lib/scripts/requests/get.js";
-import {getValue, getValueArray} from "$lib/scripts/requests/common.js";
-import {addPrep} from "$lib/scripts/requests/post.js";
-import {editItemPreps, editPrepName} from "$lib/scripts/requests/patch.js";
-import {deletePrep} from "$lib/scripts/requests/delete.js";
-import PrepUsagesReport from "$lib/scripts/classes/PrepUsagesReport.js";
-import type ItemDetails from "$lib/scripts/classes/ItemDetails.ts";
-import type Prep from "$lib/scripts/classes/Prep.ts";
+import {getAllPreps, getItem, getPrepUsages} from "$lib/requests/get.js";
+import {getValue, getValueArray} from "$lib/requests/common.js";
+import {addPrep} from "$lib/requests/post.js";
+import {editItemPreps, editPrepName} from "$lib/requests/patch.js";
+import {deletePrep} from "$lib/requests/delete.js";
+import PrepUsagesReport from "$lib/models/PrepUsagesReport.js";
+import type ItemDetails from "$lib/models/ItemDetails.ts";
+import type Prep from "$lib/models/Prep.ts";
 
 export const load: PageServerLoad = async ({params, cookies}) => {
     const item: ItemDetails = await getItem(cookies, params.itemId);

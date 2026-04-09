@@ -1,6 +1,6 @@
 import {fail, redirect} from '@sveltejs/kit';
 import type {Actions, PageServerLoad} from './$types';
-import {apiBaseUrl, cookieSettings, defaultUrl} from "$lib/scripts/requests/common.js";
+import {apiBaseUrl, cookieSettings, defaultUrl} from "$lib/requests/common.js";
 
 export const load: PageServerLoad = async ({cookies}) => {
     const token: string = cookies.get('token') ?? "";

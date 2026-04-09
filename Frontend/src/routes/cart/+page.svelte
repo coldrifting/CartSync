@@ -2,13 +2,13 @@
     import {tick} from "svelte";
     import {enhance} from '$app/forms';
     import type {PageProps} from './$types';
-    import ListElementButton from "$lib/components/ListElementButton.svelte";
-    import Amount from "$lib/scripts/classes/Amount.js";
-    import Header from "$lib/components/Header.svelte";
+    import ListItemButton from "$lib/components/lists/ListItemButton.svelte";
+    import Amount from "$lib/models/Amount.js";
+    import Header from "$lib/components/nav/Header.svelte";
     import ModalCartAdd from "$lib/components/modal/cart/ModalCartAdd.svelte";
     import ModalCartEditRecipe from "$lib/components/modal/cart/ModalCartEditRecipe.svelte";
     import ModalCartEditItem from "$lib/components/modal/cart/ModalCartEditItem.svelte";
-    import type CartSelectItem from "$lib/scripts/classes/CartSelectItem.ts";
+    import type CartSelectItem from "$lib/models/CartSelectItem.ts";
     let {data}: PageProps = $props();
     
     const headerActions: HeaderAction[] = [
@@ -92,11 +92,10 @@
     <h4>Recipes</h4>
     <ul>
         {#each data.recipes as recipe}
-            <ListElementButton id={recipe.id} 
+            <ListItemButton id={recipe.id} 
                                label={recipe.name} 
                                info="Qty: {recipe.quantity.toFixed(0)}" 
-                               action={() => {modalCartEditRecipe.show(recipe.id)}}
-                               contextActions={recipeContextActions}/>
+                               action={() => {modalCartEditRecipe.show(recipe.id)}}/>
         {/each}
     </ul>
 {/if}
@@ -105,12 +104,10 @@
     <h4>Items</h4>
     <ul>
         {#each data.items as item}
-            <ListElementButton id={mergeId(item)} 
-                               label={item.item.name} 
-                               info={Amount.asString(item.amount)} 
-                               subInfo={item.prep?.name}
-                               action={() => {modalCartEditItem.show(item.item.id, item.prep?.id ?? null)}}
-                               contextActions={itemContextActions}/>
+            <ListItemButton label={item.item.name}
+                            info={Amount.asString(item.amount)}
+                            subInfo={item.prep?.name}
+                            action={() => {modalCartEditItem.show(item.item.id, item.prep?.id ?? null)}}/>
         {/each}
     </ul>
 {/if}

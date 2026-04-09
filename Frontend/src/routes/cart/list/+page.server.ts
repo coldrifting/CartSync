@@ -1,8 +1,8 @@
 import type {Actions, PageServerLoad} from "./$types";
-import {getCart} from "$lib/scripts/requests/get.js";
-import type CartResult from "$lib/scripts/classes/CartResult.ts";
-import {getValue, getValueBoolean} from "$lib/scripts/requests/common.js";
-import {toggleCartItemChecked} from "$lib/scripts/requests/put.js";
+import {getCart} from "$lib/requests/get.js";
+import type CartResult from "$lib/models/CartResult.ts";
+import {getValue, getValueBoolean} from "$lib/requests/common.js";
+import {toggleCartItemChecked} from "$lib/requests/put.js";
 
 export const load: PageServerLoad = async ({cookies}) => {
     const cart: CartResult = await getCart(cookies);

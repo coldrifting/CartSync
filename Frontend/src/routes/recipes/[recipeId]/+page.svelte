@@ -1,15 +1,13 @@
 <script lang="ts">
-    import {tick} from "svelte";
-    import {enhance} from '$app/forms';
     import type {PageProps} from './$types';
-    import Amount from "$lib/scripts/classes/Amount.js";
-    import Header from "$lib/components/Header.svelte";
-    import ListElementLink from "$lib/components/ListElementLink.svelte";
-    import ListElementCheckbox from "$lib/components/ListElementCheckbox.svelte";
-    import ModalAddIngredient from "$lib/components/modal/ingredients/ModalAddIngredient.svelte";
-    import ModalRename from "$lib/components/modal/ModalRename.svelte";
-    import ModalEditIngredient from "$lib/components/modal/ingredients/ModalEditIngredient.svelte";
-    import type Prep from "$lib/scripts/classes/Prep.ts";
+    import Amount from "$lib/models/Amount.js";
+    import Header from "$lib/components/nav/Header.svelte";
+    import ListItemLink from "$lib/components/lists/ListItemLink.svelte";
+    import ListItemCheckbox from "$lib/components/lists/ListItemCheckbox.svelte";
+    import ModalRename from "$lib/components/modal/generic/ModalRename.svelte";
+    import ModalAddRecipeEntry from "$lib/components/modal/recipes/ModalAddRecipeEntry.svelte";
+    import ModalEditRecipeEntry from "$lib/components/modal/recipes/ModalEditRecipeEntry.svelte";
+    import type Prep from "$lib/models/Prep.ts";
 
     function getHost(url: string): string {
         return url.toLowerCase()
@@ -43,9 +41,7 @@
         return mapping;
     });
     
-    let contextActions: ContextAction[] = [
-        {
-            label: "Edit", action: (id: string, _: string | undefined) => {
+    const showEditDialog = (id: string) => {
                 let mapping = entryMappings[id];
                 
                 editDialog.show(
@@ -56,21 +52,7 @@
                     mapping.amount.unitType,
                     mapping.amount.fraction
                 );
-            }
-        },
-        {
-            label: "Delete", action: (id: string, _: string | undefined) => {
-                deleteEntryId = id;
-                tick().then(() => deleteForm.requestSubmit());
-            }
-        }
-    ];
-
-    let urlContextActions: ContextAction[] = [
-        { label: "Edit", action: (id: string, _: string | undefined) => {
-            urlEditDialog.show(id, data.recipe.url);
-        }}
-    ]
+    }
     
     let headerActions: HeaderAction[] = [
         {
@@ -80,53 +62,64 @@
         }
     ];
 
-    let checkedEntries = $state([]);
+    let checkedEntries: boolean[] = $derived.by(() => {
+        data.recipe.sections;
+        return [];
+    });
 
-    let addDialog: ModalAddIngredient;
-    let editDialog: ModalEditIngredient;
+    let addDialog: ModalAddRecipeEntry;
+    let editDialog: ModalEditRecipeEntry;
     let renameDialog: ModalRename;
     
     let urlEditDialog: ModalRename;
-    
-    let deleteEntryId = $state('');
-    let deleteForm: HTMLFormElement;
 </script>
 
 <svelte:head>
     <title>Recipes - {data.recipe.name}</title>
 </svelte:head>
 
-<ModalAddIngredient bind:this={addDialog} action="addRecipeEntry" header="Add Recipe Entry"
-                    sections={data.recipe.sections} items={data.validItemsAndPreps}/>
+<ModalAddRecipeEntry bind:this={addDialog} sections={data.recipe.sections} items={data.validItemsAndPreps}/>
+<ModalEditRecipeEntry bind:this={editDialog} />
 
-<ModalEditIngredient bind:this={editDialog} action="editRecipeEntry" header="Edit Recipe Entry"/>
+<ModalRename bind:this={renameDialog} type="Recipe Section"/>
+<ModalRename bind:this={urlEditDialog} type="Recipe URL" verb="Update"/>
 
-<ModalRename bind:this={renameDialog} action="renameRecipeSection" labelRename="New Section Name"
-             header="Rename Recipe Section"/>
-
-<ModalRename bind:this={urlEditDialog} action="editRecipeUrl" labelRename="Recipe URL"
-             header="Edit Recipe URL"/>
-
-<Header back={['/recipes', 'Recipes']} title={data.recipe.name} subtitle="Recipe Ingredients"
-        headerActions={headerActions}/>
+<Header back={['/recipes', 'Recipes']} title={data.recipe.name} subtitle="Recipe Ingredients" headerActions={headerActions}/>
 
 <h4>Details</h4>
 <ul>
-    <ListElementLink id="Steps" label="Steps" link="/recipes/{data.recipe.id}/steps"/>
-    <ListElementLink id="Url" label="Url" info={urlHost} link={data.recipe.url} isExternalLink={true} contextActions={urlContextActions} />
+    <ListItemLink label="Steps" 
+                     href="/recipes/{data.recipe.id}/steps" 
+                     showArrow={true}/>
+    
+    <ListItemLink label="Url" 
+                     info={urlHost} 
+                     href={data.recipe.url} 
+                     isExternalLink={true} 
+                     actionRight={{
+                            label: 'Edit', 
+                            icon: 'fa-pencil', 
+                            color: 'success', 
+                            action: () => urlEditDialog.show(data.recipe.id, data.recipe.url)
+                         }} />
 </ul>
 
 {#if data.recipe.sections.length === 1}
     <h4>Ingredients</h4>
     <ul>
         {#each data.recipe.sections[0].entries as entry, i}
-            <ListElementCheckbox id={entry.id}
+            <ListItemCheckbox id={entry.id}
                                  label={entry.item.name}
                                  info={Amount.asString(entry.amount)}
                                  subInfo={entry.prep?.name}
                                  name="RecipeEntry"
                                  checked={checkedEntries[i]}
-                                 contextActions={contextActions}/>
+                                 actionRight={{
+                                    label: 'Edit', 
+                                    icon: 'fa-pencil', 
+                                    color: 'success', 
+                                    action: () => showEditDialog(entry.id)
+                                 }}/>
         {/each}
     </ul>
 {:else}
@@ -137,21 +130,19 @@
         </button>
         <ul>
             {#each section.entries as entry, j}
-                <ListElementCheckbox id={entry.id}
+                <ListItemCheckbox id={entry.id}
                                      label={entry.item.name}
                                      info={Amount.asString(entry.amount)}
                                      subInfo={entry.prep?.name}
                                      name="RecipeEntry"
                                      checked={checkedEntries[(j * i) + j]}
-                                     contextActions={contextActions}/>
+                                     actionRight={{
+                                        label: 'Edit', 
+                                        icon: 'fa-pencil', 
+                                        color: 'success', 
+                                        action: () => showEditDialog(entry.id)
+                                     }}/>
             {/each}
         </ul>
     {/each}
 {/if}
-
-<form method="POST"
-      action="?/deleteRecipeEntry"
-      bind:this={deleteForm}
-      use:enhance>
-    <input hidden name="entryId" bind:value={deleteEntryId}/>
-</form>

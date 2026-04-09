@@ -1,11 +1,12 @@
 import type {Actions, PageServerLoad} from "./$types";
-import {getAllAisles, getAllStores} from "$lib/scripts/requests/get.js";
-import {getValue, getValueNumber} from "$lib/scripts/requests/common.js";
-import {addAisle} from "$lib/scripts/requests/post.js";
-import {editAisleName, editAisleOrder} from "$lib/scripts/requests/patch.js";
-import {deleteAisle} from "$lib/scripts/requests/delete.js";
-import type Store from "$lib/scripts/classes/Store.ts";
-import type Aisle from "$lib/scripts/classes/Aisle.ts";
+import {getAllAisles, getAllStores} from "$lib/requests/get.js";
+import {getValue, getValueNumber} from "$lib/requests/common.js";
+import {addAisle} from "$lib/requests/post.js";
+import {editAisleName, editAisleOrder} from "$lib/requests/patch.js";
+import {deleteAisle} from "$lib/requests/delete.js";
+import type Store from "$lib/models/Store.ts";
+import type Aisle from "$lib/models/Aisle.ts";
+import ErrorCustom from "$lib/models/ErrorCustom.js";
 
 let storeId: string = '';
 
@@ -26,23 +27,51 @@ export const actions: Actions = {
     addAisle: async ({request, cookies}) => {
         const data: FormData = await request.formData();
         const aisleName: string = await getValue(data, 'inputAdd');
-        await addAisle(cookies, storeId, aisleName);
+        try {
+            await addAisle(cookies, storeId, aisleName);
+        }
+        catch (error) {
+            error instanceof ErrorCustom 
+                ? console.error(error.error) 
+                : console.error(error);
+        }
     },
     renameAisle: async ({request, cookies}) => {
         const data: FormData = await request.formData();
         const aisleId: string = await getValue(data, 'id');
         const aisleName: string = await getValue(data, 'inputRename');
-        await editAisleName(cookies, aisleId, aisleName);
+        try {
+            await editAisleName(cookies, aisleId, aisleName);
+        }
+        catch (error) {
+            error instanceof ErrorCustom 
+                ? console.error(error.error) 
+                : console.error(error);
+        }
     },
     deleteAisle: async ({request, cookies}) => {
         const data: FormData = await request.formData();
         const aisleId: string = await getValue(data, 'id');
-        await deleteAisle(cookies, aisleId);
+        try {
+            await deleteAisle(cookies, aisleId);
+        }
+        catch (error) {
+            error instanceof ErrorCustom 
+                ? console.error(error.error) 
+                : console.error(error);
+        }
     },
     reorderAisle: async ({request, cookies}) => {
         const data: FormData = await request.formData();
         const aisleId: string = await getValue(data, 'id');
         const sortSortOrder: number = await getValueNumber(data, 'aisleSortOrder');
-        await editAisleOrder(cookies, aisleId, sortSortOrder);
+        try {
+            await editAisleOrder(cookies, aisleId, sortSortOrder);
+        }
+        catch (error) {
+            error instanceof ErrorCustom 
+                ? console.error(error.error) 
+                : console.error(error);
+        }
     }
 }

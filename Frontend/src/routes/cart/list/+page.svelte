@@ -1,10 +1,9 @@
 <script lang="ts">
-    import {tick} from "svelte";
     import {enhance} from '$app/forms';
     import type {PageProps} from './$types';
-    import Header from "$lib/components/Header.svelte";
-    import ListElementCheckbox from "$lib/components/ListElementCheckbox.svelte";
-    import Amounts from "$lib/scripts/classes/AmountGroup.js";
+    import Header from "$lib/components/nav/Header.svelte";
+    import ListItemCheckbox from "$lib/components/lists/ListItemCheckbox.svelte";
+    import Amounts from "$lib/models/AmountGroup.js";
     let {data}: PageProps = $props();
     
     let storeName = $derived(data.cart.storeName);
@@ -25,7 +24,7 @@
             <form method="POST"
                   action="?/toggleCartItemChecked"
                   use:enhance>
-                <ListElementCheckbox id={item.item.id + '/' + (item.prep?.id ?? '(None)')}
+                <ListItemCheckbox id={item.item.id + '/' + (item.prep?.id ?? '(None)')}
                                      label={item.item.name}
                                      name='id'
                                      checked={item.isChecked}

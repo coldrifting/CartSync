@@ -3,7 +3,9 @@
     import {enhance} from '$app/forms';
     import {Modal, ModalFooter, FormGroup, Input, Button} from "@sveltestrap/sveltestrap";
     import type {SubmitFunction} from "@sveltejs/kit";
-    import type CartSelectRecipe from "$lib/scripts/classes/CartSelectRecipe.ts";
+    import type CartSelectRecipe from "$lib/models/CartSelectRecipe.ts";
+    import {trapFocus} from "trap-focus-svelte";
+    import ModalHeaderCustom from "$lib/components/modal/ModalHeaderCustom.svelte";
 
     interface Props {
         formUrl: string;
@@ -22,22 +24,9 @@
         return recipe?.quantity ?? 1;
     })
 
-    const focus = () => {
-        if (isOpen) {
-            tick().then(() => {
-                document.getElementById("recipeQuantityInput")?.focus();
-            })
-        }
-    }
-
-    const toggle = () => {
-        isOpen = !isOpen;
-    }
-
     export const show = (recipeId: string) => {
         recipe = cartRecipes.find(r => r.id === recipeId);
         isOpen = true;
-        focus();
     }
 
     const submitFunction: SubmitFunction = () => {
@@ -69,14 +58,17 @@
     }
 </script>
 
-<Modal body header="Edit Cart Recipe"
+<Modal body
        isOpen={isOpen}
-       toggle={toggle}
+       toggle={() => isOpen = !isOpen}
+       on:open={() => document.getElementById("recipeQuantityInput")?.focus()}
        centered={true}>
     <form method="POST"
           action="?/{formUrl}"
           id={formUrl}
+          use:trapFocus={true}
           use:enhance={submitFunction}>
+        <ModalHeaderCustom title="Edit Cart Recipe" bind:isOpen={isOpen} />
         <div>
             <input name="recipeId" bind:value={recipeId} hidden/>
             <h4>{recipe?.name}</h4>
@@ -84,7 +76,7 @@
             <FormGroup floating label="Quantity">
                 <Input id="recipeQuantityInput"
                        name="recipeQuantity" 
-                       type="number" 
+                       type="number"
                        min={0} 
                        step={1} 
                        onfocus={onfocus}
@@ -95,7 +87,7 @@
         <ModalFooter>
             <Button class="left-button" color="danger" type="button" onclick={onRemove}>Remove</Button>
             
-            <Button color="secondary" type="button" onclick={toggle}>Cancel</Button>
+            <Button color="secondary" type="button" onclick={() => isOpen = false}>Cancel</Button>
             <Button color="primary" type="submit" disabled={isDisabled()}>Update</Button>
         </ModalFooter>
     </form>

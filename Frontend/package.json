@@ -24,6 +24,6 @@
 		"@dnd-kit-svelte/svelte": "^0.1.6",
 		"@dnd-kit/helpers": "^0.3.2",
 		"@sveltestrap/sveltestrap": "^7.1.0",
-		"bits-ui": "^2.16.4"
+		"trap-focus-svelte": "^1.1.0"
 	}
 }

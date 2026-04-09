@@ -1,7 +1,6 @@
 <script lang="ts">
     import Droppable from './Droppable.svelte';
     import DraggableItem from './DraggableItem.svelte'
-    import ContextMenuCustom from '$lib/components/contextMenu/ContextMenuCustom.svelte'
     import {CollisionPriority} from '@dnd-kit/abstract';
     import {DragDropProvider, DragOverlay} from '@dnd-kit-svelte/svelte';
     import {move} from '@dnd-kit/helpers';
@@ -19,7 +18,6 @@
         listName: string;
         items: SortableItem[];
         onReorder: (id: string, newIndex: number) => void;
-        contextActions: ContextAction[];
     }
 
     let currentDragIndex: number = $state(-1);
@@ -39,7 +37,7 @@
         }, 200);
     }
 
-    let {listName, items, onReorder, contextActions}: Props = $props();
+    let {listName, items, onReorder}: Props = $props();
 </script>
 
 <DragDropProvider
@@ -54,15 +52,13 @@
                accept="item"
                collisionPriority={CollisionPriority.Low}>
         {#each items as item, index (item.id)}
-            
-            <ContextMenuCustom contextActions={contextActions} id={item.id} name={item.name}>
-                <DraggableItem {item}
-                               id={item.id}
-                               index={() => index}
-                               group={listName}
-                               data={{group: listName}}
-                               type="item"/>
-            </ContextMenuCustom>
+            <DraggableItem {item}
+                           numItems={items.length}
+                           id={item.id}
+                           index={() => index}
+                           group={listName}
+                           data={{group: listName}}
+                           type="item"/>
         {/each}
     </Droppable>
 
@@ -70,7 +66,7 @@
         {#snippet children(source)}
             {@const item = items.find((item) => item.id === source.id)}
             {#if item !== undefined}
-                <DraggableItem id={item.id} {item} index={0} isOverlay/>
+                <DraggableItem numItems={items.length} id={item.id} {item} index={0} isOverlay/>
             {/if}
         {/snippet}
     </DragOverlay>

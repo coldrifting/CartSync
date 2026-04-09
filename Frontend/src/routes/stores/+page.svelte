@@ -1,12 +1,11 @@
 <script lang="ts">
     import {enhance} from '$app/forms';
     import type {PageProps} from './$types';
-    import ModalAdd from "$lib/components/modal/ModalAdd.svelte";
-    import ModalRename from "$lib/components/modal/ModalRename.svelte";
-    import ModalDelete from "$lib/components/modal/ModalDelete.svelte";
-    import Header from "$lib/components/Header.svelte";
-    import ListElementLink from "$lib/components/ListElementLink.svelte";
-    import ListElementRadio from "$lib/components/ListElementRadio.svelte";
+    import ModalAdd from "$lib/components/modal/generic/ModalAdd.svelte";
+    import ModalRename from "$lib/components/modal/generic/ModalRename.svelte";
+    import Header from "$lib/components/nav/Header.svelte";
+    import ListItemLink from "$lib/components/lists/ListItemLink.svelte";
+    import ListItemRadio from "$lib/components/lists/ListItemRadio.svelte";
     
     let {data}: PageProps = $props();
     
@@ -16,50 +15,47 @@
     
     let addDialog: ModalAdd
     let renameDialog: ModalRename
-    let deleteDialog: ModalDelete
     
-    let contextActions: ContextAction[] = [
-		{ label: "Rename", action: (id: string, value: string | undefined) => {renameDialog.show(id, value)} },
-		{ label: "Delete", action: (id: string, value: string | undefined) => {deleteDialog.show(id, value)} }
-    ];
-    
-    let selectStoreForm: HTMLFormElement;
-    
-    const headerActions: HeaderAction[] = [
-        {label: "Add Store", icon: "fa-plus", action: () => {addDialog.show()}}
-    ];
+    const headerActions: HeaderAction[] = [{label: "Add Store", icon: "fa-plus", action: () => {addDialog.show()}}];
 </script>
 
 <svelte:head>
     <title>Stores</title>
 </svelte:head>
 
-<ModalAdd bind:this={addDialog} action="addStore" header="Add Store" labelAdd="Store Name" />
-<ModalRename bind:this={renameDialog} action="renameStore" header="Rename Store" labelRename="Store Name" />
-<ModalDelete bind:this={deleteDialog} action="deleteStore" header="Delete Store" warning="All item locations for [Name] will be deleted!" />
+<ModalAdd bind:this={addDialog} type="Store"/>
+<ModalRename bind:this={renameDialog} type="Store" warning="All item locations for [Name] will be deleted!"/>
 
 <Header title="Stores" headerActions={headerActions} />
 
 <h4>Selected Store</h4>
 <div>
     <ul>
-        <ListElementLink id={selectedStoreId} label={selectedStoreName} link="/stores/{selectedStoreId}" info="Aisles"/>
+        <ListItemLink label={selectedStoreName} 
+                         href="/stores/{selectedStoreId}" 
+                         info="Aisles" 
+                         showArrow={true}/>
     </ul>
 </div>
 
 <form method="POST"
       action="?/selectStore"
-      bind:this={selectStoreForm}
       use:enhance>
     <h4>All Stores</h4>
     <ul>
         {#each stores as store}
-            <ListElementRadio 
+            <ListItemRadio
                     id={store.id}
-                    label={store.name} 
-                    contextActions={contextActions.filter(a => a.label !== "Delete" || !store.isSelected)}
+                    label={store.name}
                     group="selectedStoreId"
-                    selectedValue={selectedStoreId} />
+                    selectedValue={selectedStoreId}
+                    actionRight={{
+                        label: 'Edit', 
+                        icon: 'fa-pencil', 
+                        color: 'success', 
+                        action: () => renameDialog.show(store.id, store.name, !store.isSelected)
+                    }}
+            />
         {/each}
     </ul>
 </form>

@@ -1,9 +1,9 @@
 <script lang="ts">
-    import '$lib/styles/app.css';
+    import '$lib/css/app.css';
     import {page} from '$app/state';
     import favicon from '$lib/assets/favicon.svg';
-    import Appbar from "$lib/components/navigation/Appbar.svelte";
-    import Sidebar from "$lib/components/navigation/Sidebar.svelte";
+    import Appbar from "$lib/components/nav/Appbar.svelte";
+    import Sidebar from "$lib/components/nav/Sidebar.svelte";
 
     let {children} = $props();
 

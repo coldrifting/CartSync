@@ -1,11 +1,12 @@
 <script lang="ts">
-    import {tick} from "svelte";
     import {enhance} from '$app/forms';
+    import {trapFocus} from 'trap-focus-svelte'
     import {Modal, ModalFooter, FormGroup, Input, Button} from "@sveltestrap/sveltestrap";
     import type {SubmitFunction} from "@sveltejs/kit";
-    import UnitType from "$lib/scripts/classes/UnitType.js";
-    import type CartSelectItem from "$lib/scripts/classes/CartSelectItem.ts";
-    import Fraction from "$lib/scripts/classes/Fraction.js";
+    import UnitType from "$lib/models/UnitType.js";
+    import type CartSelectItem from "$lib/models/CartSelectItem.ts";
+    import Fraction from "$lib/models/Fraction.js";
+    import ModalHeaderCustom from "$lib/components/modal/ModalHeaderCustom.svelte";
 
     interface Props {
         formUrl: string;
@@ -32,22 +33,9 @@
     });
     let isFractionValid: boolean = $derived(fraction > 0);
 
-    const focus = () => {
-        if (isOpen) {
-            tick().then(() => {
-                document.getElementById("fractionInput")?.focus();
-            })
-        }
-    }
-
-    const toggle = () => {
-        isOpen = !isOpen;
-    }
-
     export const show = (itemId: string, prepId: string | null) => {
         item = cartItems.find(i => i.item.id == itemId && i.prep?.id == prepId)
         isOpen = true;
-        focus();
     }
 
     const submitFunction: SubmitFunction = () => {
@@ -72,14 +60,17 @@
     }
 </script>
 
-<Modal body header="Edit Cart Item"
+<Modal body
        isOpen={isOpen}
-       toggle={toggle}
+       toggle={() => isOpen = !isOpen}
+       on:open={() => document.getElementById("fractionInput")?.focus()}
        centered={true}>
     <form method="POST"
           action="?/{formUrl}"
           id={formUrl}
+          use:trapFocus={true}
           use:enhance={submitFunction}>
+        <ModalHeaderCustom title="Edit Cart Item" bind:isOpen={isOpen}/>
         <div>
             <input name="itemId" bind:value={itemId} hidden/>
             <input name="prepId" bind:value={prepId} hidden/>
@@ -102,7 +93,7 @@
         <ModalFooter>
             <Button class="left-button" color="danger" type="button" onclick={onRemove}>Remove</Button>
             
-            <Button color="secondary" type="button" onclick={toggle}>Cancel</Button>
+            <Button color="secondary" type="button" onclick={() => isOpen = false}>Cancel</Button>
             <Button color="primary" type="submit" disabled={isDisabled()}>Update</Button>
         </ModalFooter>
     </form>

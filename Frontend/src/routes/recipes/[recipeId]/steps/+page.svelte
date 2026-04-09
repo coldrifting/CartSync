@@ -1,11 +1,10 @@
 <script lang="ts">
-    import {tick} from "svelte";
     import {enhance} from '$app/forms';
     import type {PageProps} from './$types';
-    import Header from "$lib/components/Header.svelte";
+    import Header from "$lib/components/nav/Header.svelte";
     import ReorderableList from "$lib/components/dragAndDrop/ReorderableList.svelte";
-    import ModalAddStep from "$lib/components/modal/steps/ModalAddStep.svelte";
-    import ModalEditStep from "$lib/components/modal/steps/ModalEditStep.svelte";
+    import ModalAddStep from "$lib/components/modal/recipes/steps/ModalAddStep.svelte";
+    import ModalEditStep from "$lib/components/modal/recipes/steps/ModalEditStep.svelte";
 
     let {data}: PageProps = $props();
 
@@ -17,34 +16,23 @@
         }
     ];
 
-    let contextActions: ContextAction[] = [
-        {
-            label: "Edit", action: (id, value) => { 
-				modalEditStep.show(id, value ?? "");
-            }
-        },
-        {
-            label: "Delete", action: (id, _) => {
-                deleteId = id;
-                tick().then(() => deleteForm.requestSubmit());
-            }
-        }
-    ];
-
     let items: SortableItem[] = $derived(data.recipe.steps.map(recipeStep => {
         return {
             id: recipeStep.id,
             name: recipeStep.content,
             subtitle: recipeStep.sortOrder.toString(),
             isContent: true,
-            isImage: recipeStep.isImage
+            isImage: recipeStep.isImage,
+            actionRight: {
+                label: 'Edit',
+                icon: 'fa-pencil',
+                color: 'success',
+                action: () => modalEditStep.show(recipeStep.id, recipeStep.content),
+            }
         } as SortableItem;
     }))
 
-    let deleteForm: HTMLFormElement;
     let reorderForm: HTMLFormElement;
-
-    let deleteId = $state('');
 
     let reorderState = $state<{ id: string, index: number }>({id: "", index: -1})
     let reorderId = $derived(reorderState.id);
@@ -71,21 +59,16 @@
 <ModalAddStep bind:this={modalAddStep} action="addStep"/>
 <ModalEditStep bind:this={modalEditStep} action="editStep"/>
 
-<Header back={[`/recipes/${data.recipe.id}`, 'Recipe']} title={data.recipe.name} subtitle="Recipe Steps"
+<Header back={[`/recipes/${data.recipe.id}`, 'Recipe']} 
+        title={data.recipe.name} 
+        subtitle="Recipe Steps"
         headerActions={headerActions}/>
 
-<ReorderableList listName="RecipeSteps" items={items} onReorder={onReorder} contextActions={contextActions}/>
+<ReorderableList listName="RecipeSteps" items={items} onReorder={onReorder}/>
 <form method="POST"
       action="?/reorderStep"
       bind:this={reorderForm}
       use:enhance>
     <input hidden name="id" bind:value={reorderId}/>
     <input hidden name="stepSortOrder" bind:value={reorderIndex}/>
-</form>
-
-<form method="POST"
-      action="?/deleteStep"
-      bind:this={deleteForm}
-      use:enhance>
-    <input hidden name="id" bind:value={deleteId}/>
 </form>

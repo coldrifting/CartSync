@@ -1,13 +1,13 @@
 import type {Actions, PageServerLoad} from "./$types";
 import {redirect} from "@sveltejs/kit";
-import {getValue, getValueBoolean, getValueNumber, getValueOrNull} from "$lib/scripts/requests/common.js";
-import {getCartSelection} from "$lib/scripts/requests/get.js";
-import {editCartItem, editCartRecipe} from "$lib/scripts/requests/put.js";
-import type CartSelect from "$lib/scripts/classes/CartSelect.ts";
-import Fraction from "$lib/scripts/classes/Fraction.js";
-import type Amount from "$lib/scripts/classes/Amount.ts";
-import {deleteCartItem, deleteCartRecipe} from "$lib/scripts/requests/delete.js";
-import {generateCart} from "$lib/scripts/requests/post.js";
+import {getValue, getValueBoolean, getValueNumber, getValueOrNull} from "$lib/requests/common.js";
+import {getCartSelection} from "$lib/requests/get.js";
+import {editCartItem, editCartRecipe} from "$lib/requests/put.js";
+import type CartSelect from "$lib/models/CartSelect.ts";
+import Fraction from "$lib/models/Fraction.js";
+import type Amount from "$lib/models/Amount.ts";
+import {deleteCartItem, deleteCartRecipe} from "$lib/requests/delete.js";
+import {generateCart} from "$lib/requests/post.js";
 
 export const load: PageServerLoad = async ({cookies}) => {
     const cartSelection: CartSelect = await getCartSelection(cookies);

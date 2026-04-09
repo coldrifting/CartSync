@@ -1,18 +1,19 @@
 import type {Actions, PageServerLoad} from './$types';
-import {getRecipe} from "$lib/scripts/requests/get.js";
-import RecipeDetails from "$lib/scripts/classes/RecipeDetails.js";
-import {getValue, getValueNumber} from "$lib/scripts/requests/common.js";
-import {editRecipeStep, editRecipeStepOrder} from "$lib/scripts/requests/patch.js";
-import {deleteRecipeStep} from "$lib/scripts/requests/delete.js";
-import {addRecipeStep} from "$lib/scripts/requests/post.js";
+import {getRecipe} from "$lib/requests/get.js";
+import RecipeDetails from "$lib/models/RecipeDetails.js";
+import {getValue, getValueNumber} from "$lib/requests/common.js";
+import {editRecipeStep, editRecipeStepOrder} from "$lib/requests/patch.js";
+import {deleteRecipeStep} from "$lib/requests/delete.js";
+import {addRecipeStep} from "$lib/requests/post.js";
+import ErrorCustom from "$lib/models/ErrorCustom.js";
 
 let recipeId: string;
 
 export const load: PageServerLoad = async ({cookies, params}) => {
     const recipe: RecipeDetails = await getRecipe(cookies, params.recipeId);
-    
+
     recipeId = recipe.id;
-    
+
     return {
         recipe: recipe,
     }
@@ -22,23 +23,47 @@ export const actions: Actions = {
     addStep: async ({request, cookies}) => {
         const data: FormData = await request.formData();
         const contents: string = await getValue(data, 'stepContents');
-        await addRecipeStep(cookies, recipeId, contents);
+        try {
+            await addRecipeStep(cookies, recipeId, contents);
+        } catch (error) {
+            error instanceof ErrorCustom
+                ? console.error(error.error)
+                : console.error(error);
+        }
     },
     editStep: async ({request, cookies}) => {
         const data: FormData = await request.formData();
         const contents: string = await getValue(data, 'stepContents');
         const stepId: string = await getValue(data, 'stepId');
-        await editRecipeStep(cookies, stepId, contents);
+        try {
+            await editRecipeStep(cookies, stepId, contents);
+        } catch (error) {
+            error instanceof ErrorCustom
+                ? console.error(error.error)
+                : console.error(error);
+        }
     },
     deleteStep: async ({request, cookies}) => {
         const data: FormData = await request.formData();
         const stepId: string = await getValue(data, 'id');
-        await deleteRecipeStep(cookies, stepId);
+        try {
+            await deleteRecipeStep(cookies, stepId);
+        } catch (error) {
+            error instanceof ErrorCustom
+                ? console.error(error.error)
+                : console.error(error);
+        }
     },
     reorderStep: async ({request, cookies}) => {
         const data: FormData = await request.formData();
         const stepId: string = await getValue(data, 'id');
         const stepSortOrder: number = await getValueNumber(data, 'stepSortOrder');
-        await editRecipeStepOrder(cookies, stepId, stepSortOrder);
+        try {
+            await editRecipeStepOrder(cookies, stepId, stepSortOrder);
+        } catch (error) {
+            error instanceof ErrorCustom
+                ? console.error(error.error)
+                : console.error(error);
+        }
     }
 }

@@ -2,18 +2,17 @@
     import {tick} from "svelte";
     import {enhance} from '$app/forms';
     import type {PageProps} from './$types';
-    import Header from "$lib/components/Header.svelte";
-    import ModalAdd from "$lib/components/modal/ModalAdd.svelte";
-    import ModalRename from "$lib/components/modal/ModalRename.svelte";
-    import ModalDelete from "$lib/components/modal/ModalDelete.svelte";
-    import ListElementLink from "$lib/components/ListElementLink.svelte";
+    import Header from "$lib/components/nav/Header.svelte";
+    import ModalAdd from "$lib/components/modal/generic/ModalAdd.svelte";
+    import ModalRename from "$lib/components/modal/generic/ModalRename.svelte";
+    import ListItemLink from "$lib/components/lists/ListItemLink.svelte";
     let {data}: PageProps = $props();
     
     let recipeId: string = $state('');
     let recipeIsPinned: boolean = $state(false);
     let recipePinForm: HTMLFormElement;
     
-    let togglePinAction = (id: string, _: string | undefined) => {
+    let togglePinAction = (id: string) => {
         recipeId = id;
         recipeIsPinned = !(data.allRecipes.filter(recipe => recipe.id === id)[0].isPinned);
         tick().then(() => {
@@ -21,24 +20,8 @@
         });
     };
     
-    const commonContextActions: ContextAction[] = [
-        { label: "Rename", action: (id: string, value: string | undefined) => {renameDialog.show(id, value)} },
-		{ label: "Delete", action: (id: string, value: string | undefined) => {deleteDialog.show(id, value)} },
-    ];
-    
-    const pinnedContextActions: ContextAction[] = [
-		{ label: "Unpin", action: togglePinAction},
-        ...commonContextActions
-    ];
-    
-    const unpinnedContextActions: ContextAction[] = [
-		{ label: "Pin", action: togglePinAction},
-        ...commonContextActions
-    ];
-    
     let addDialog: ModalAdd
     let renameDialog: ModalRename
-    let deleteDialog: ModalDelete
     
     const headerActions: HeaderAction[] = [
         {label: "Add Recipe", icon: "fa-plus", action: () => {addDialog.show()}}
@@ -49,9 +32,8 @@
     <title>Recipes</title>
 </svelte:head>
 
-<ModalAdd bind:this={addDialog} action="addRecipe" header="Add Recipe" labelAdd="Recipe Name" />
-<ModalRename bind:this={renameDialog} action="renameRecipe" header="Rename Recipe" labelRename="Recipe Name" />
-<ModalDelete bind:this={deleteDialog} action="deleteRecipe" header="Delete Recipe" warning="The recipe [Name] will be deleted!" />
+<ModalAdd bind:this={addDialog} type="Recipe" />
+<ModalRename bind:this={renameDialog} type="Recipe" warning="The recipe [Name] will be deleted!" />
 
 <Header title="Recipes" headerActions={headerActions} />
 
@@ -64,24 +46,46 @@
     <input hidden type="submit"/>
 </form>
 
-<h4>Pinned</h4>
-<ul>
-    {#each data.pinnedRecipes as recipe}
-        <ListElementLink id={recipe.id}
-                         label={recipe.name}
-                          link="/recipes/{recipe.id}"
-                          contextActions={pinnedContextActions}
-        />
-    {/each}
-</ul>
+{#if data.pinnedRecipes.length > 0}
+    <h4>Pinned</h4>
+    <ul>
+        {#each data.pinnedRecipes as recipe}
+            <ListItemLink label={recipe.name}
+                             href="/recipes/{recipe.id}"
+                             actionLeft={{
+                                        label: 'Unpin', 
+                                        icon: 'fa-star', 
+                                        color: 'warning', 
+                                        action: () => togglePinAction(recipe.id)
+                                     }}
+                             actionRight={{
+                                        label: 'Edit', 
+                                        icon: 'fa-pencil', 
+                                        color: 'success', 
+                                        action: () => renameDialog.show(recipe.id, recipe.name, true)
+                                     }}/>
+        {/each}
+    </ul>
+{/if}
 
-<h4>Unpinned</h4>
-<ul>
-    {#each data.unPinnedRecipes as recipe}
-        <ListElementLink id={recipe.id}
-                         label={recipe.name}
-                          link="/recipes/{recipe.id}"
-                          contextActions={unpinnedContextActions}
-        />
-    {/each}
-</ul>
+{#if data.unPinnedRecipes.length > 0}
+    <h4>Unpinned</h4>
+    <ul>
+        {#each data.unPinnedRecipes as recipe}
+            <ListItemLink label={recipe.name}
+                             href="/recipes/{recipe.id}"
+                             actionLeft={{
+                                        label: 'Pin', 
+                                        icon: 'fa-star-o', 
+                                        color: 'warning', 
+                                        action: () => togglePinAction(recipe.id)
+                                     }}
+                             actionRight={{
+                                        label: 'Edit', 
+                                        icon: 'fa-pencil', 
+                                        color: 'success', 
+                                        action: () => renameDialog.show(recipe.id, recipe.name, true)
+                                     }}/>
+        {/each}
+    </ul>
+{/if}

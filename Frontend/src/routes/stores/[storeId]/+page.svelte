@@ -2,10 +2,9 @@
     import {enhance} from '$app/forms';
     import type {PageProps} from './$types';
 	import ReorderableList from "$lib/components/dragAndDrop/ReorderableList.svelte";
-    import ModalAdd from "$lib/components/modal/ModalAdd.svelte";
-    import ModalRename from "$lib/components/modal/ModalRename.svelte";
-    import ModalDelete from "$lib/components/modal/ModalDelete.svelte";
-	import Header from "$lib/components/Header.svelte";
+    import ModalAdd from "$lib/components/modal/generic/ModalAdd.svelte";
+    import ModalRename from "$lib/components/modal/generic/ModalRename.svelte";
+	import Header from "$lib/components/nav/Header.svelte";
     
     let {data}: PageProps = $props();
     
@@ -14,19 +13,23 @@
         return {
             id: a.id,
 			name: a.name,
-			subtitle: (a.sortOrder + 1).toString()
+			subtitle: (a.sortOrder + 1).toString(),
+			actionRight: {
+				label: "Edit",
+				icon: "fa-pencil",
+				color: "success",
+				action: () => renameDialog.show(a.id, a.name, true)
+			}
         } as SortableItem;
     }));
+	
+    const headerActions: HeaderAction[] = [
+        {label: "Add Aisle", icon: "fa-plus", action: () => addDialog.show()}
+    ];
     
     let addDialog: ModalAdd
     let renameDialog: ModalRename
-    let deleteDialog: ModalDelete
     
-    let contextActions: ContextAction[] = [
-		{ label: "Rename", action: (id: string, value: string | undefined) => {renameDialog.show(id, value)} },
-		{ label: "Delete", action: (id: string, _: string | undefined) => {deleteDialog.show(id)} }
-    ];
-	
 	let reorderForm: HTMLFormElement;
     
 	let reorderState = $state<{id: string, index: number}>({id: "", index: -1})
@@ -48,13 +51,12 @@
     <title>{storeName}</title>
 </svelte:head>
 
-<ModalAdd bind:this={addDialog} action="addAisle" header="Add Aisle" labelAdd="Aisle Name" scrollOnAdd={true} />
-<ModalRename bind:this={renameDialog} action="renameAisle" header="Rename Aisle" labelRename="Aisle Name" />
-<ModalDelete bind:this={deleteDialog} action="deleteAisle" header="Delete Aisle" warning="All item locations for this aisle will be deleted!" />
+<ModalAdd bind:this={addDialog} type="Aisle" scrollOnAdd={true} />
+<ModalRename bind:this={renameDialog} type="Aisle" warning="All item locations for this aisle will be deleted!"/>
 
-<Header back={['/stores', 'Stores']} title={storeName} subtitle="Aisles" headerActions={[{label: "Add Aisle", icon: "fa-plus", action: () => {addDialog.show()}}]} />
+<Header back={['/stores', 'Stores']} title={storeName} subtitle="Aisles" headerActions={headerActions}/>
 
-<ReorderableList listName='list' items={aisles} onReorder={onReorder} contextActions={contextActions} />
+<ReorderableList listName='list' items={aisles} onReorder={onReorder} />
 <form method="POST"
 	  action="?/reorderAisle"
 	  bind:this={reorderForm}

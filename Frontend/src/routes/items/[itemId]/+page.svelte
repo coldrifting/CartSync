@@ -2,12 +2,12 @@
     import {enhance} from '$app/forms';
     import type {PageProps} from './$types';
     import {FormGroup, Input} from "@sveltestrap/sveltestrap";
-    import type ItemDetails from "$lib/scripts/classes/ItemDetails.ts";
-    import ItemTemp from "$lib/scripts/classes/ItemTemp.js";
-    import BayType from "$lib/scripts/classes/BayType.js";
-    import UnitType from "$lib/scripts/classes/UnitType.js";
-    import Header from "$lib/components/Header.svelte";
-    import ListElementLink from "$lib/components/ListElementLink.svelte";
+    import type ItemDetails from "$lib/models/ItemDetails.ts";
+    import ItemTemp from "$lib/models/ItemTemp.js";
+    import BayType from "$lib/models/BayType.js";
+    import UnitType from "$lib/models/UnitType.js";
+    import Header from "$lib/components/nav/Header.svelte";
+    import ListItemLink from "$lib/components/lists/ListItemLink.svelte";
 
     let {data}: PageProps = $props();
     let item: ItemDetails = $derived(data.item);
@@ -77,9 +77,9 @@
 
 <h4>Preps</h4>
 
-<ListElementLink id="Preps"
-                 label={prepText === "" ? "(None)" : prepText}
-                 link="/items/{itemId}/preps"
+<ListItemLink label={prepText === "" ? "(None)" : prepText}
+                 showArrow={true}
+                 href="/items/{itemId}/preps"
                  info="Edit"/>
 
 <h4>Location</h4>

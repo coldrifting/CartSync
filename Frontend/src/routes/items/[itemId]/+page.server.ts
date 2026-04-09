@@ -1,9 +1,9 @@
 import type {Actions, PageServerLoad} from './$types';
-import {getAllAisles, getAllStores, getItem} from "$lib/scripts/requests/get.js";
-import {getValue} from "$lib/scripts/requests/common.js";
-import {editItemAisle, editItemDefaultUnits, editItemTemp} from "$lib/scripts/requests/patch.js";
-import {setCurrentStore} from "$lib/scripts/requests/post.js";
-import type Store from "$lib/scripts/classes/Store.ts";
+import {getAllAisles, getAllStores, getItem} from "$lib/requests/get.js";
+import {getValue} from "$lib/requests/common.js";
+import {editItemAisle, editItemDefaultUnits, editItemTemp} from "$lib/requests/patch.js";
+import {setCurrentStore} from "$lib/requests/post.js";
+import type Store from "$lib/models/Store.ts";
 
 export const load: PageServerLoad = async ({params, cookies}) => {
     const stores: Store[] = await getAllStores(cookies);
