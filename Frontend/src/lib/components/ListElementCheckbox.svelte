@@ -10,6 +10,7 @@
         contextActions?: ContextAction[] | undefined;
         name: string;
         checked: boolean;
+        isSingle?: boolean | undefined;
     }
 
     let {
@@ -19,7 +20,8 @@
         subInfo = undefined,
         contextActions = undefined,
         name,
-        checked
+        checked,
+        isSingle = undefined
     }: Props = $props()
 
     // Auto submit
@@ -34,10 +36,13 @@
 
 <ContextMenuCustom contextActions={contextActions} id={id} name={label}>
     <label class="list-item d-flex flex-row justify-content-start align-items-center">
+        {#if isSingle}
+            <input type='hidden' name='id' value={id}/>
+        {/if}
         <input class="form-check-input p-3"
                type="checkbox"
-               name={name}
-               value={id}
+               name={isSingle ? 'isChecked' : name}
+               value={isSingle ? checked : id}
                bind:checked={checked}
                bind:this={inputElement}
                onchange={onchange}/>

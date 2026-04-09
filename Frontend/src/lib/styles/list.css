@@ -73,18 +73,18 @@
 }
 
 ol, ul, div.list {
-    :first-child:not(:only-child) > .list-item {
+    :first-child:not(:only-child) .list-item {
         border-bottom-left-radius: 0;
         border-bottom-right-radius: 0;
         border-bottom: 0;
     }
 
-    :last-child:not(:only-child) > .list-item {
+    :last-child:not(:only-child) .list-item {
         border-top-left-radius: 0;
         border-top-right-radius: 0;
     }
 
-    :not(:first-child):not(:last-child) > .list-item {
+    :not(:first-child):not(:last-child) .list-item {
         border-radius: 0;
         border-bottom: 0;
     }

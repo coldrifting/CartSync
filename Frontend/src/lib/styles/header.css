@@ -7,6 +7,11 @@ header {
     border-bottom: 1px solid transparent;
     z-index: 3;
     
+    a, button {
+        /* create space for focus outline */
+        margin: 4px;
+    }
+    
     h1 {
         font-size: 2rem;
         margin: 0;

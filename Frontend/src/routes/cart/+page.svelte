@@ -13,7 +13,7 @@
     
     const headerActions: HeaderAction[] = [
         {label: "Add", icon: "fa-plus", action: () => { modalCartAdd.show() }},
-        {label: "Generate", icon: "fa-refresh", action: () => { /* TODO */ }}
+        {label: "Generate", icon: "fa-refresh", action: () => { generateCartForm.requestSubmit() }}
     ];
 
     let recipeContextActions: ContextAction[] = [
@@ -58,6 +58,8 @@
     let modalCartAdd: ModalCartAdd;
     let modalCartEditRecipe: ModalCartEditRecipe;
     let modalCartEditItem: ModalCartEditItem;
+    
+    let generateCartForm: HTMLFormElement;
     
     let deleteRecipeForm: HTMLFormElement;
     let deleteRecipeId: string = $state('');
@@ -121,12 +123,18 @@
     <input hidden type="submit"/>
 </form>
 
-
 <form method="POST"
       action="?/removeCartItem"
       bind:this={deleteItemForm}
       use:enhance>
     <input name="itemId" bind:value={deleteItemId} hidden required/>
     <input name="prepId" bind:value={deletePrepId} hidden/>
+    <input hidden type="submit"/>
+</form>
+
+<form method="POST"
+      action="?/generateCart"
+      bind:this={generateCartForm}
+      use:enhance>
     <input hidden type="submit"/>
 </form>

@@ -5,6 +5,29 @@ import ErrorResponse from "$lib/scripts/classes/ErrorResponse.js";
 export const apiBaseUrl: string = "http://localhost:5164/api";
 export const defaultUrl: string = '/recipes';
 
+export function buildUrl(base: string, queryArgs: [string, any][]): string {
+    const args = queryArgs.filter(i => i[1] !== null)
+    
+    if (args.length === 0) {
+        return base;
+    }
+    
+    let result: string = base;
+    for (let i = 0; i < args.length; i++) {
+        if (i === 0) {
+            result += '?'
+        }
+        else {
+            result += '&'
+        }
+        
+        result += args[i][0]
+        result += '='
+        result += args[i][1]
+    }
+    return result;
+}
+
 export function getToken(cookies: Cookies): string {
     return cookies.get('token') ?? "";
 }

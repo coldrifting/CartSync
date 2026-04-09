@@ -50,6 +50,10 @@ export async function addRecipeStep(cookies: Cookies, recipeId: string, content:
     });
 }
 
+export async function generateCart(cookies: Cookies): Promise<void> {
+    await post(cookies, `/cart/generate`, { });
+}
+
 async function postResults<T>(cookies: Cookies, url: string, body: any): Promise<T> {
     const response: Response = await post(cookies, url, body) as Response;
     return await response.json();

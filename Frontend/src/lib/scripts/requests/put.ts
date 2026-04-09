@@ -1,5 +1,5 @@
 import type {Cookies} from "@sveltejs/kit";
-import {apiBaseUrl, checkForErrors, getToken} from "$lib/scripts/requests/common.js";
+import {apiBaseUrl, buildUrl, checkForErrors, getToken} from "$lib/scripts/requests/common.js";
 import type Amount from "$lib/scripts/classes/Amount.ts";
 
 export async function editCartRecipe(cookies: Cookies, recipeId: string, recipeQuantity: number): Promise<void> {
@@ -12,6 +12,12 @@ export async function editCartItem(cookies: Cookies, itemId: string, prepId: str
     await put(cookies, `/cart/selection/items/${itemId}/edit` + (prepId !== null ? `?prepId=${prepId}` : ''), { 
         Amount: amount
     });
+}
+
+export async function toggleCartItemChecked(cookies: Cookies, itemId: string, prepId: string | null, isChecked: boolean): Promise<void> {
+    let url = buildUrl(`/cart/items/${itemId}/edit`, [['prepId', prepId], ['isChecked', isChecked]])
+    console.log(url);
+    await put(cookies, url, {})
 }
 
 async function putResults<T>(cookies: Cookies, url: string, body: any): Promise<T> {

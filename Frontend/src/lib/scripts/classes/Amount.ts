@@ -12,6 +12,12 @@ class Amount {
 		}
 		return result;
 	}
+	
+	static isEmpty(amount: Amount): boolean {
+		return amount.unitType === "None" || 
+			   amount.fraction.num == 0 || 
+			  (amount.fraction.num / amount.fraction.dem) < 0.05;
+	}
 }
 
 export default Amount;

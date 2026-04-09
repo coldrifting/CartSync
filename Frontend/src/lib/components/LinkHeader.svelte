@@ -12,6 +12,6 @@
         <path stroke="currentColor" stroke-linecap="round" stroke-width="2"
               d="M8,16 2,8 8,0"/>
     </svg>
-    <span class="label">{title}</span>
+    <span class="label text-nowrap">{title}</span>
     <span class="label-small">Back</span>
 </a>

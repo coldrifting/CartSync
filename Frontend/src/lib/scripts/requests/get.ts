@@ -9,6 +9,7 @@ import type PrepUsagesReport from "$lib/scripts/classes/PrepUsagesReport.ts";
 import type Recipe from "$lib/scripts/classes/Recipe.ts";
 import type RecipeDetails from "$lib/scripts/classes/RecipeDetails.ts";
 import type CartSelect from "$lib/scripts/classes/CartSelect.ts";
+import type CartResult from "$lib/scripts/classes/CartResult.ts";
 
 export async function getAllStores(cookies: Cookies): Promise<Store[]> {
     return await get<Store[]>(cookies, `/stores`);
@@ -48,6 +49,10 @@ export async function getRecipe(cookies: Cookies, recipeId: string): Promise<Rec
 
 export async function getCartSelection(cookies: Cookies): Promise<CartSelect> {
     return await get<CartSelect>(cookies, `/cart/selection`);
+}
+
+export async function getCart(cookies: Cookies): Promise<CartResult> {
+    return await get<CartResult>(cookies, `/cart`);
 }
 
 async function get<T>(cookies: Cookies, url: string): Promise<T> {

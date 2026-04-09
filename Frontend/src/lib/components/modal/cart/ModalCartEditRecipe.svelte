@@ -55,6 +55,13 @@
         let element = e.target as HTMLInputElement;
         element.select();
     }
+    
+    const onfocusout = (_: Event) => {
+        recipeQuantity = Math.round(recipeQuantity);
+        if (recipeQuantity < 1) {
+            recipeQuantity = 1;
+        }
+    }
 </script>
 
 <Modal body header="Edit Cart Recipe"
@@ -73,10 +80,11 @@
                 <Input id="recipeQuantityInput"
                        name="recipeQuantity" 
                        type="number" 
-                       min={0} step={1} 
-                       bind:value={recipeQuantity}
+                       min={0} 
+                       step={1} 
                        onfocus={onfocus}
-                       onfocusout={() => recipeQuantity = Math.round(recipeQuantity)}/>
+                       onfocusout={onfocusout}
+                       bind:value={recipeQuantity}/>
             </FormGroup>
         </div>
         <ModalFooter>
