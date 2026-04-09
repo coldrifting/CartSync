@@ -50,7 +50,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
 
         Ulid storeId = SeedData.Stores[storeIndex].StoreId;
         await StoreController.Select(storeId);
-        List<ItemResponse> items = await ItemController.All().ValueAsync();
+        ReadOnlyList<ItemResponse> items = await ItemController.All().ValueAsync();
         Assert.Equal(SeedData.Items.Count, items.Count);
 
         foreach (ItemIndexLocation locationData in expectedLocations)
@@ -236,7 +236,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         ItemResponse fetch = await ItemController.Details(result.item.Id).ValueAsync();
         Assert.Equal(newItem.Name, fetch.Name);
 
-        List<ItemResponse> results = await ItemController.All().ValueAsync();
+        ReadOnlyList<ItemResponse> results = await ItemController.All().ValueAsync();
         Assert.Equal(SeedData.Items.Count + 1, results.Count);
         Assert.Contains(results, item => item.Id == result.item.Id);
         
@@ -264,7 +264,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         
         await ItemController.Edit(itemId, jsonPatch).AssertIsSuccessful();
         
-        List<ItemResponse> items = await ItemController.All().ValueAsync();
+        ReadOnlyList<ItemResponse> items = await ItemController.All().ValueAsync();
         Assert.Equal(SeedData.Items.Count, items.Count);
         Assert.Contains("New Item", items.Where(item => item.Id == itemId).Select(i => i.Name));
     }
@@ -289,7 +289,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         
         await ItemController.Edit(itemId, jsonPatch).AssertIsSuccessful();
         
-        List<ItemResponse> items = await ItemController.All().ValueAsync();
+        ReadOnlyList<ItemResponse> items = await ItemController.All().ValueAsync();
         Assert.Equal(SeedData.Items.Count, items.Count);
         Assert.Contains(Temp.Frozen, items.Where(item => item.Id == itemId).Select(i => i.Temp));
     }
@@ -680,7 +680,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         Ulid itemId = SeedData.Items[66].ItemId;
         await ItemController.Delete(itemId).AssertIsSuccessful();
         
-        List<ItemResponse> items = await ItemController.All().ValueAsync();
+        ReadOnlyList<ItemResponse> items = await ItemController.All().ValueAsync();
         Assert.Equal(SeedData.Items.Count - 1, items.Count);
         Assert.DoesNotContain(items, item => item.Id == itemId);
     }
@@ -702,14 +702,14 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
 
         if (itemResponse.Preps.Count > 0)
         {
-            List<PrepResponse> expectedPreps = SeedData.ItemPreps
+            ReadOnlyList<PrepResponse> expectedPreps = SeedData.ItemPreps
                 .Where(ip => ip.ItemId == SeedData.Items[itemIndex].ItemId)
                 .Select(ip => SeedData.Preps.Single(p => p.PrepId == ip.PrepId))
                 .AsQueryable()
                 .Select(PrepResponse.FromEntity)
                 .OrderBy(prep => prep.Name)
                 .ThenBy(prep => prep.Id)
-                .ToList();
+                .ToReadOnlyList();
             
             Assert.Equal(itemResponse.Preps, expectedPreps);
         }

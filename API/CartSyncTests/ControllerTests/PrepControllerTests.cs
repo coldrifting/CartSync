@@ -1,6 +1,7 @@
 using System.Net;
 using CartSync.Data.Requests;
 using CartSync.Data.Responses;
+using CartSync.Objects;
 using CartSyncTests.Base;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson.Operations;
@@ -14,14 +15,14 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     [Fact]
     public async Task TestPrepAll()
     {
-        List<PrepResponse> expectedPreps = SeedData.Preps
+        ReadOnlyList<PrepResponse> expectedPreps = SeedData.Preps
             .AsQueryable()
             .Select(PrepResponse.FromEntity)
             .OrderBy(prep => prep.Name)
             .ThenBy(prep => prep.Id)
-            .ToList();
+            .ToReadOnlyList();
 
-        List<PrepResponse> preps = await PrepController.All()
+        ReadOnlyList<PrepResponse> preps = await PrepController.All()
             .ValueAsync();
         
         Assert.Equal(expectedPreps, preps);
@@ -134,12 +135,12 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     [Fact]
     public async Task TestPrepAdd()
     {
-        List<PrepResponse> previousPreps = SeedData.Preps
+        ReadOnlyList<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
             .Select(PrepResponse.FromEntity)
             .OrderBy(prep => prep.Name)
             .ThenBy(prep => prep.Id)
-            .ToList();
+            .ToReadOnlyList();
 
         AddRequest addRequest = new()
         {
@@ -149,7 +150,7 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         Assert.Equal(addRequest.Name, result.prep.Name);
         Assert.Equal(result.location.Split('/').Last().ToLower(), result.prep.Id.ToString().ToLower());
         
-        List<PrepResponse> preps = await PrepController.All().ValueAsync();
+        ReadOnlyList<PrepResponse> preps = await PrepController.All().ValueAsync();
         
         Assert.Equal(previousPreps.Count + 1, preps.Count);
         Assert.Contains(preps, prep => prep.Name == addRequest.Name);
@@ -158,12 +159,12 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     [Fact]
     public async Task TestPrepEdit_Rename()
     {
-        List<PrepResponse> previousPreps = SeedData.Preps
+        ReadOnlyList<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
             .Select(PrepResponse.FromEntity)
             .OrderBy(prep => prep.Name)
             .ThenBy(prep => prep.Id)
-            .ToList();
+            .ToReadOnlyList();
         
         JsonPatchDocument<PrepEditRequest> jsonPatch = new()
         {
@@ -181,7 +182,7 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         Ulid prepId = SeedData.Preps[3].PrepId;
         await PrepController.Edit(prepId, jsonPatch).AssertIsSuccessful();
         
-        List<PrepResponse> preps = await PrepController.All()
+        ReadOnlyList<PrepResponse> preps = await PrepController.All()
             .ValueAsync();
         
         Assert.Equal(previousPreps.Count, preps.Count);
@@ -191,12 +192,12 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     [Fact]
     public async Task TestPrepEdit_BadPrepId()
     {
-        List<PrepResponse> previousPreps = SeedData.Preps
+        ReadOnlyList<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
             .Select(PrepResponse.FromEntity)
             .OrderBy(prep => prep.Name)
             .ThenBy(prep => prep.Id)
-            .ToList();
+            .ToReadOnlyList();
         
         JsonPatchDocument<PrepEditRequest> jsonPatch = new()
         {
@@ -215,7 +216,7 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         ErrorResponse errorResponse = await PrepController.Edit(Ulid.NotFound, jsonPatch).ErrorAsync();
         errorResponse.AssertStatus(HttpStatusCode.NotFound);
         
-        List<PrepResponse> preps = await PrepController.All()
+        ReadOnlyList<PrepResponse> preps = await PrepController.All()
             .ValueAsync();
         
         Assert.Equal(previousPreps.Count, preps.Count);
@@ -225,12 +226,12 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     [Fact]
     public async Task TestPrepEdit_ReplacePrepIdWithBadIdShouldError()
     {
-        List<PrepResponse> previousPreps = SeedData.Preps
+        ReadOnlyList<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
             .Select(PrepResponse.FromEntity)
             .OrderBy(prep => prep.Name)
             .ThenBy(prep => prep.Id)
-            .ToList();
+            .ToReadOnlyList();
         
         Ulid badPrepId = SeedData.Preps[5].PrepId;
         JsonPatchDocument<PrepEditRequest> jsonPatch = new()
@@ -250,7 +251,7 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         ErrorResponse errorResponse = await PrepController.Edit(prepId, jsonPatch).ErrorAsync();
         errorResponse.AssertStatus(HttpStatusCode.BadRequest);
         
-        List<PrepResponse> preps = await PrepController.All()
+        ReadOnlyList<PrepResponse> preps = await PrepController.All()
             .ValueAsync();
         
         Assert.Equal(previousPreps.Count, preps.Count);
@@ -261,12 +262,12 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     [Fact]
     public async Task TestPrepEdit_ReplacePrepIdWithNotFoundIdShouldError()
     {
-        List<PrepResponse> previousPreps = SeedData.Preps
+        ReadOnlyList<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
             .Select(PrepResponse.FromEntity)
             .OrderBy(prep => prep.Name)
             .ThenBy(prep => prep.Id)
-            .ToList();
+            .ToReadOnlyList();
         
         JsonPatchDocument<PrepEditRequest> jsonPatch = new()
         {
@@ -285,7 +286,7 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         ErrorResponse errorResponse = await PrepController.Edit(prepId, jsonPatch).ErrorAsync();
         errorResponse.AssertStatus(HttpStatusCode.BadRequest);
         
-        List<PrepResponse> preps = await PrepController.All()
+        ReadOnlyList<PrepResponse> preps = await PrepController.All()
             .ValueAsync();
         
         Assert.Equal(previousPreps.Count, preps.Count);
@@ -296,12 +297,12 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     [Fact]
     public async Task TestPrepEdit_RemoveNameShouldError()
     {
-        List<PrepResponse> previousPreps = SeedData.Preps
+        ReadOnlyList<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
             .Select(PrepResponse.FromEntity)
             .OrderBy(prep => prep.Name)
             .ThenBy(prep => prep.Id)
-            .ToList();
+            .ToReadOnlyList();
         
         JsonPatchDocument<PrepEditRequest> jsonPatch = new()
         {
@@ -319,7 +320,7 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         ErrorResponse errorResponse = await PrepController.Edit(prepId, jsonPatch).ErrorAsync();
         errorResponse.AssertStatus(HttpStatusCode.BadRequest);
         
-        List<PrepResponse> preps = await PrepController.All()
+        ReadOnlyList<PrepResponse> preps = await PrepController.All()
             .ValueAsync();
         
         Assert.Equal(previousPreps.Count, preps.Count);
@@ -329,16 +330,16 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     [Fact]
     public async Task TestPrepDelete_Cascade()
     {
-        List<PrepResponse> previousPreps = SeedData.Preps
+        ReadOnlyList<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
             .Select(PrepResponse.FromEntity)
             .OrderBy(prep => prep.Name)
             .ThenBy(prep => prep.Id)
-            .ToList();
+            .ToReadOnlyList();
 
         await PrepController.Delete(SeedData.Preps[3].PrepId).AssertIsSuccessful();
         
-        List<PrepResponse> preps = await PrepController.All()
+        ReadOnlyList<PrepResponse> preps = await PrepController.All()
             .ValueAsync();
         
         Assert.Equal(previousPreps.Count - 1, preps.Count);
@@ -348,12 +349,12 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     [Fact]
     public async Task TestPrepDelete_NoForeignKeys()
     {
-        List<PrepResponse> previousPreps = SeedData.Preps
+        ReadOnlyList<PrepResponse> previousPreps = SeedData.Preps
             .AsQueryable()
             .Select(PrepResponse.FromEntity)
             .OrderBy(prep => prep.Name)
             .ThenBy(prep => prep.Id)
-            .ToList();
+            .ToReadOnlyList();
 
         AddRequest addRequest = new()
         {
@@ -363,7 +364,7 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         Assert.Equal(addRequest.Name, result.prep.Name);
         Assert.Equal(result.location.Split('/').Last().ToLower(), result.prep.Id.ToString().ToLower());
         
-        List<PrepResponse> prepsAfterAdd = await PrepController.All()
+        ReadOnlyList<PrepResponse> prepsAfterAdd = await PrepController.All()
             .ValueAsync();
         
         Assert.Equal(previousPreps.Count + 1, prepsAfterAdd.Count);
@@ -376,7 +377,7 @@ public class PrepControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         ErrorResponse errorResponse = await PrepController.Delete(prepId).ErrorAsync();
         errorResponse.AssertStatus(HttpStatusCode.NotFound);
         
-        List<PrepResponse> preps = await PrepController.All()
+        ReadOnlyList<PrepResponse> preps = await PrepController.All()
             .ValueAsync();
         
         Assert.Equal(previousPreps.Count, preps.Count);

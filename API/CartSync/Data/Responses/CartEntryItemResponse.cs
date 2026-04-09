@@ -8,4 +8,5 @@ public record CartEntryItemResponse
     public required PrepResponse? Prep { get; init; }
     public required Bay Bay { get; init; }
     public required AmountGroup Amounts { get; init; }
+    public required bool IsChecked  { get; init; }
 }

@@ -4,6 +4,7 @@ using CartSync.Data.Entities;
 using CartSync.Data.Requests;
 using CartSync.Data.Responses;
 using CartSync.Database;
+using CartSync.Objects;
 using CartSync.Utils;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
@@ -17,22 +18,21 @@ public class AisleController(CartSyncContext context) : ControllerCore(context)
 {
     [HttpGet]
     [Route("/api/aisles")]
-    public async Task<Results<Ok<List<AisleResponse>>, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> All([Required] Ulid storeId)
+    public async Task<Results<Ok<ReadOnlyList<AisleResponse>>, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> All([Required] Ulid storeId)
     {
-        Store? s = await Db.Stores
-            .Include(s => s.Aisles)
-            .ThenInclude(a => a.Items)
-            .FirstOrDefaultAsync(store => store.StoreId == storeId);
-        if (s == null)
+        if (await Db.Stores.FindAsync(storeId) is null)
         {
             return Store.NotFound(storeId);
         }
-        
-        List<AisleResponse> aisles = s.Aisles
-            .OrderBy(a => a.SortOrder)
-            .AsQueryable()
+
+        ReadOnlyList<AisleResponse> aisles = Db.Stores
+            .AsNoTracking()
+            .Include(store => store.Aisles)
+            .First(store => store.StoreId == storeId)
+            .Aisles
             .Select(AisleResponse.FromEntity)
-            .ToList();
+            .OrderBy(aisle => aisle.SortOrder)
+            .ToReadOnlyList();
         
         return TypedResults.Ok(aisles);
     }
@@ -91,19 +91,19 @@ public class AisleController(CartSyncContext context) : ControllerCore(context)
     [Route("/api/aisles/{aisleId}/delete")]
     public async Task<Results<NoContent, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> Delete(Ulid aisleId)
     {
-        Aisle? aisle = await Db.Aisles
-            .Include(aisle => aisle.Store)
-            .ThenInclude(store => store.Aisles)
-            .FirstOrDefaultAsync(aisle => aisle.AisleId == aisleId);
-        if (aisle == null)
+        if (await Db.Aisles.FindAsync(aisleId) is not { } aisle)
         {
             return Aisle.NotFound(aisleId);
         }
 
         Db.Aisles.Remove(aisle);
+
+        Store store = await Db.Stores
+            .Include(store => store.Aisles)
+            .FirstAsync(store => store.StoreId == aisle.StoreId);
         
         // Refresh Sort Order
-        Sort.RefreshOrder(aisle.Store.Aisles);
+        Sort.RefreshOrder(store.Aisles);
         
         await Db.SaveChangesAsync();
         

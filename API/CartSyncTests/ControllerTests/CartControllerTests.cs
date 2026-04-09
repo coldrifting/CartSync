@@ -6,6 +6,8 @@ using CartSync.Data.Requests;
 using CartSync.Data.Responses;
 using CartSync.Objects;
 using CartSyncTests.Base;
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
+using Microsoft.AspNetCore.JsonPatch.SystemTextJson.Operations;
 using Microsoft.EntityFrameworkCore;
 using SeedData = CartSync.SeedData.SeedData;
 
@@ -364,7 +366,7 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
     }
 
     [Fact]
-    public async Task TestCartGenerate_UsingStore1()
+    public async Task TestCartGenerate_UsingStore0()
     {
         await StoreController.Select(SeedData.Stores[0].StoreId);
         await CartController.Generate();
@@ -418,10 +420,95 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
             Assert.Equal(expectedEntries[i].PrepId, actualEntries[i].PrepId);
             Assert.Equal(expectedEntries[i].Amounts, actualEntries[i].Amounts);
         }
+
+        CartEntryResponse result = await CartController.Get().ValueAsync();
+        Assert.Equal(SeedData.Stores[0].StoreId, result.StoreId);
+        Assert.Equal(SeedData.Stores[0].StoreName, result.StoreName);
+        Assert.Equal(7, result.Aisles.Count);
+
+        Assert.Single(result.Aisles[0].Items);
+        Assert.Equal(2, result.Aisles[1].Items.Count);
+        Assert.Equal(2, result.Aisles[1].Items.Count);
+        Assert.Equal(4, result.Aisles[2].Items.Count);
+        Assert.Equal(8, result.Aisles[3].Items.Count);
+        Assert.Equal(2, result.Aisles[4].Items.Count);
+        Assert.Equal(4, result.Aisles[5].Items.Count);
+        Assert.Equal(5, result.Aisles[6].Items.Count);
+    }
+
+    [Fact]
+    public async Task TestCartGenerate_UsingStore1()
+    {
+        await StoreController.Select(SeedData.Stores[1].StoreId);
+
+        await SetItemLocation(1, 114, 23, Bay.End);
+        await SetItemLocation(1, 207, 23, Bay.End);
+        await SetItemLocation(1, 215, 23, Bay.End);
+        
+        await CartController.Generate();
+
+        ImmutableList<CartEntryValue> expectedEntries =
+        [
+            IndicesToCartEntry(null, Bay.Center, /* Black_Beans */            030, /* $None */           null, Amount.VolumeOunces(8) ),
+            IndicesToCartEntry(null, Bay.Center, /* Black_Pepper */           066, /* $None */           null, Amount.VolumeTeaspoons(1,4) ),
+            IndicesToCartEntry(null, Bay.Center, /* Coriander */              072, /* $None */           null, Amount.VolumeTeaspoons(1,2) ),
+            IndicesToCartEntry(null, Bay.Center, /* Crushed_Red_Pepper */     073, /* $None */           null, Amount.VolumeTeaspoons(1,4) ),
+            IndicesToCartEntry(null, Bay.Center, /* Cumin */                  074, /* $None */           null, Amount.VolumeTeaspoons(3,2) ),
+            IndicesToCartEntry(null, Bay.Center, /* Diced_Green_Chilies */    063, /* $None */           null, Amount.VolumeOunces(16) ),
+            IndicesToCartEntry(null, Bay.Center, /* Flour */                  100, /* $None */           null, Amount.VolumeTablespoons(4) ),
+            IndicesToCartEntry(null, Bay.Center, /* Lime_Juice */             061, /* $None */           null, Amount.VolumeTablespoons(2) ),
+            IndicesToCartEntry(null, Bay.Center, /* Macaroni_Pasta */         046, /* $None */           null, Amount.WeightPounds(1) ),
+            IndicesToCartEntry(null, Bay.Center, /* Olive_Oil_Extra_Virgin */ 231, /* $None */           null, Amount.VolumeTablespoons(2) ),
+            IndicesToCartEntry(null, Bay.Center, /* Oregano */                085, /* $None */           null, Amount.VolumeTeaspoons(1,2) ),
+            IndicesToCartEntry(null, Bay.Center, /* Red_Onions */             217, /* Diced */           1,    Amount.Count(1, 3) ),
+            IndicesToCartEntry(null, Bay.Center, /* Rice */                   056, /* $None */           null, Amount.VolumeCups(1) ),
+            IndicesToCartEntry(null, Bay.Center, /* Salsa */                  064, /* $None */           null, Amount.VolumeCups(3, 4) ),
+            IndicesToCartEntry(null, Bay.Center, /* Salt */                   088, /* $None */           null, Amount.VolumeTeaspoons(3,4) ),
+            IndicesToCartEntry(null, Bay.Center, /* Butter */                 149, /* $None */           null, Amount.VolumeTablespoons(4) ),
+            IndicesToCartEntry(null, Bay.Center, /* Milk */                   147, /* $None */           null, Amount.VolumeQuarts(1) ),
+            IndicesToCartEntry(null, Bay.Center, /* Monterey_Jack_Cheese */   180, /* Shredded */        3,    Amount.VolumeCups(3) ),
+            IndicesToCartEntry(null, Bay.Center, /* Mozzarella_Cheese */      181, /* Sliced */          4,    Amount.VolumeCups(2) ),
+            IndicesToCartEntry(null, Bay.Center, /* Provolone_Cheese */       183, /* $None */           null, Amount.VolumeCups(8) ),
+            IndicesToCartEntry(null, Bay.Center, /* Provolone_Cheese */       183, /* Shredded */        3,    Amount.VolumeCups(4) ),
+            IndicesToCartEntry(null, Bay.Center, /* Red_Bell_Pepper */        216, /* Sliced */          4,    Amount.Count(1, 2) ),
+            IndicesToCartEntry(null, Bay.Center, /* Spinach */                193, /* $None */           null, Amount.VolumeCups(3) ),
+            IndicesToCartEntry(23, Bay.End, /* Brownie_Mix */            114, /* $None */           null, Amount.Count(3)),
+            IndicesToCartEntry(23, Bay.End, /* Garlic */                 207, /* Minced */          2,    Amount.Count(1) ),
+            IndicesToCartEntry(23, Bay.End, /* Poblano_Peppers */        215, /* Sliced (Halves) */ 5,    Amount.Count(4) )
+        ];
+
+        ReadOnlyList<CartEntryValue> actualEntries = Context.CartEntries
+            .OrderBy(entry => entry.Aisle != null ? entry.Aisle.SortOrder : -1)
+            .ThenBy(entry => entry.Bay)
+            .ThenBy(entry => entry.Item.Temp)
+            .ThenBy(entry => entry.Item.ItemName)
+            .ThenBy(entry => entry.Item.ItemId)
+            .ThenBy(entry => entry.Prep != null ? entry.Prep.PrepName : "$None")
+            .ThenBy(entry => entry.PrepId)
+            .Select(CartEntryValue.FromCartEntry)
+            .ToReadOnlyList();
+        
+        Assert.Equal(expectedEntries.Count, actualEntries.Count);
+        for (int i = 0; i < expectedEntries.Count; i++)
+        {
+            Assert.Equal(expectedEntries[i].AisleId, actualEntries[i].AisleId);
+            Assert.Equal(expectedEntries[i].Bay, actualEntries[i].Bay);
+            Assert.Equal(expectedEntries[i].ItemId, actualEntries[i].ItemId);
+            Assert.Equal(expectedEntries[i].PrepId, actualEntries[i].PrepId);
+            Assert.Equal(expectedEntries[i].Amounts, actualEntries[i].Amounts);
+        }
+
+        CartEntryResponse result = await CartController.Get().ValueAsync();
+        Assert.Equal(SeedData.Stores[1].StoreId, result.StoreId);
+        Assert.Equal(SeedData.Stores[1].StoreName, result.StoreName);
+        Assert.Equal(2, result.Aisles.Count);
+
+        Assert.Equal(23, result.Aisles[0].Items.Count);
+        Assert.Equal(3, result.Aisles[1].Items.Count);
     }
     
     [Fact]
-    public async Task TestCartGenerate_UsingStore1_WithConflictingUnitTypes()
+    public async Task TestCartGenerate_UsingStore0_WithConflictingUnitTypes()
     {
         await StoreController.Select(SeedData.Stores[0].StoreId);
         
@@ -430,7 +517,7 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
             recipe.CartQuantity = 0;
         }
 
-        List<CartSelectItem> cartItems = await Context.CartSelectItems.ToListAsync(TestContext.Current.CancellationToken);
+        ReadOnlyList<CartSelectItem> cartItems = await Context.CartSelectItems.ToReadOnlyListAsync(TestContext.Current.CancellationToken);
         foreach (CartSelectItem contextCartItem in cartItems)
         {
             Context.CartSelectItems.Remove(contextCartItem);
@@ -534,5 +621,26 @@ public class CartControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
             Name = SeedData.Recipes[recipeIndex].RecipeName,
             Quantity = SeedData.Recipes[recipeIndex].CartQuantity
         };
+    }
+
+    private async Task SetItemLocation(int storeIndex, int itemIndex, int aisleIndex, Bay bay)
+    {
+        await StoreController.Select(SeedData.Stores[storeIndex].StoreId);
+        await ItemController.Edit(SeedData.Items[itemIndex].ItemId, new JsonPatchDocument<ItemEditRequest>
+        {
+            Operations =
+            {
+                new Operation<ItemEditRequest>()
+                {
+                    op = "replace",
+                    path = "/Location",
+                    value = new LocationEditRequest()
+                    {
+                        AisleId = SeedData.Aisles[aisleIndex].AisleId,
+                        Bay = bay
+                    }
+                }
+            }
+        }).AssertIsSuccessful();
     }
 }

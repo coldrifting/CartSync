@@ -3,6 +3,7 @@ using CartSync.Data.Entities;
 using CartSync.Data.Requests;
 using CartSync.Data.Responses;
 using CartSync.Database;
+using CartSync.Objects;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc;
@@ -15,13 +16,13 @@ public class PrepController(CartSyncContext context) : ControllerCore(context)
 {
     [HttpGet]
     [Route("/api/preps")]
-    public async Task<Ok<List<PrepResponse>>> All()
+    public async Task<Ok<ReadOnlyList<PrepResponse>>> All()
     {
-        List<PrepResponse> preps = await Db.Preps
+        ReadOnlyList<PrepResponse> preps = await Db.Preps
             .Select(PrepResponse.FromEntity)
             .OrderBy(prep => prep.Name)
             .ThenBy(prep => prep.Id)
-            .ToListAsync();
+            .ToReadOnlyListAsync();
         
         return TypedResults.Ok(preps);
     }

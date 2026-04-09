@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
 
 namespace CartSync.Objects;
 
@@ -104,4 +105,18 @@ public static class Ex
 {
     public static ReadOnlyList<T> ToReadOnlyList<T>(this IEnumerable<T> enumerable) =>
         new(enumerable.ToImmutableList());
+
+    public static async Task<ReadOnlyList<TSource>> ToReadOnlyListAsync<TSource>(
+        this IQueryable<TSource> source,
+        CancellationToken cancellationToken = default)
+    {
+        List<TSource> list = [];
+        await foreach (TSource element in source.AsAsyncEnumerable().WithCancellation(cancellationToken)
+                           .ConfigureAwait(false))
+        {
+            list.Add(element);
+        }
+
+        return list.ToReadOnlyList();
+    }
 }

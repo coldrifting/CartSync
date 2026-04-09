@@ -72,12 +72,14 @@ public class CartController(CartSyncContext context) : ControllerCore(context)
     {
         Store store = await GetSelectedStore();
 
-        CartEntryAisleResponse[] aisles = Db.CartEntries
-            .Include(ce => ce.Aisle)
-            .OrderBy(ce => ce.Aisle != null ? ce.Aisle.SortOrder : -1)
-            .GroupBy(ce => ce.AisleId)
-            .Select(CartEntryAisleResponse.FromAisleGroup)
-            .ToArray();
+        ReadOnlyList<CartEntryAisleResponse> aisles = Db.CartEntries
+            .Include(entry => entry.Aisle)
+            .GroupBy(entry => entry.Aisle)
+            .Select(CartEntryAisleResponsePrototype.FromAisleGroup)
+            .AsEnumerable()
+            .OrderBy(entry => entry.SortOrder)
+            .Select(CartEntryAisleResponse.FromPrototype)
+            .ToReadOnlyList();
 
         return TypedResults.Ok(new CartEntryResponse
         {
@@ -87,9 +89,9 @@ public class CartController(CartSyncContext context) : ControllerCore(context)
         });
     }
 
-    [HttpPost]
+    [HttpPut]
     [Route("/api/cart/items/{itemId}/edit")]
-    public async Task<Results<NoContent, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> Check(Ulid itemId, [FromQuery] Ulid? prepId)
+    public async Task<Results<NoContent, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> Check(Ulid itemId, [FromQuery] Ulid? prepId, [FromQuery, Required] bool isChecked)
     {
         CartEntry? cartEntry = await Db.CartEntries.FirstOrDefaultAsync(ce => ce.ItemId == itemId && ce.PrepId == prepId);
         if (cartEntry is null)
@@ -97,7 +99,8 @@ public class CartController(CartSyncContext context) : ControllerCore(context)
             return CartEntry.NotFound(itemId, prepId);
         }
         
-        cartEntry.IsChecked = !cartEntry.IsChecked;
+        cartEntry.IsChecked = isChecked;
+        await Db.SaveChangesAsync();
 
         return TypedResults.NoContent();
     }
@@ -106,7 +109,7 @@ public class CartController(CartSyncContext context) : ControllerCore(context)
     [Route("/api/cart/selection")]
     public async Task<Ok<CartSelectResponse>> GetSelection()
     {
-        List<Recipe> allRecipes = await Db.Recipes.ToListAsync();
+        ReadOnlyList<Recipe> allRecipes = await Db.Recipes.ToReadOnlyListAsync();
         ReadOnlyList<CartSelectRecipeResponse> cartRecipes = allRecipes
             .Where(recipe => recipe.CartQuantity > 0)
             .AsQueryable()

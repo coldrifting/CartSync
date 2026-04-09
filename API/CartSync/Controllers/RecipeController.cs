@@ -4,6 +4,7 @@ using CartSync.Data.Entities;
 using CartSync.Data.Requests;
 using CartSync.Data.Responses;
 using CartSync.Database;
+using CartSync.Objects;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc;
@@ -16,9 +17,9 @@ public class RecipeController(CartSyncContext context) : ControllerCore(context)
 {
     [HttpGet]
     [Route("/api/recipes")]
-    public async Task<Ok<List<RecipeMinimalResponse>>> All()
+    public async Task<Ok<ReadOnlyList<RecipeMinimalResponse>>> All()
     {
-        List<RecipeMinimalResponse> recipes = await Db.Recipes
+        ReadOnlyList<RecipeMinimalResponse> recipes = await Db.Recipes
             .Include(recipe => recipe.Steps)
             .Include(recipe => recipe.Sections)
             .ThenInclude(section => section.Entries)
@@ -26,7 +27,7 @@ public class RecipeController(CartSyncContext context) : ControllerCore(context)
             .Select(RecipeMinimalResponse.FromEntity)
             .OrderBy(recipe => recipe.Name)
             .ThenBy(recipe => recipe.Id)
-            .ToListAsync();
+            .ToReadOnlyListAsync();
         
         return TypedResults.Ok(recipes);
     }

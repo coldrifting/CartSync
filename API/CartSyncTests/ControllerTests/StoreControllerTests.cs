@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using CartSync.Data.Requests;
 using CartSync.Data.Responses;
+using CartSync.Objects;
 using CartSyncTests.Base;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson.Operations;
@@ -14,7 +15,7 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
     [Fact]
     public async Task TestStoreAll()
     {
-        List<StoreResponse> stores = await StoreController.All().ValueAsync();
+        ReadOnlyList<StoreResponse> stores = await StoreController.All().ValueAsync();
         
         Assert.Equal(2, stores.Count);
     }
@@ -31,7 +32,7 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
         Assert.Equal(result.store.Name, newStore.Name);
         Assert.Equal(result.location.Split('/').Last().ToLower(), result.store.Id.ToString().ToLower());
 
-        List<StoreResponse> stores = await StoreController.All().ValueAsync();
+        ReadOnlyList<StoreResponse> stores = await StoreController.All().ValueAsync();
 
         Assert.Equal(3, stores.Count);
         Assert.Contains("new store", stores.Select(s => s.Name));
@@ -48,7 +49,7 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
         
         await StoreController.Select(store1).AssertIsSuccessful();
 
-        List<StoreResponse> storeResponse = await StoreController.All().ValueAsync();
+        ReadOnlyList<StoreResponse> storeResponse = await StoreController.All().ValueAsync();
         Assert.False(storeResponse.FirstOrDefault(store => store.Id == store0)?.IsSelected);
         Assert.True(storeResponse.FirstOrDefault(store => store.Id == store1)?.IsSelected);
 
@@ -57,7 +58,7 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
         ErrorResponse error2 = await StoreController.Delete(store1).ErrorAsync();
         error2.AssertStatus(HttpStatusCode.Conflict);
 
-        List<StoreResponse> stores = await StoreController.All().ValueAsync();
+        ReadOnlyList<StoreResponse> stores = await StoreController.All().ValueAsync();
 
         Assert.Single(stores);
         Assert.Contains(store1, stores.Select(store => store.Id));
@@ -81,7 +82,7 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
         
         await StoreController.Edit(SeedData.Stores[0].StoreId, jsonPatch);
 
-        List<StoreResponse> stores = await StoreController.All().ValueAsync();
+        ReadOnlyList<StoreResponse> stores = await StoreController.All().ValueAsync();
 
         Assert.Equal(2, stores.Count);
 
@@ -109,7 +110,7 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
         ErrorResponse errorResponse = await StoreController.Edit(Ulid.NotFound, jsonPatch).ErrorAsync();
         errorResponse.AssertStatus(HttpStatusCode.NotFound);
         
-        List<StoreResponse> stores = await StoreController.All().ValueAsync();
+        ReadOnlyList<StoreResponse> stores = await StoreController.All().ValueAsync();
         
         Assert.Equal(2, stores.Count);
         Assert.DoesNotContain("edited store", stores.Select(store => store.Name));
@@ -133,7 +134,7 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
         ErrorResponse errorResponse = await StoreController.Edit(SeedData.Stores[0].StoreId, jsonPatch).ErrorAsync();
         errorResponse.AssertStatus(HttpStatusCode.BadRequest);
         
-        List<StoreResponse> stores = await StoreController.All().ValueAsync();
+        ReadOnlyList<StoreResponse> stores = await StoreController.All().ValueAsync();
         
         Assert.Equal(2, stores.Count);
         Assert.Contains(SeedData.Stores[0].StoreName, stores.Select(store => store.Name));
@@ -158,7 +159,7 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
         ErrorResponse errorResponse = await StoreController.Edit(SeedData.Stores[0].StoreId, jsonPatch).ErrorAsync();
         errorResponse.AssertStatus(HttpStatusCode.BadRequest);
         
-        List<StoreResponse> stores = await StoreController.All().ValueAsync();
+        ReadOnlyList<StoreResponse> stores = await StoreController.All().ValueAsync();
         
         Assert.Equal(2, stores.Count);
         Assert.DoesNotContain("", stores.Select(store => store.Name));
@@ -184,7 +185,7 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
         
         Assert.Equal((int)HttpStatusCode.BadRequest, errorResponse.StatusCode);
         
-        List<StoreResponse> stores = await StoreController.All().ValueAsync();
+        ReadOnlyList<StoreResponse> stores = await StoreController.All().ValueAsync();
         
         Assert.Equal(2, stores.Count);
         Assert.DoesNotContain("", stores.Select(store => store.Name));
@@ -195,7 +196,7 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
     {
         await StoreController.Delete(SeedData.Stores[1].StoreId).AssertIsSuccessful();
 
-        List<StoreResponse> stores = await StoreController.All().ValueAsync();
+        ReadOnlyList<StoreResponse> stores = await StoreController.All().ValueAsync();
 
         Assert.Single(stores);
         Assert.DoesNotContain(SeedData.Stores[1].StoreId, stores.Select(store => store.Id));
@@ -207,7 +208,7 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
         ErrorResponse errorResponse = await StoreController.Delete(SeedData.Stores[0].StoreId).ErrorAsync();
         errorResponse.AssertStatus(HttpStatusCode.Conflict);
 
-        List<StoreResponse> stores = await StoreController.All().ValueAsync();
+        ReadOnlyList<StoreResponse> stores = await StoreController.All().ValueAsync();
 
         Assert.Equal(2, stores.Count);
         Assert.Contains(SeedData.Stores[0].StoreId, stores.Select(store => store.Id));
@@ -220,7 +221,7 @@ public class StoreControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtu
         
         Assert.Equal((int)HttpStatusCode.NotFound, errorResponse.StatusCode);
         
-        List<StoreResponse> stores = await StoreController.All().ValueAsync();
+        ReadOnlyList<StoreResponse> stores = await StoreController.All().ValueAsync();
         
         Assert.Equal(2, stores.Count);
         Assert.Contains(SeedData.Stores[0].StoreId, stores.Select(store => store.Id));

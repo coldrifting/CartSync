@@ -3,6 +3,7 @@ using CartSync.Data.Entities;
 using CartSync.Data.Requests;
 using CartSync.Data.Responses;
 using CartSync.Database;
+using CartSync.Objects;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.JsonPatch.SystemTextJson;
 using Microsoft.AspNetCore.Mvc;
@@ -15,16 +16,16 @@ public class ItemController(CartSyncContext context) : ControllerCore(context)
 {
     [HttpGet]
     [Route("/api/items")]
-    public async Task<Results<Ok<List<ItemResponse>>, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> All()
+    public async Task<Results<Ok<ReadOnlyList<ItemResponse>>, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> All()
     {
         Ulid selectedStoreId = await GetSelectedStoreId();
-        List<ItemResponse> allItems = await Db.Items
+        ReadOnlyList<ItemResponse> allItems = await Db.Items
                 .Include(i => i.Preps)
                 .Include(i => i.Aisles)
                 .Select(ItemResponse.FromEntity(selectedStoreId))
                 .OrderBy(item => item.Name)
                 .ThenBy(item => item.Id)
-                .ToListAsync();
+                .ToReadOnlyListAsync();
 
         return TypedResults.Ok(allItems);
     }
@@ -143,13 +144,13 @@ public class ItemController(CartSyncContext context) : ControllerCore(context)
     [Route("/api/items/{itemId}/delete")]
     public async Task<Results<NoContent, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> Delete(Ulid itemId)
     {
-        Item? i = await Db.Items.FindAsync(itemId);
-        if (i == null)
+        Item? item = await Db.Items.FindAsync(itemId);
+        if (item == null)
         {
             return Item.NotFound(itemId);
         }
 
-        Db.Items.Remove(i);
+        Db.Items.Remove(item);
         await Db.SaveChangesAsync();
         
         return TypedResults.NoContent();
