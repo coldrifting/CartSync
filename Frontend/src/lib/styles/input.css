@@ -2,6 +2,10 @@ button {
     white-space: nowrap;
 }
 
+.left-button {
+    margin-right: auto !important;
+}
+
 .input-button {
     z-index: 1200 !important;
     border: none;

@@ -65,6 +65,11 @@
         let element = e.target as HTMLInputElement;
         element.select();
     }
+    
+    let removeForm: HTMLFormElement;
+    const onRemove = () => {
+        removeForm.requestSubmit();
+    }
 </script>
 
 <Modal body header="Edit Cart Item"
@@ -95,8 +100,18 @@
             </div>
         </div>
         <ModalFooter>
+            <Button class="left-button" color="danger" type="button" onclick={onRemove}>Remove</Button>
+            
             <Button color="secondary" type="button" onclick={toggle}>Cancel</Button>
             <Button color="primary" type="submit" disabled={isDisabled()}>Update</Button>
         </ModalFooter>
+    </form>
+    
+    <form method="POST"
+          action="?/removeCartItem"
+          bind:this={removeForm}
+          use:enhance={submitFunction}>
+        <input name="itemId" bind:value={itemId} hidden/>
+        <input name="prepId" bind:value={prepId} hidden/>
     </form>
 </Modal>

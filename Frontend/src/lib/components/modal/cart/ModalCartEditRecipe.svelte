@@ -62,6 +62,11 @@
             recipeQuantity = 1;
         }
     }
+    
+    let removeForm: HTMLFormElement;
+    const onRemove = () => {
+        removeForm.requestSubmit();
+    }
 </script>
 
 <Modal body header="Edit Cart Recipe"
@@ -88,8 +93,17 @@
             </FormGroup>
         </div>
         <ModalFooter>
+            <Button class="left-button" color="danger" type="button" onclick={onRemove}>Remove</Button>
+            
             <Button color="secondary" type="button" onclick={toggle}>Cancel</Button>
             <Button color="primary" type="submit" disabled={isDisabled()}>Update</Button>
         </ModalFooter>
+    </form>
+    
+    <form method="POST"
+          action="?/removeCartRecipe"
+          bind:this={removeForm}
+          use:enhance={submitFunction}>
+        <input name="recipeId" bind:value={recipeId} hidden/>
     </form>
 </Modal>
