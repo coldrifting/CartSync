@@ -8,7 +8,6 @@ public record ItemUsagesResponse
 {
     public required Ulid Id { get; init; }
     public required string Name { get; init; }
-    public required ReadOnlyList<PrepResponse> Preps { get; init; }
     public required ReadOnlyList<RecipeMinimalResponse> Recipes { get; init; }
     
     public static Expression<Func<Item, ItemUsagesResponse>> FromEntity =>
@@ -16,12 +15,6 @@ public record ItemUsagesResponse
         {
             Id = item.ItemId,
             Name = item.ItemName,
-            Preps = item.Preps
-                .AsQueryable()
-                .OrderBy(p => p.PrepName)
-                .ThenBy(p => p.PrepId)
-                .Select(PrepResponse.FromEntity)
-                .ToReadOnlyList(),
             Recipes = item.RecipeSectionEntries
                 .AsQueryable()
                 .Select(r => r.RecipeSection.Recipe)

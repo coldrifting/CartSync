@@ -35,11 +35,9 @@ public class ItemController(CartSyncContext context) : ControllerCore(context)
     public async Task<Results<Ok<ItemUsagesResponse>, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> Usages(Ulid itemId)
     {
         ItemUsagesResponse? itemUsages = await Db.Items
-            .Include(i => i.Preps)
-            .AsSplitQuery()
-            .Include(i => i.RecipeSectionEntries)
-            .ThenInclude(r => r.RecipeSection)
-            .ThenInclude(r => r.Recipe)
+            .Include(item => item.RecipeSectionEntries)
+            .ThenInclude(entry => entry.RecipeSection)
+            .ThenInclude(section => section.Recipe)
             .Select(ItemUsagesResponse.FromEntity)
             .FirstOrDefaultAsync(item => item.Id == itemId);
         if (itemUsages == null)

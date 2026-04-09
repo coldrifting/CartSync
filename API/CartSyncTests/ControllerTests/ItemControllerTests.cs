@@ -132,34 +132,10 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
                     IsPinned = SeedData.Recipes[3].IsPinned,
                     Url = SeedData.Recipes[3].Url
                 }
-            ],
-            Preps = []
+            ]
         };
         
         ItemUsagesResponse result = await ItemController.Usages(SeedData.Items[66].ItemId).ValueAsync();
-        Assert.Equal(expected, result);
-    }
-
-    [Fact]
-    public async Task TestItemUsage_OnlyPreps()
-    {
-        ItemUsagesResponse expected = new()
-        {
-            Id = SeedData.Items[2].ItemId,
-            Name = SeedData.Items[2].ItemName,
-            Recipes = [],
-            Preps =
-            [
-                new PrepResponse
-                {
-                    Id = SeedData.Preps[7].PrepId,
-                    Name = SeedData.Preps[7].PrepName,
-                }
-            ]
-        };
-        Assert.Single(expected.Preps);
-        
-        ItemUsagesResponse result = await ItemController.Usages(SeedData.Items[2].ItemId).ValueAsync();
         Assert.Equal(expected, result);
     }
 
@@ -185,13 +161,6 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
                     IsPinned = SeedData.Recipes[3].IsPinned,
                     Url = SeedData.Recipes[3].Url
                 }
-            ],
-            Preps = [
-                new PrepResponse
-                {
-                    Id = SeedData.Preps[2].PrepId,
-                    Name = SeedData.Preps[2].PrepName,
-                }
             ]
         };
         
@@ -206,8 +175,7 @@ public class ItemControllerTests(DatabaseSetup fixture) : DatabaseFixture(fixtur
         {
             Id = SeedData.Items[22].ItemId,
             Name = SeedData.Items[22].ItemName,
-            Recipes = [],
-            Preps = []
+            Recipes = []
         };
         
         ItemUsagesResponse result = await ItemController.Usages(SeedData.Items[22].ItemId).ValueAsync();

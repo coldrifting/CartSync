@@ -20,7 +20,7 @@ public class Item : IPatchableStoreSpecific<ItemEditRequest>
     public required string ItemName { get; set; }
 
     public Temp Temp { get; set; }
-    public UnitType DefaultUnitType { get; set; }
+    public UnitType DefaultUnitType { get; set; } = UnitType.Count;
     public bool UncapCartUnits { get; set; }
 
     // Navigation
