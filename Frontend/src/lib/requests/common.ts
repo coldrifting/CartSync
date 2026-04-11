@@ -3,7 +3,7 @@ import type {Cookies} from "@sveltejs/kit";
 import ErrorResponse from "$lib/models/ErrorResponse.js";
 import ErrorCustom from "$lib/models/ErrorCustom.js";
 
-export const apiBaseUrl: string = "http://localhost:5164/api";
+export const apiBaseUrl: string = "http://localhost:5000/api";
 export const defaultUrl: string = '/recipes';
 
 export function buildUrl(base: string, queryArgs: [string, any][]): string {

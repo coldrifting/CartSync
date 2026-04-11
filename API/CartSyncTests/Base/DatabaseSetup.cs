@@ -8,7 +8,7 @@ namespace CartSyncTests.Base;
 public class DatabaseSetup : IDisposable
 {
     private const string ConnectionString =
-        "Host=localhost;Username=coldrifting;Database=CartSyncTestDb"; // ;Include Error Detail=true";
+        "Host=localhost;Username=postgres;Database=CartSyncTestDb"; // ;Include Error Detail=true";
 
     private static readonly Lock Lock = new();
     private static bool _databaseInitialized;
