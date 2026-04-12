@@ -1,8 +1,7 @@
 <script lang="ts">
-    import {trapFocus} from 'trap-focus-svelte'
-    import {Modal, ModalFooter, FormGroup, Input, Button} from "@sveltestrap/sveltestrap";
+    import {FormGroup, Input} from "@sveltestrap/sveltestrap";
     import FormLink from "$lib/components/FormLink.svelte";
-    import ModalHeaderCustom from "$lib/components/modal/ModalHeaderCustom.svelte";
+    import ModalCustom from "$lib/components/modal/ModalCustom.svelte";
     
     type T = $$Generic
     interface Props<T> {
@@ -44,29 +43,21 @@
                 return "a"
         }
     }
+    
+    function onOpen() {
+        document.getElementById('filterInput')?.focus();
+    }
 </script>
 
-<Modal body
-       isOpen={isOpen}
-       toggle={() => isOpen = !isOpen}
-       keyboard={true}
-       autoFocus={false}
-       on:open={() => document.getElementById("filterInput")?.focus()}
-       centered={true}>
-    <form use:trapFocus={true}>
-        <ModalHeaderCustom title="Select {getArticle(itemType)} {itemType}" bind:isOpen={isOpen}/>
-        <div class="modal-main">
+<ModalCustom title="Select {getArticle(itemType)} {itemType}"
+             bind:isOpen
+             onOpen={onOpen}>
             <FormGroup floating label="{itemType} Name">
                 <Input id="filterInput" bind:value={filterText} />
             </FormGroup>
             <ul>
-            {#each filteredItems as item}
-                <FormLink text={getItemName(item)} onclick={() => {onclick(item)}} showArrow={false}/>
+            {#each filteredItems as item, i}
+                <FormLink text={getItemName(item)} onclick={() => {onclick(item)}} showArrow={false} isSubmitButton={i === 0}/>
             {/each}
             </ul>
-        </div>
-        <ModalFooter>
-            <Button color="secondary" type="button" onclick={() => isOpen = false}>Cancel</Button>
-        </ModalFooter>
-    </form>
-</Modal>
+</ModalCustom>

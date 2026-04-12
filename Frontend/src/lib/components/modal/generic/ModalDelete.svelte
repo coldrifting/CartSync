@@ -1,9 +1,6 @@
 <script lang="ts">
-    import {enhance} from '$app/forms';
-    import {Modal, ModalFooter, Button} from "@sveltestrap/sveltestrap";
-    import type {SubmitFunction} from "@sveltejs/kit";
-    import {trapFocus} from 'trap-focus-svelte'
-    import ModalHeaderCustom from "$lib/components/modal/ModalHeaderCustom.svelte";
+    import ModalCustom from "$lib/components/modal/ModalCustom.svelte";
+    import {invalidateAll} from "$app/navigation";
     
     interface Usages {
         recipes: string[];
@@ -14,10 +11,11 @@
     interface Props {
         type: string;
         warning: string;
-        parentIsOpen?: boolean | undefined;
+        deleteAction: (id: string) => Promise<void>;
+        parentIsOpen?: boolean;
     }
     
-    let {type, warning, parentIsOpen = $bindable(undefined)}: Props = $props();
+    let {type, warning, deleteAction, parentIsOpen = $bindable(undefined)}: Props = $props();
     
     const maxUsagesListed = 3;
     
@@ -30,7 +28,7 @@
     
     let warningSplit = $derived(warning.split('[Name]'))
     
-    export const show = (inputId: string, inputName: string | undefined = undefined, inputUsages: Record<string, string[]> | undefined = undefined) => {
+    export function show(inputId: string, inputName: string | undefined = undefined, inputUsages: Record<string, string[]> | undefined = undefined) {
         id = inputId;
         itemName = inputName;
         
@@ -42,16 +40,6 @@
         
         isOpen = true;
     }
-
-    const submitFunction: SubmitFunction = () => {
-        return async ({update}) => {
-            isOpen = false
-            if (parentIsOpen) {
-                parentIsOpen = false;
-            }
-            await update({reset: false});
-        };
-    };
     
     function truncateArray(arr: string[]): string[] {
       if (arr.length <= maxUsagesListed) {
@@ -63,46 +51,45 @@
     function toTitleCase(str: string): string {
         return str.charAt(0).toUpperCase() + str.slice(1);
     }
+    
+    async function onDelete() {
+        await deleteAction(id);
+        isOpen = false
+        if (parentIsOpen) {
+            parentIsOpen = false;
+        }
+        await invalidateAll();
+    }
+    
+    function onOpen() {
+        //document.getElementById('inputDeleteCancel')?.focus();
+    }
 </script>
 
-<Modal body
-       isOpen={isOpen}
-       toggle={() => isOpen = !isOpen}
-       centered={true}
-       on:open={() => document.getElementById("inputDeleteCancel")?.focus()}>
-    <form method="POST"
-          action="?/delete{type}"
-          use:enhance={submitFunction}
-          use:trapFocus={true}>
-        <ModalHeaderCustom title="Delete {type}" bind:isOpen={isOpen}/>
-        <div>
-            <input hidden name="id" bind:value={id} required />
-            <p>
-            {#if usages !== undefined}
-                {itemName} is currently used in:
-                {#each Object.entries(usages) as usage}
-                    {#if usage[1].length > 0}
-                        <br>
-                        <span class="text-warning">{toTitleCase(usage[0])}:</span><br>
-                        {#each usage[1] as c}
-                            {c}<br>
-                        {/each}
-                    {/if}
-                {/each}
-            {:else}
-                {#if warningSplit.length === 2}
-                    {warningSplit[0]}
-                    <span class="text-warning">{itemName}</span>
-                    {warningSplit[1]}
-                {:else}
-                    {warning.replace('[Name]', itemName ?? '')}
+<ModalCustom title="Delete {type}"
+             bind:isOpen
+             actionDelete={{label: "Delete", action: onDelete}}
+             onOpen={onOpen}>
+    <p>
+        {#if usages !== undefined}
+            {itemName} is currently used in:
+            {#each Object.entries(usages) as usage}
+                {#if usage[1].length > 0}
+                    <br>
+                    <span class="text-warning">{toTitleCase(usage[0])}:</span><br>
+                    {#each usage[1] as c}
+                        {c}<br>
+                    {/each}
                 {/if}
+            {/each}
+        {:else}
+            {#if warningSplit.length === 2}
+                {warningSplit[0]}
+                <span class="text-warning">{itemName}</span>
+                {warningSplit[1]}
+            {:else}
+                {warning.replace('[Name]', itemName ?? '')}
             {/if}
-            <br>Are you sure?</p>
-        </div>
-        <ModalFooter>
-            <Button color="secondary" type="button" onclick={() => isOpen = false} id="inputDeleteCancel">Cancel</Button>
-            <Button color="danger" type="submit">Delete</Button>
-        </ModalFooter>
-    </form>
-</Modal>
+        {/if}
+        <br>Are you sure?</p>
+</ModalCustom>

@@ -5,6 +5,7 @@
     import ModalAdd from "$lib/components/modal/generic/ModalAdd.svelte";
     import ModalRename from "$lib/components/modal/generic/ModalRename.svelte";
 	import Header from "$lib/components/nav/Header.svelte";
+	import {del, patch, post} from "$lib/functions/requests.js";
     
     let {data}: PageProps = $props();
     
@@ -36,23 +37,29 @@
 	let reorderId = $derived(reorderState.id);
 	let reorderIndex = $derived(reorderState.index);
 	
-    let onReorder = (id: string, newIndex: number) => {
-		reorderState = {id: id, index: newIndex};
+	async function onAdd(value: string) {
+		await post(`/api/aisles/add?storeId=${data.store.id}`, {name: value});
+	}
+	
+	async function onRename(id: string, value: string) {
+		await patch(`/api/aisles/${id}/edit`, {"/Name": value});
+	}
+	
+	async function onDelete(id: string) {
+		await del(`/api/aisles/${id}/delete`);
+	}
+	
+    async function onReorder(id: string, newIndex: number) {
+		await patch(`/api/aisles/${id}/edit`, {"/SortOrder": newIndex});
     }
-    
-	$effect(() => {
-		if (reorderState.id != "" && reorderState.index != -1) {
-			reorderForm.requestSubmit();
-		}
-	})
 </script>
 
 <svelte:head>
     <title>{storeName}</title>
 </svelte:head>
 
-<ModalAdd bind:this={addDialog} type="Aisle" scrollOnAdd={true} />
-<ModalRename bind:this={renameDialog} type="Aisle" warning="All item locations for this aisle will be deleted!"/>
+<ModalAdd bind:this={addDialog} type="Aisle" addAction={onAdd} scrollOnAdd={true} />
+<ModalRename bind:this={renameDialog} type="Aisle" renameAction={onRename} deleteAction={onDelete} warning="All item locations for this aisle will be deleted!"/>
 
 <Header back={['/stores', 'Stores']} title={storeName} subtitle="Aisles" headerActions={headerActions}/>
 

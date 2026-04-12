@@ -1,16 +1,16 @@
 <script lang="ts">
-    import {tick} from "svelte";
     import ListItem from "$lib/components/lists/ListItem.svelte";
 
     interface Props {
         id: string;
         label: string;
-        info?: string | undefined;
-        subInfo?: string | undefined;
-        actionRight?: ButtonAction | undefined;
+        info?: string;
+        subInfo?: string;
+        actionRight?: ButtonAction;
         name: string;
         checked: boolean;
-        isSingle?: boolean | undefined;
+        isSingle?: boolean;
+        onValueChange?: (id: string, value: boolean) => Promise<void>;
     }
 
     let {
@@ -21,16 +21,12 @@
         actionRight = undefined,
         name,
         checked,
-        isSingle = undefined
+        isSingle = undefined,
+        onValueChange = undefined
     }: Props = $props()
 
-    // Auto submit
-    let inputElement: HTMLInputElement;
-
-    const onchange = () => {
-        tick().then(() => {
-            inputElement.form?.requestSubmit();
-        })
+    async function onchange() {
+        await onValueChange?.(id, checked);
     }
 </script>
 
@@ -44,7 +40,6 @@
                name={isSingle ? 'isChecked' : name}
                value={isSingle ? checked : id}
                bind:checked={checked}
-               bind:this={inputElement}
                onchange={onchange}/>
         <span class="ms-3 me-auto">{label}</span>
         {#if info !== undefined || subInfo !== undefined}

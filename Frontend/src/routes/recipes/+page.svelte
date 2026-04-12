@@ -1,24 +1,12 @@
 <script lang="ts">
-    import {tick} from "svelte";
-    import {enhance} from '$app/forms';
     import type {PageProps} from './$types';
     import Header from "$lib/components/nav/Header.svelte";
     import ModalAdd from "$lib/components/modal/generic/ModalAdd.svelte";
     import ModalRename from "$lib/components/modal/generic/ModalRename.svelte";
     import ListItemLink from "$lib/components/lists/ListItemLink.svelte";
+    import {del, patch, post} from "$lib/functions/requests.js";
+    import {invalidateAll} from "$app/navigation";
     let {data}: PageProps = $props();
-    
-    let recipeId: string = $state('');
-    let recipeIsPinned: boolean = $state(false);
-    let recipePinForm: HTMLFormElement;
-    
-    let togglePinAction = (id: string) => {
-        recipeId = id;
-        recipeIsPinned = !(data.allRecipes.filter(recipe => recipe.id === id)[0].isPinned);
-        tick().then(() => {
-            recipePinForm.requestSubmit()
-        });
-    };
     
     let addDialog: ModalAdd
     let renameDialog: ModalRename
@@ -26,25 +14,33 @@
     const headerActions: HeaderAction[] = [
         {label: "Add Recipe", icon: "fa-plus", action: () => {addDialog.show()}}
     ];
+    
+    async function addAction(value: string) {
+        await post('/api/recipes/add', {name: value});
+    }
+    
+    async function renameAction(id: string, value: string) {
+        await patch(`/api/recipes/${id}/edit`, {"/Name": value});
+    }
+    
+    async function deleteAction(id: string) {
+        await del(`/api/recipes/${id}/delete`);
+    }
+    
+    async function pinAction(id: string, value: boolean) {
+        await patch(`/api/recipes/${id}/edit`, {"/IsPinned": value});
+        await invalidateAll();
+    }
 </script>
 
 <svelte:head>
     <title>Recipes</title>
 </svelte:head>
 
-<ModalAdd bind:this={addDialog} type="Recipe" />
-<ModalRename bind:this={renameDialog} type="Recipe" warning="The recipe [Name] will be deleted!" />
+<ModalAdd bind:this={addDialog} type="Recipe" addAction={addAction} />
+<ModalRename bind:this={renameDialog} type="Recipe" renameAction={renameAction} deleteAction={deleteAction} warning="The recipe [Name] will be deleted!" />
 
 <Header title="Recipes" headerActions={headerActions} />
-
-<form method="POST"
-      action="?/toggleRecipePin"
-      bind:this={recipePinForm}
-      use:enhance>
-    <input hidden name="id" bind:value={recipeId}/>
-    <input hidden name="isPinned" type="checkbox" bind:checked={recipeIsPinned}/>
-    <input hidden type="submit"/>
-</form>
 
 {#if data.pinnedRecipes.length > 0}
     <h4>Pinned</h4>
@@ -56,7 +52,7 @@
                                         label: 'Unpin', 
                                         icon: 'fa-star', 
                                         color: 'warning', 
-                                        action: () => togglePinAction(recipe.id)
+                                        action: () => pinAction(recipe.id, !recipe.isPinned)
                                      }}
                              actionRight={{
                                         label: 'Edit', 
@@ -78,7 +74,7 @@
                                         label: 'Pin', 
                                         icon: 'fa-star-o', 
                                         color: 'warning', 
-                                        action: () => togglePinAction(recipe.id)
+                                        action: () => pinAction(recipe.id, !recipe.isPinned)
                                      }}
                              actionRight={{
                                         label: 'Edit', 

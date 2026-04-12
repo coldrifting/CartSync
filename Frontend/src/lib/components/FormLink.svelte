@@ -1,15 +1,16 @@
 <script lang="ts">
     interface Props {
         text: string;
-        label?: string | undefined;
+        label?: string;
         onclick: () => void; 
-        showArrow?: boolean | undefined;
+        showArrow?: boolean;
+        isSubmitButton?: boolean;
     }
     
-    let {text, label = undefined, onclick, showArrow = true}: Props = $props();
+    let {text, label = undefined, onclick, showArrow = true, isSubmitButton = undefined}: Props = $props();
 </script>
 
-<button class="form-link" onclick={onclick} type="button">
+<button class="form-link" onclick={onclick} type={isSubmitButton ? 'submit' : 'button'}>
     {#if label !== undefined}
         <span class="form-link-label">{label}</span>
     {/if}

@@ -8,6 +8,7 @@
     import ModalAddRecipeEntry from "$lib/components/modal/recipes/ModalAddRecipeEntry.svelte";
     import ModalEditRecipeEntry from "$lib/components/modal/recipes/ModalEditRecipeEntry.svelte";
     import type Prep from "$lib/models/Prep.ts";
+    import {patch} from "$lib/functions/requests.js";
 
     function getHost(url: string): string {
         return url.toLowerCase()
@@ -16,17 +17,17 @@
             .replace("www.", "")
             .split('/', 2)[0];
     }
-    
+
     let {data}: PageProps = $props();
 
     let urlHost: string = $derived(getHost(data.recipe.url));
-    
+
     let entryMappings: Record<string, any> = $derived.by(() => {
         let mapping: Record<string, any> = {};
         data.recipe.sections.forEach(section => {
             section.entries.forEach(entry => {
                 let preps: (Prep | null)[] = (data.validItemsAndPreps.sections.at(-1)?.items.find(item => item.id === entry.item.id)?.preps) ?? [];
-                
+
                 mapping[entry.id] = {
                     sectionId: section.id,
                     item: entry.item,
@@ -34,26 +35,32 @@
                     preps: preps,
                     amount: entry.amount
                 }
-                
+
             })
         })
-        
+
         return mapping;
     });
-    
+
     const showEditDialog = (id: string) => {
-                let mapping = entryMappings[id];
-                
-                editDialog.show(
-                    id,
-                    mapping.item.name,
-                    mapping.preps,
-                    mapping.prep?.id,
-                    mapping.amount.unitType,
-                    mapping.amount.fraction
-                );
+        let mapping = entryMappings[id];
+
+        const allPreps = data.validItemsAndPreps.sections.at(-1)?.items.find(item => item.id === mapping.item.id)?.preps ?? [];
+        const sectionUsedPreps = data.recipe.sections.find(s => s.id == mapping.sectionId)?.entries.filter(e => e.item.id == mapping.item.id).map(i => i.prep) ?? [];
+        const remainingPrepIds = allPreps.map(p => p?.id).filter(a => !sectionUsedPreps.map(p => p?.id).includes(a));
+
+        const remainingPreps = allPreps.filter(s => remainingPrepIds.includes(s?.id));
+        
+        editDialog.show(
+            id,
+            mapping.item.name,
+            remainingPreps,
+            mapping.prep?.id,
+            mapping.amount.unitType,
+            mapping.amount.fraction
+        );
     }
-    
+
     let headerActions: HeaderAction[] = [
         {
             label: "Add Ingredient", icon: 'fa-plus', action: () => {
@@ -70,38 +77,47 @@
     let addDialog: ModalAddRecipeEntry;
     let editDialog: ModalEditRecipeEntry;
     let renameDialog: ModalRename;
-    
+
     let urlEditDialog: ModalRename;
+
+    async function renameSectionAction(id: string, val: string) {
+        await patch(`/api/recipes/sections/${id}/edit`, {"/Name": val});
+    }
+
+    async function urlEditAction(id: string, val: string) {
+        await patch(`/api/recipes/${id}/edit`, {"/Url": val});
+    }
 </script>
 
 <svelte:head>
     <title>Recipes - {data.recipe.name}</title>
 </svelte:head>
 
-<ModalAddRecipeEntry bind:this={addDialog} sections={data.recipe.sections} items={data.validItemsAndPreps}/>
-<ModalEditRecipeEntry bind:this={editDialog} />
+<ModalAddRecipeEntry bind:this={addDialog} recipeId={data.recipe.id} sections={data.recipe.sections} items={data.validItemsAndPreps}/>
+<ModalEditRecipeEntry bind:this={editDialog}/>
 
-<ModalRename bind:this={renameDialog} type="Recipe Section"/>
-<ModalRename bind:this={urlEditDialog} type="Recipe URL" verb="Update"/>
+<ModalRename bind:this={renameDialog} type="Recipe Section" renameAction={renameSectionAction}/>
+<ModalRename bind:this={urlEditDialog} type="Recipe URL" verb="Update" renameAction={urlEditAction}/>
 
-<Header back={['/recipes', 'Recipes']} title={data.recipe.name} subtitle="Recipe Ingredients" headerActions={headerActions}/>
+<Header back={['/recipes', 'Recipes']} title={data.recipe.name} subtitle="Recipe Ingredients"
+        headerActions={headerActions}/>
 
 <h4>Details</h4>
 <ul>
-    <ListItemLink label="Steps" 
-                     href="/recipes/{data.recipe.id}/steps" 
-                     showArrow={true}/>
-    
-    <ListItemLink label="Url" 
-                     info={urlHost} 
-                     href={data.recipe.url} 
-                     isExternalLink={true} 
-                     actionRight={{
+    <ListItemLink label="Steps"
+                  href="/recipes/{data.recipe.id}/steps"
+                  showArrow={true}/>
+
+    <ListItemLink label="Url"
+                  info={urlHost}
+                  href={data.recipe.url}
+                  isExternalLink={true}
+                  actionRight={{
                             label: 'Edit', 
                             icon: 'fa-pencil', 
                             color: 'success', 
                             action: () => urlEditDialog.show(data.recipe.id, data.recipe.url)
-                         }} />
+                         }}/>
 </ul>
 
 {#if data.recipe.sections.length === 1}
@@ -109,12 +125,12 @@
     <ul>
         {#each data.recipe.sections[0].entries as entry, i}
             <ListItemCheckbox id={entry.id}
-                                 label={entry.item.name}
-                                 info={Amount.asString(entry.amount)}
-                                 subInfo={entry.prep?.name}
-                                 name="RecipeEntry"
-                                 checked={checkedEntries[i]}
-                                 actionRight={{
+                              label={entry.item.name}
+                              info={Amount.asString(entry.amount)}
+                              subInfo={entry.prep?.name}
+                              name="RecipeEntry"
+                              checked={checkedEntries[i]}
+                              actionRight={{
                                     label: 'Edit', 
                                     icon: 'fa-pencil', 
                                     color: 'success', 
@@ -131,12 +147,12 @@
         <ul>
             {#each section.entries as entry, j}
                 <ListItemCheckbox id={entry.id}
-                                     label={entry.item.name}
-                                     info={Amount.asString(entry.amount)}
-                                     subInfo={entry.prep?.name}
-                                     name="RecipeEntry"
-                                     checked={checkedEntries[(j * i) + j]}
-                                     actionRight={{
+                                  label={entry.item.name}
+                                  info={Amount.asString(entry.amount)}
+                                  subInfo={entry.prep?.name}
+                                  name="RecipeEntry"
+                                  checked={checkedEntries[(j * i) + j]}
+                                  actionRight={{
                                         label: 'Edit', 
                                         icon: 'fa-pencil', 
                                         color: 'success', 

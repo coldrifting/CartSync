@@ -1,23 +1,23 @@
 <script lang="ts">
-    import {enhance} from '$app/forms';
-    import {trapFocus} from 'trap-focus-svelte'
-    import {Modal, ModalFooter, FormGroup, Input, Button} from "@sveltestrap/sveltestrap";
-    import type {SubmitFunction} from "@sveltejs/kit";
+    import {FormGroup, Input} from "@sveltestrap/sveltestrap";
     import type Prep from "$lib/models/Prep.ts";
     import UnitType from "$lib/models/UnitType.js";
     import type Recipe from "$lib/models/Recipe.ts";
     import FormLink from "$lib/components/FormLink.svelte";
     import ItemWithPreps from "$lib/models/ItemWithPreps.js";
-    import ModalHeaderCustom from "$lib/components/modal/ModalHeaderCustom.svelte";
     import ModalSearch from "$lib/components/modal/generic/ModalSearch.svelte";
+    import ModalCustom from "$lib/components/modal/ModalCustom.svelte";
+    import Fraction from "$lib/models/Fraction.js";
+    import type Amount from "$lib/models/Amount.ts";
+    import {put} from "$lib/functions/requests.js";
+    import {invalidateAll} from "$app/navigation";
 
     interface Props {
-        formUrl: string;
         remainingRecipes: Recipe[];
         remainingItems: ItemWithPreps[];
     }
 
-    let {formUrl, remainingRecipes, remainingItems}: Props = $props();
+    let {remainingRecipes, remainingItems}: Props = $props();
 
     let isOpen: boolean = $state(false);
     let isRecipeSelectionEnabled: boolean = $state(true);
@@ -67,35 +67,31 @@
         return 1;
     });
     let isFractionValid: boolean = $derived(fraction > 0);
-
-    export const show = () => {
-        recipe = undefined;
-        item = undefined;
-        prepId = undefined;
-        isOpen = true;
-    }
-
-    const submitFunction: SubmitFunction = () => {
-        return async ({update}) => {
-            isOpen = false
-            await update({reset: false});
-        };
-    };
-
-    const getRecipeName = (recipe: Recipe) => {
-        return recipe.name;
-    }
-    const getItemName = (item: ItemWithPreps) => {
-        return item.item.name;
-    }
+    let amount: Amount = $derived.by(() => {
+        return {fraction: Fraction.fromNumberString(fraction.toFixed(3)), unitType: unitType} as Amount;
+    })
     
-    const isDisabled = () => {
+    let isSubmitDisabled: boolean = $derived.by(() => {
         if (isRecipeSelectionEnabled) {
             return recipe === undefined || recipeQuantity <= 0;
         }
         else {
             return item === undefined || !isFractionValid;
         }
+    })
+
+    export function show() {
+        recipe = undefined;
+        item = undefined;
+        prepId = undefined;
+        isOpen = true;
+    }
+
+    const getRecipeName = (recipe: Recipe) => {
+        return recipe.name;
+    }
+    const getItemName = (item: ItemWithPreps) => {
+        return item.item.name;
     }
     
     const onfocus = (e: Event) => {
@@ -124,10 +120,22 @@
 
     let isRecipeSearchOpen: boolean = $state(false);
     let isItemSearchOpen: boolean = $state(false);
-    let allowEscapeKey: boolean = $derived(!isItemSearchOpen && !isRecipeSelectionEnabled);
+    let allowEscapeKey: boolean = $derived(!isRecipeSearchOpen && !isItemSearchOpen);
 
     let modalSearchRecipe: ModalSearch<Recipe>;
     let modalSearchItem: ModalSearch<ItemWithPreps>;
+    
+    async function onSubmit() {
+        if (itemId !== undefined) {
+            await put(`/api/cart/selection/items/${itemId}/edit` + (prepId !== undefined ? `?prepId=${prepId}` : ''), {amount: amount});
+        }
+        else {
+            await put(`/api/cart/selection/recipes/${recipeId}/edit`, {quantity: recipeQuantity});
+        }
+        
+        isOpen = false;
+        await invalidateAll();
+    }
 </script>
 
 <ModalSearch bind:this={modalSearchRecipe} 
@@ -144,20 +152,11 @@
              getItemName={getItemName} 
              bind:selectedItem={item}/>
 
-<Modal body
-       isOpen={isOpen}
-       toggle={() => isOpen = !isOpen}
-       autoFocus={false}
-       on:open={() => document.getElementById("isRecipeTypeInput")?.focus()}
-       keyboard={allowEscapeKey}
-       centered={true}>
-    <form method="POST"
-          action="?/{formUrl}"
-          id={formUrl}
-          use:trapFocus={false}
-          use:enhance={submitFunction}>
-        <ModalHeaderCustom title="Add Cart {isRecipeSelectionEnabled ? 'Recipe' : 'Item'}" bind:isOpen={isOpen} />
-        <div>
+<ModalCustom title="Add Cart Entry"
+             bind:isOpen
+             keyboard={allowEscapeKey}
+             action={{label: "Add", action: onSubmit}}
+             actionIsDisabled={isSubmitDisabled}>
             <FormGroup floating label="Cart Item Type">
                 <Input id="isRecipeTypeInput" name="isRecipeType" type="select" bind:value={isRecipeSelectionEnabled}>
                     <option value={true}>Recipe</option>
@@ -217,11 +216,4 @@
                     </FormGroup>
                 </div>
             {/if}
-
-        </div>
-        <ModalFooter>
-            <Button color="secondary" type="button" onclick={() => isOpen = false}>Cancel</Button>
-            <Button color="primary" type="submit" disabled={isDisabled()}>Add</Button>
-        </ModalFooter>
-    </form>
-</Modal>
+</ModalCustom>

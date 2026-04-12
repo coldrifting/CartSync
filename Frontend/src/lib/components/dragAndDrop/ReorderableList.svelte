@@ -6,6 +6,7 @@
     import {move} from '@dnd-kit/helpers';
     import {RestrictToWindowEdges} from '@dnd-kit-svelte/svelte/modifiers';
     import {KeyboardSensor, PointerSensor} from '@dnd-kit-svelte/svelte';
+    import {invalidateAll} from "$app/navigation";
 
     const sensors = [PointerSensor, KeyboardSensor];
 
@@ -17,7 +18,7 @@
     interface Props {
         listName: string;
         items: SortableItem[];
-        onReorder: (id: string, newIndex: number) => void;
+        onReorder: (id: string, newIndex: number) => Promise<void>;
     }
 
     let currentDragIndex: number = $state(-1);
@@ -29,10 +30,11 @@
         items = move(items, event);
     }
     const onDragEnd = (event: any) => {
-        setTimeout(() => {
+        setTimeout(async () => {
             let source: HasIndex = event.operation.source;
             if (source.index != currentDragIndex) {
-                onReorder(source.id, source.index)
+                await onReorder(source.id, source.index)
+                await invalidateAll();
             }
         }, 200);
     }

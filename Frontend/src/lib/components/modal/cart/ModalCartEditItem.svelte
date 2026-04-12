@@ -1,19 +1,18 @@
 <script lang="ts">
-    import {enhance} from '$app/forms';
-    import {trapFocus} from 'trap-focus-svelte'
-    import {Modal, ModalFooter, FormGroup, Input, Button} from "@sveltestrap/sveltestrap";
-    import type {SubmitFunction} from "@sveltejs/kit";
+    import {FormGroup, Input} from "@sveltestrap/sveltestrap";
     import UnitType from "$lib/models/UnitType.js";
     import type CartSelectItem from "$lib/models/CartSelectItem.ts";
     import Fraction from "$lib/models/Fraction.js";
-    import ModalHeaderCustom from "$lib/components/modal/ModalHeaderCustom.svelte";
+    import ModalCustom from "$lib/components/modal/ModalCustom.svelte";
+    import {invalidateAll} from "$app/navigation";
+    import Amount from "$lib/models/Amount.js";
+    import {put, del} from "$lib/functions/requests.js";
 
     interface Props {
-        formUrl: string;
         cartItems: CartSelectItem[];
     }
 
-    let {formUrl, cartItems}: Props = $props();
+    let {cartItems}: Props = $props();
 
     let isOpen: boolean = $state(false);
 
@@ -31,49 +30,48 @@
     let fraction: number = $derived.by(() => {
         return Fraction.asNumber(item?.amount.fraction ?? {num: 1, dem: 1});
     });
+    let amount: Amount = $derived.by(() => {
+        return {fraction: Fraction.fromNumberString(fraction.toFixed(3)), unitType: unitType} as Amount;
+    })
     let isFractionValid: boolean = $derived(fraction > 0);
+    
+    let isSubmitDisabled: boolean = $derived.by(() => {
+        return item === undefined || !isFractionValid;
+    })
 
-    export const show = (itemId: string, prepId: string | null) => {
+    export function show(itemId: string, prepId: string | null) {
         item = cartItems.find(i => i.item.id == itemId && i.prep?.id == prepId)
         isOpen = true;
     }
 
-    const submitFunction: SubmitFunction = () => {
-        return async ({update}) => {
-            isOpen = false
-            await update({reset: false});
-        };
-    };
-    
-    const isDisabled = () => {
-        return item === undefined || !isFractionValid;
-    }
-    
-    const onfocus = (e: Event) => {
-        let element = e.target as HTMLInputElement;
+    function onfocus(event: Event) {
+        let element = event.target as HTMLInputElement;
         element.select();
     }
     
-    let removeForm: HTMLFormElement;
-    const onRemove = () => {
-        removeForm.requestSubmit();
+    function onOpen() {
+        document.getElementById('fractionInput')?.focus();
+    }
+
+    async function onSubmit() {
+        await put(`/api/cart/selection/items/${itemId}/edit` + (prepId !== undefined ? `?prepId=${prepId}` : ''), {amount: amount});
+        isOpen = false;
+        await invalidateAll();
+    }
+
+    async function onDelete() {
+        await del(`/api/cart/selection/items/${itemId}/delete` + (prepId !== undefined ? `?prepId=${prepId}` : ''));
+        isOpen = false;
+        await invalidateAll();
     }
 </script>
 
-<Modal body
-       isOpen={isOpen}
-       toggle={() => isOpen = !isOpen}
-       on:open={() => document.getElementById("fractionInput")?.focus()}
-       centered={true}>
-    <form method="POST"
-          action="?/{formUrl}"
-          id={formUrl}
-          use:trapFocus={true}
-          use:enhance={submitFunction}>
-        <ModalHeaderCustom title="Edit Cart Item" bind:isOpen={isOpen}/>
-        <div>
-            <input name="itemId" bind:value={itemId} hidden/>
-            <input name="prepId" bind:value={prepId} hidden/>
+<ModalCustom title="Edit Cart Entry Item"
+             bind:isOpen
+             action={({label: "Update", action: onSubmit})}
+             actionIsDisabled={isSubmitDisabled}
+             actionDelete={{label: "Remove", action: onDelete}}
+             onOpen={onOpen}>
             <h4>{item?.item.name}</h4>
 
             <div class="d-flex flex-column flex-sm-row justify-content-between">
@@ -89,20 +87,4 @@
                     </Input>
                 </FormGroup>
             </div>
-        </div>
-        <ModalFooter>
-            <Button class="left-button" color="danger" type="button" onclick={onRemove}>Remove</Button>
-            
-            <Button color="secondary" type="button" onclick={() => isOpen = false}>Cancel</Button>
-            <Button color="primary" type="submit" disabled={isDisabled()}>Update</Button>
-        </ModalFooter>
-    </form>
-    
-    <form method="POST"
-          action="?/removeCartItem"
-          bind:this={removeForm}
-          use:enhance={submitFunction}>
-        <input name="itemId" bind:value={itemId} hidden/>
-        <input name="prepId" bind:value={prepId} hidden/>
-    </form>
-</Modal>
+</ModalCustom>

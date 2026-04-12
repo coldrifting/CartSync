@@ -1,19 +1,19 @@
 <script lang="ts">
-    import {enhance} from '$app/forms';
-    import {trapFocus} from 'trap-focus-svelte'
-    import {Modal, ModalFooter, FormGroup, Input, Button} from "@sveltestrap/sveltestrap";
-    import type {SubmitFunction} from "@sveltejs/kit";
+    import {FormGroup, Input} from "@sveltestrap/sveltestrap";
     import ModalDelete from "$lib/components/modal/generic/ModalDelete.svelte";
-    import ModalHeaderCustom from "$lib/components/modal/ModalHeaderCustom.svelte";
+    import ModalCustom from "$lib/components/modal/ModalCustom.svelte";
+    import {invalidateAll} from "$app/navigation";
 
     interface Props {
         type: string;
         warning?: string | null | undefined;
-        tryDelete?: boolean | undefined;
-        verb?: string | undefined;
+        verb?: string;
+        renameAction: (id: string, value: string) => Promise<void>;
+        deleteAction?: (id: string) => Promise<void>;
+        tryDeleteAction?: (id: string) => Promise<Record<string, string[]>>;
     }
 
-    let {type, warning = undefined, tryDelete = undefined, verb = undefined}: Props = $props();
+    let {type, warning = undefined, verb = undefined, renameAction, deleteAction = undefined, tryDeleteAction = undefined}: Props = $props();
 
     let isOpen: boolean = $state(false);
 
@@ -32,82 +32,63 @@
         isOpen = true;
     }
 
-    const submitFunction: SubmitFunction = () => {
-        return async ({update}) => {
-            isOpen = false
-            await update();
-        };
-    };
-
-    const tryDeleteSubmitFunction: SubmitFunction = () => {
-        return async ({update, result}) => {
-            if (result.type === 'failure' && result.data) {
-                deleteDialog.show(id, name, result.data);
-            } else {
-                isOpen = false
-                await update();
+    async function onDelete() {
+        if (deleteAction === undefined) {
+            return;
+        }
+        
+        if (tryDeleteAction !== undefined) {
+            const usages = await tryDeleteAction(id);
+            if ((usages['Items']?.length ?? 0) === 0 &&
+                (usages['Recipes']?.length ?? 0) === 0 &&
+                (usages['Preps']?.length ?? 0) === 0) {
+                await deleteAction(id);
+                isOpen = false;
+                await invalidateAll();
             }
-        };
-    };
-
-    let deleteForm: HTMLFormElement
-    const onDelete = () => {
-        if (tryDelete !== undefined) {
-            tryDeleteForm.requestSubmit();
+            else {
+                deleteDialog.show(id, name, usages);
+            }
         }
         else if (warning !== null) {
             deleteDialog.show(id, name);
         } 
         else {
-            deleteForm.requestSubmit();
+            await deleteAction(id);
+            isOpen = false;
+            await invalidateAll();
         }
     }
     
-    let tryDeleteForm: HTMLFormElement
-
     let deleteDialog: ModalDelete
+    
+    async function placeholderDelete(_: string) {
+    }
+
+    async function onRename() {
+        await renameAction(id, value);
+        isOpen = false;
+        await invalidateAll();
+    }
+    
+    function onOpen() {
+        document.getElementById('inputRename')?.focus();
+    }
 </script>
 
-<ModalDelete bind:this={deleteDialog} type={type} warning={warning ?? ""} bind:parentIsOpen={isOpen}/>
+<ModalDelete bind:this={deleteDialog} 
+             type={type} 
+             warning={warning ?? ""} 
+             bind:parentIsOpen={isOpen} 
+             deleteAction={deleteAction ?? placeholderDelete}/>
 
-<Modal body
-       isOpen={isOpen}
-       toggle={() => isOpen = !isOpen}
-       centered={true}
-       on:open={() => document.getElementById("inputRename")?.focus()}>
-    <form method="POST"
-          action="?/{uiVerb.toLowerCase()}{type.split(' ').join('')}"
-          use:enhance={submitFunction}
-          use:trapFocus={true}>
-        <ModalHeaderCustom title="{uiVerb} {type}" bind:isOpen={isOpen}/>
-        <div>
-            <input name="id" bind:value={id} required type="hidden"/>
-            <FormGroup floating label="{type} Name">
-                <Input id="inputRename" name="inputRename" bind:value={value} required/>
-            </FormGroup>
-        </div>
-        <ModalFooter>
-            {#if showDeleteButton}
-                <Button class="left-button" color="danger" type="button" onclick={onDelete}>Delete</Button>
-            {/if}
-
-            <Button color="secondary" type="button" onclick={() => isOpen = false}>Cancel</Button>
-            <Button color="success" type="submit" disabled={value.trim() === ""}>{uiVerb}</Button>
-        </ModalFooter>
-    </form>
-
-    <form method="POST"
-          action="?/delete{type}"
-          bind:this={deleteForm}
-          use:enhance={submitFunction}>
-        <input name="id" bind:value={id} hidden required/>
-    </form>
-</Modal>
-
-<form method="POST"
-      action="?/tryDelete{type}"
-      bind:this={tryDeleteForm}
-      use:enhance={tryDeleteSubmitFunction}>
-    <input hidden name="id" bind:value={id}/>
-    <input hidden type="submit"/>
-</form>
+<ModalCustom title="{uiVerb} {type}"
+             bind:isOpen
+             action={{label: uiVerb, action: onRename}}
+             actionIsDisabled={value.trim() === ""}
+             actionDelete={ showDeleteButton ? ({label: "Remove", action: onDelete}) : undefined }
+             onOpen={onOpen}>
+        <FormGroup floating label="{type} Name">
+            <Input id="inputRename" name="inputRename" bind:value={value} required/>
+        </FormGroup>
+</ModalCustom>

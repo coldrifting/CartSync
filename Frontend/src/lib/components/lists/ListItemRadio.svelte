@@ -4,11 +4,12 @@
     interface Props {
         id: any;
         label: string;
-        info?: string | undefined;
-        subInfo?: string | undefined;
+        info?: string;
+        subInfo?: string;
         group: string;
         selectedValue: any;
-        actionRight?: ButtonAction | undefined;
+        actionRight?: ButtonAction;
+        onValueChange?: (value: string) => Promise<void>;
     }
 
     let {
@@ -18,14 +19,12 @@
         subInfo = undefined,
         group,
         selectedValue = $bindable(),
-        actionRight = undefined
+        actionRight = undefined,
+        onValueChange = undefined
     }: Props = $props()
 
-    // Auto submit
-    let inputElement: HTMLInputElement;
-
-    const onchange = () => {
-        inputElement.form?.requestSubmit();
+    async function onchange() {
+        await onValueChange?.(selectedValue);
     }
 </script>
 
@@ -36,7 +35,6 @@
                name={group}
                bind:group={selectedValue}
                value={id}
-               bind:this={inputElement}
                onchange={onchange}/>
         <span class="ms-3 me-auto">{label}</span>
         {#if info !== undefined || subInfo !== undefined}

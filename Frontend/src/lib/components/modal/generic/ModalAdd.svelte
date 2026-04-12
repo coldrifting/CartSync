@@ -1,57 +1,40 @@
 <script lang="ts">
-    import {enhance} from '$app/forms';
-    import {Modal, ModalFooter, FormGroup, Input, Button} from "@sveltestrap/sveltestrap";
-    import {tick} from "svelte";
-    import type {SubmitFunction} from "@sveltejs/kit";
-    import {trapFocus} from 'trap-focus-svelte'
-    import ModalHeaderCustom from "$lib/components/modal/ModalHeaderCustom.svelte";
+    import {FormGroup, Input} from "@sveltestrap/sveltestrap";
+    import ModalCustom from "$lib/components/modal/ModalCustom.svelte";
+    import {invalidateAll} from "$app/navigation";
 
     interface Props {
         type: string;
+        addAction: (value: string) => Promise<void>;
         scrollOnAdd?: boolean | undefined;
     }
 
-    let {type, scrollOnAdd = undefined}: Props = $props();
+    let {type, addAction, scrollOnAdd = undefined}: Props = $props();
 
     let isOpen: boolean = $state(false);
     let value: string = $state('');
 
-    export const show = () => {
+    export function show() {
         value = '';
         isOpen = true;
     }
-
-    const submitFunction: SubmitFunction = () => {
-        return async ({update}) => {
-            isOpen = false
-            await update();
-            if (scrollOnAdd === true) {
-                tick().then(() => {
-                    window.scrollTo(0, document.body.scrollHeight);
-                });
-            }
-        };
-    };
+    
+    async function onAdd() {
+        await addAction(value);
+        isOpen = false;
+        await invalidateAll();
+    }
+    
+    function onOpen() {
+        document.getElementById('inputAdd')?.focus();
+    }
 </script>
 
-<Modal body
-       isOpen={isOpen}
-       toggle={() => isOpen = !isOpen}
-       centered={true}
-       on:open={() => document.getElementById("inputAdd")?.focus()}>
-    <form method="POST"
-          action="?/add{type}"
-          use:enhance={submitFunction}
-          use:trapFocus={true}>
-        <ModalHeaderCustom title="Add {type}" bind:isOpen={isOpen}/>
-        <div>
-            <FormGroup floating label="{type} Name">
-                <Input id="inputAdd" name="inputAdd" bind:value={value} required/>
-            </FormGroup>
-        </div>
-        <ModalFooter>
-            <Button color="secondary" type="button" onclick={() => isOpen = false}>Cancel</Button>
-            <Button color="primary" type="submit" disabled={value.trim() === ""}>Add</Button>
-        </ModalFooter>
-    </form>
-</Modal>
+<ModalCustom title="Add {type}"
+             bind:isOpen
+             action={{label: "Add", action: onAdd}}
+             onOpen={onOpen}>
+        <FormGroup floating label="{type} Name">
+            <Input id="inputAdd" name="inputAdd" bind:value={value} required/>
+        </FormGroup>
+</ModalCustom>

@@ -32,7 +32,6 @@
     })
     
     let formatedUrl: string = $derived.by(() => {
-        console.log(href);
         if (!isExternalLink) {
             return href;
         }

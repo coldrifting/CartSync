@@ -1,10 +1,10 @@
 <script lang="ts">
-    import {enhance} from '$app/forms';
     import type {PageProps} from './$types';
     import Header from "$lib/components/nav/Header.svelte";
     import ReorderableList from "$lib/components/dragAndDrop/ReorderableList.svelte";
     import ModalAddStep from "$lib/components/modal/recipes/steps/ModalAddStep.svelte";
     import ModalEditStep from "$lib/components/modal/recipes/steps/ModalEditStep.svelte";
+    import {patch} from "$lib/functions/requests.js";
 
     let {data}: PageProps = $props();
 
@@ -32,21 +32,9 @@
         } as SortableItem;
     }))
 
-    let reorderForm: HTMLFormElement;
-
-    let reorderState = $state<{ id: string, index: number }>({id: "", index: -1})
-    let reorderId = $derived(reorderState.id);
-    let reorderIndex = $derived(reorderState.index);
-
-    let onReorder = (id: string, newIndex: number) => {
-        reorderState = {id: id, index: newIndex};
+    async function onReorder(stepId: string, newIndex: number) {
+        await patch(`/api/recipes/steps/${stepId}/edit`, {'/SortOrder': newIndex});
     }
-
-    $effect(() => {
-        if (reorderState.id != "" && reorderState.index != -1) {
-            reorderForm.requestSubmit();
-        }
-    })
     
     let modalAddStep: ModalAddStep
     let modalEditStep: ModalEditStep
@@ -56,8 +44,8 @@
     <title>Recipes - {data.recipe.name} - Steps</title>
 </svelte:head>
 
-<ModalAddStep bind:this={modalAddStep} action="addStep"/>
-<ModalEditStep bind:this={modalEditStep} action="editStep"/>
+<ModalAddStep bind:this={modalAddStep} recipeId={data.recipe.id}/>
+<ModalEditStep bind:this={modalEditStep}/>
 
 <Header back={[`/recipes/${data.recipe.id}`, 'Recipe']} 
         title={data.recipe.name} 
@@ -65,10 +53,3 @@
         headerActions={headerActions}/>
 
 <ReorderableList listName="RecipeSteps" items={items} onReorder={onReorder}/>
-<form method="POST"
-      action="?/reorderStep"
-      bind:this={reorderForm}
-      use:enhance>
-    <input hidden name="id" bind:value={reorderId}/>
-    <input hidden name="stepSortOrder" bind:value={reorderIndex}/>
-</form>

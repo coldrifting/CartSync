@@ -7,8 +7,8 @@ export async function handle({event, resolve}) {
         return new Response(undefined, {status: 404});
     }
 
-    // Get the session token from cookies
-    const session = event.cookies.get('token');
+    // Check if user is still logged in
+    const session = event.cookies.get('CartSyncCookie');
 
     if (!session) {
         if (event.url.pathname.startsWith('/login') || event.url.pathname.startsWith('/logout')) {

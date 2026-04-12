@@ -1,71 +1,49 @@
 <script lang="ts">
-    import {tick} from "svelte";
-    import {enhance} from '$app/forms';
-    import {trapFocus} from 'trap-focus-svelte'
-    import type {SubmitFunction} from "@sveltejs/kit";
-    import {Modal, ModalFooter, FormGroup, Input, Button} from "@sveltestrap/sveltestrap";
-    import ModalHeaderCustom from "$lib/components/modal/ModalHeaderCustom.svelte";
-
-    interface Props {
-        action: string;
-    }
-
-    let {action}: Props = $props();
+    import {FormGroup, Input} from "@sveltestrap/sveltestrap";
+    import ModalCustom from "$lib/components/modal/ModalCustom.svelte";
+    import {del, patch, put} from "$lib/functions/requests.js";
+    import {invalidateAll} from "$app/navigation";
 
     let isOpen: boolean = $state(false);
     
     let stepId: string = $state('');
     let content: string = $state('');
+    let isImage: boolean = $derived.by(() => {
+        return content.trim().split(' ').length === 1 && content.includes('/');
+    });
 
     export const show = (inputStepId: string, inputContent: string) => {
         stepId = inputStepId;
         content = inputContent;
         isOpen = true;
     }
-
-    const submitFunction: SubmitFunction = () => {
-        return async ({update}) => {
-            isOpen = false
-            await update();
-        };
-    };
     
-    let deleteForm: HTMLFormElement
-    const onDelete = () => {
-        deleteForm.requestSubmit();
+    async function onUpdate() {
+        await patch(`/api/recipes/steps/${stepId}/edit`, {'/Content': content, '/IsImage': isImage})
+        
+        isOpen = false
+        await invalidateAll();
+    }
+    
+    async function onDelete() {
+        await del(`/api/recipes/steps/${stepId}/delete`);
+
+        isOpen = false
+        await invalidateAll();
+    }
+    
+    function onOpen() {
+        document.getElementById('stepContentsInput')?.focus();
     }
 </script>
 
-<Modal body
-       isOpen={isOpen}
-       toggle={() => isOpen = !isOpen}
-       size="lg"
-       on:open={() => document.getElementById("stepContentsInput")?.focus()}
-       centered={true}>
-    <form method="POST"
-          action="?/{action}"
-          id={action}
-          use:enhance={submitFunction}
-          use:trapFocus={true}>
-        <ModalHeaderCustom title="Edit Recipe Step" bind:isOpen={isOpen}/>
-        <div>
-            <input hidden name="stepId" value={stepId} required/>
-            <FormGroup floating label="Step Details or Image URL">
-                <Input id="stepContentsInput" name="stepContents" type="textarea" class="text-area" rows={5} bind:value={content} required/>
-            </FormGroup>
-        </div>
-        <ModalFooter>
-            <Button class="left-button" color="danger" type="button" onclick={onDelete}>Delete</Button>
-            
-            <Button color="secondary" type="button" onclick={() => isOpen = false}>Cancel</Button>
-            <Button color="success" type="submit" disabled={content.trim() === ""}>Update</Button>
-        </ModalFooter>
-    </form>
-</Modal>
-
-<form method="POST"
-      action="?/deleteStep"
-      bind:this={deleteForm}
-      use:enhance={submitFunction}>
-    <input hidden name="id" bind:value={stepId}/>
-</form>
+<ModalCustom title="Update Recipe Step"
+             bind:isOpen
+             action={{label: "Update", action: onUpdate}}
+             actionIsDisabled={content.trim() === ""}
+             actionDelete={{label: "Delete", action: onDelete}}
+             onOpen={onOpen}>
+    <FormGroup floating label="Step Details or Image URL">
+        <Input id="stepContentsInput" name="stepContents" type="textarea" class="text-area" rows={5} bind:value={content} required/>
+    </FormGroup>
+</ModalCustom>

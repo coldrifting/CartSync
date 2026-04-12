@@ -1,5 +1,4 @@
 <script lang="ts">
-    import {tick} from "svelte";
     import {enhance} from '$app/forms';
     import type {PageProps} from './$types';
     import ListItemButton from "$lib/components/lists/ListItemButton.svelte";
@@ -9,43 +8,22 @@
     import ModalCartEditRecipe from "$lib/components/modal/cart/ModalCartEditRecipe.svelte";
     import ModalCartEditItem from "$lib/components/modal/cart/ModalCartEditItem.svelte";
     import type CartSelectItem from "$lib/models/CartSelectItem.ts";
+    import {goto} from "$app/navigation";
+    import {del, post} from "$lib/functions/requests.js";
     let {data}: PageProps = $props();
     
     const headerActions: HeaderAction[] = [
         {label: "Add", icon: "fa-plus", action: () => { modalCartAdd.show() }},
-        {label: "Generate", icon: "fa-refresh", action: () => { generateCartForm.requestSubmit() }}
+        {label: "Generate", icon: "fa-refresh", action: async () => { 
+            try {
+                await post('/api/cart/generate', {});
+                await goto('/cart/list');
+            }
+            catch {
+                console.log('Error generating cart');
+            }
+        }}
     ];
-
-    let recipeContextActions: ContextAction[] = [
-        {
-            label: "Edit", action: (id: string, _: string | undefined) => {
-                modalCartEditRecipe.show(id)
-            }
-        },
-        {
-            label: "Remove", action: (id: string, _: string | undefined) => {
-                deleteRecipeId = id;
-                tick().then(() => deleteRecipeForm.requestSubmit());
-            }
-        },
-    ]
-
-    let itemContextActions: ContextAction[] = [
-        {
-            label: "Edit", action: (id: string, _: string | undefined) => {
-                let ids = extractId(id);
-                modalCartEditItem.show(ids.itemId, ids.prepId ?? null)
-            }
-        },
-        {
-            label: "Remove", action: (id: string, _: string | undefined) => {
-                let ids = extractId(id);
-                deleteItemId = ids.itemId;
-                deletePrepId = ids.prepId ?? '';
-                tick().then(() => deleteItemForm.requestSubmit());
-            }
-        },
-    ]
     
     const mergeId = (item: CartSelectItem) => {
         return item.item.id + '/' + (item.prep?.id ?? '(None)');
@@ -67,6 +45,11 @@
     let deleteItemForm: HTMLFormElement;
     let deleteItemId: string = $state('');
     let deletePrepId: string = $state('');
+    
+    async function recipeDeleteEvent(event: SubmitEvent) {
+        event.preventDefault();
+        await del(`/api/cart/selection/recipes/${deleteRecipeId}/delete`);
+    }
 </script>
 
 <svelte:head>
@@ -78,9 +61,7 @@
               remainingRecipes={data.remainingRecipes}
               remainingItems={data.remainingItems}/>
 
-<ModalCartEditRecipe bind:this={modalCartEditRecipe}
-              formUrl='editCartRecipe'
-              cartRecipes={data.recipes}/>
+<ModalCartEditRecipe bind:this={modalCartEditRecipe} cartRecipes={data.recipes}/>
 
 <ModalCartEditItem bind:this={modalCartEditItem}
               formUrl='editCartItem'
@@ -92,10 +73,9 @@
     <h4>Recipes</h4>
     <ul>
         {#each data.recipes as recipe}
-            <ListItemButton id={recipe.id} 
-                               label={recipe.name} 
-                               info="Qty: {recipe.quantity.toFixed(0)}" 
-                               action={() => {modalCartEditRecipe.show(recipe.id)}}/>
+            <ListItemButton label={recipe.name} 
+                            info="Qty: {recipe.quantity.toFixed(0)}" 
+                            action={() => {modalCartEditRecipe.show(recipe.id)}}/>
         {/each}
     </ul>
 {/if}
@@ -115,7 +95,7 @@
 <form method="POST"
       action="?/removeCartRecipe"
       bind:this={deleteRecipeForm}
-      use:enhance>
+      onsubmit={recipeDeleteEvent}>
     <input name="recipeId" bind:value={deleteRecipeId} hidden required/>
     <input hidden type="submit"/>
 </form>

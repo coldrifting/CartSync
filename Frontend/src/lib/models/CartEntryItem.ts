@@ -3,6 +3,7 @@ import type Prep from "$lib/models/Prep.ts";
 import AmountGroup from "$lib/models/AmountGroup.js";
 
 class CartEntryItem {
+    entryId: string = "";
     item: Item = new Item();
     prep?: Prep | undefined = undefined;
     bay: string = "";
