@@ -38,6 +38,7 @@ public record CartEntryAisleResponsePrototype : CartEntryAisleResponse
                 .ThenBy(cir => cir.Prep != null ? cir.Prep.PrepId : Ulid.Empty)
                 .Select(ce => new CartEntryItemResponse
                 {
+                    EntryId = ce.CartEntryId,
                     Item = new ItemMinimalResponse
                     {
                         Id = ce.ItemId,

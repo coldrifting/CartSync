@@ -3,7 +3,7 @@ using CartSync.Data.Responses;
 using CartSync.Database;
 using CartSync.Utils.Scalar;
 using CartSync.Utils.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -36,20 +36,22 @@ builder.Services.AddDbContext<CartSyncContext>((_, options) =>
     }
 });
 
-builder.Services.AddCors(options =>
-{
-    options.AddDefaultPolicy(
-        policy =>
-        {
-            policy.SetIsOriginAllowed(origin => new Uri(origin).IsLoopback);
-            policy.AllowAnyHeader();
-            policy.AllowAnyMethod();
-        });
-});
-
 JwtAuthentication jwtAuthentication = new(builder.Configuration);
 builder.Services.AddSingleton(jwtAuthentication);
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+builder.Services.AddAuthentication(opt =>
+    {
+        opt.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        opt.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    })
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+    {
+        options.Cookie.Name = "CartSyncCookie";
+        options.Cookie.HttpOnly = true;
+        options.ExpireTimeSpan = TimeSpan.FromDays(7);
+        options.SlidingExpiration = true;
+        options.Cookie.Path = "/";
+        options.Cookie.SameSite = SameSiteMode.Strict;
+    })
     .AddJwtBearer(jwtOptions =>
     {
         jwtOptions.TokenValidationParameters = new TokenValidationParameters
@@ -117,8 +119,6 @@ builder.Services.Configure<RouteOptions>(options =>
 });
 
 WebApplication app = builder.Build();
-
-app.UseCors();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -32,6 +32,6 @@ public record CartEntry
     public Aisle? Aisle { get; init; }
 
     // Errors
-    public static NotFound<ErrorResponse> NotFound(Ulid itemId, Ulid? prepId) =>
-        ErrorResponse.NotFoundCompositeKey("CartEntry", itemId, "Item", prepId, "Prep");
+    public static NotFound<ErrorResponse> NotFound(Ulid entryId) =>
+        ErrorResponse.NotFound(entryId, "CartEntry");
 }

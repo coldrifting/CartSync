@@ -1,5 +1,7 @@
 using CartSync.Data.Entities;
 using CartSync.Database;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -7,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 namespace CartSync.Controllers.Core;
 
 [ApiController]
-[Authorize]
+[Authorize(AuthenticationSchemes = $"{CookieAuthenticationDefaults.AuthenticationScheme},{JwtBearerDefaults.AuthenticationScheme}")]
 public class ControllerCore(CartSyncContext context) : ControllerBase
 {
     protected CartSyncContext Db { get; } = context;

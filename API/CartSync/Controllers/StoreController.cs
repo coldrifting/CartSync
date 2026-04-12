@@ -41,7 +41,7 @@ public class StoreController(CartSyncContext context) : ControllerCore(context)
         return TypedResults.Created($"/api/stores/{store.StoreId}", StoreResponse.FromNewEntity(store));
     }
 
-    [HttpPost]
+    [HttpPut]
     [Route("/api/stores/{storeId}/select")]
     public async Task<Results<NoContent, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> Select(Ulid storeId)
     {

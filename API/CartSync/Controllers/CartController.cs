@@ -90,13 +90,13 @@ public class CartController(CartSyncContext context) : ControllerCore(context)
     }
 
     [HttpPut]
-    [Route("/api/cart/items/{itemId}/edit")]
-    public async Task<Results<NoContent, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> Check(Ulid itemId, [FromQuery] Ulid? prepId, [FromQuery, Required] bool isChecked)
+    [Route("/api/cart/entries/{entryId}/edit")]
+    public async Task<Results<NoContent, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> Check(Ulid entryId, [FromQuery] bool isChecked)
     {
-        CartEntry? cartEntry = await Db.CartEntries.FirstOrDefaultAsync(ce => ce.ItemId == itemId && ce.PrepId == prepId);
+        CartEntry? cartEntry = await Db.CartEntries.FindAsync(entryId);
         if (cartEntry is null)
         {
-            return CartEntry.NotFound(itemId, prepId);
+            return CartEntry.NotFound(entryId);
         }
         
         cartEntry.IsChecked = isChecked;
