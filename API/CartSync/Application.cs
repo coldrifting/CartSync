@@ -79,7 +79,7 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.IgnoreReadOnlyProperties = true;
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
-builder.Services.AddAuthorization();
+//builder.Services.AddAuthorization();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi(opt =>
@@ -120,6 +120,13 @@ builder.Services.Configure<RouteOptions>(options =>
 
 WebApplication app = builder.Build();
 
+//app.UseAuthentication();
+
+app.UseStaticFiles();
+app.UseRouting();
+
+app.UseAuthorization();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -132,5 +139,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.MapControllers();
+
+app.MapFallbackToFile("200.html");
 
 app.Run();

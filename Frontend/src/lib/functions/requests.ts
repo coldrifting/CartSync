@@ -2,16 +2,17 @@ import type ErrorResponse from "$lib/models/ErrorResponse.ts";
 import ErrorCustom from "$lib/models/ErrorCustom.js";
 import {goto} from "$app/navigation";
 import {redirect} from "@sveltejs/kit";
+import {browser} from '$app/environment'
 
 type fetchFunction = (input: (RequestInfo | URL), init?: RequestInit) => Promise<Response>;
 
-async function checkForErrors(response: Response, isServer: boolean = false): Promise<void> {
+async function checkForErrors(response: Response): Promise<void> {
     if (response.status === 401) {
-        if (isServer) {
-            throw redirect(303, "/login");
+        if (browser) {
+            await goto('/login');
         }
         else {
-            await goto('/login');
+            throw redirect(303, "/login");
         }
     }
     else if (!response.ok) {
@@ -31,7 +32,7 @@ export async function get<T>(url: string, fetchFunc: fetchFunction | undefined =
     const response: Response = fetchFunc !== undefined 
         ? await fetchFunc(url, requestInit) 
         : await fetch(url, requestInit);
-    await checkForErrors(response, fetch !== undefined);
+    await checkForErrors(response);
     return await response.json()
 }
 
@@ -46,7 +47,7 @@ export async function post(url: string, body: any, fetchFunc: fetchFunction | un
     const response: Response = fetchFunc !== undefined 
         ? await fetchFunc(url, requestInit) 
         : await fetch(url, requestInit);
-    await checkForErrors(response, fetch !== undefined);
+    await checkForErrors(response);
 }
 
 export async function postAndGetId(url: string, body: any, fetchFunc: fetchFunction | undefined = undefined): Promise<string> {
@@ -60,7 +61,7 @@ export async function postAndGetId(url: string, body: any, fetchFunc: fetchFunct
     const response: Response = fetchFunc !== undefined 
         ? await fetchFunc(url, requestInit) 
         : await fetch(url, requestInit);
-    await checkForErrors(response, fetch !== undefined);
+    await checkForErrors(response);
     
     return (response.headers.get("Location") ?? "").split('/').at(-1) ?? "";
 }
@@ -76,7 +77,7 @@ export async function put(url: string, body: any, fetchFunc: fetchFunction | und
     const response: Response = fetchFunc !== undefined 
         ? await fetchFunc(url, requestInit) 
         : await fetch(url, requestInit);
-    await checkForErrors(response, fetch !== undefined);
+    await checkForErrors(response);
 }
 
 export async function patch(url: string, pathValuePairs: Record<string, any>, fetchFunc: fetchFunction | undefined = undefined): Promise<void> {
@@ -98,7 +99,7 @@ export async function patch(url: string, pathValuePairs: Record<string, any>, fe
     const response: Response = fetchFunc !== undefined 
         ? await fetchFunc(url, requestInit) 
         : await fetch(url, requestInit);
-    await checkForErrors(response, fetch !== undefined);
+    await checkForErrors(response);
 }
 
 export async function del(url: string, fetchFunc: fetchFunction | undefined = undefined): Promise<void> {
@@ -111,5 +112,5 @@ export async function del(url: string, fetchFunc: fetchFunction | undefined = un
     const response: Response = fetchFunc !== undefined 
         ? await fetchFunc(url, requestInit) 
         : await fetch(url, requestInit);
-    await checkForErrors(response, fetch !== undefined);
+    await checkForErrors(response);
 }

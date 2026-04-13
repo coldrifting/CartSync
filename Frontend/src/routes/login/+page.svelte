@@ -13,7 +13,8 @@
         Input
     } from '@sveltestrap/sveltestrap';
     import {goto} from '$app/navigation';
-    import {fail} from "@sveltejs/kit";
+    import {fail, redirect} from "@sveltejs/kit";
+    import {browser} from "$app/environment";
 
     let username = $state('');
     let password = $state('');
@@ -36,7 +37,12 @@
             });
         }
 
-        await goto('/cart')
+        if (browser) {
+            await goto('/cart')
+        }
+        else {
+            redirect(307, `/cart`);
+        }
     }
 </script>
 
