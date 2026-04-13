@@ -1,22 +1,56 @@
 :root {
     min-width: 320px;
     overscroll-behavior: none;
-    
+
     --appbar-height: 5rem;
     --sidebar-width: 4rem;
     --sidebar-expanded-width: 12rem;
-    
+
     @media (width >= 1024px) {
         --sidebar-width: 12rem;
     }
+    
+    --bs-heading-color: var(--theme-fg) !important;
+    --bs-body-bg: var(--theme-bg) !important;
+    --bs-body-color: var(--theme-fg) !important;
+    
+    .text-light {
+        color: var(--theme-fg) !important;
+    }
+    
+    .form-control, .form-select {
+        background-color: var(--theme-input-bg) !important;
+        border: 1px solid transparent;
+    }
+    
+    dialog {
+        .form-control, .form-select {
+            background-color: var(--theme-modal-input-bg) !important;
+        }
+        
+        .form-link {
+            background-color: var(--theme-modal-input-bg);
+        }
+    }
+    
+    input {
+        border: none;
+    }
 }
 
-ul {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
+.form-floating > .form-control-plaintext ~ label::after, 
+.form-floating > .form-control:focus ~ label::after, 
+.form-floating > .form-control:not(:placeholder-shown) ~ label::after, 
+.form-floating > .form-select ~ label::after {
+    background-color: transparent;
 }
-
-.whitespace-pre-line {
-    white-space: pre-line;
+.form-floating > .form-control-plaintext~label,
+.form-floating > .form-control:focus~label,
+.form-floating > .form-control:not(:placeholder-shown)~label,
+.form-floating > .form-select~label {
+    color: rgba(var(--theme-fg-rgb), 0.5) !important;
+}
+.form-floating > label {
+    padding: 0.5rem 0 0 0.7rem;
+    color: rgba(var(--theme-fg-rgb), 0.5) !important;
 }

@@ -9,6 +9,7 @@
     import ModalEditRecipeEntry from "$lib/components/modal/recipes/ModalEditRecipeEntry.svelte";
     import type Prep from "$lib/models/Prep.ts";
     import {patch} from "$lib/functions/requests.js";
+    import HeadingButton from "$lib/components/HeadingButton.svelte";
 
     function getHost(url: string): string {
         return url.toLowerCase()
@@ -63,7 +64,7 @@
 
     let headerActions: HeaderAction[] = [
         {
-            label: "Add Ingredient", icon: 'fa-plus', action: () => {
+            label: "Add Item", icon: 'fa-plus', action: () => {
                 addDialog.show();
             }
         }
@@ -140,10 +141,9 @@
     </ul>
 {:else}
     {#each data.recipe.sections as section, i}
-        <button class="heading-button"
-                onclick={() => {renameDialog.show(section.id, section.name)}}>
+        <HeadingButton onclick={() => {renameDialog.show(section.id, section.name)}}>
             {section.name}
-        </button>
+        </HeadingButton>
         <ul>
             {#each section.entries as entry, j}
                 <ListItemCheckbox id={entry.id}

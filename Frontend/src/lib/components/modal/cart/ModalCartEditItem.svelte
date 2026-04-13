@@ -7,6 +7,7 @@
     import {invalidateAll} from "$app/navigation";
     import Amount from "$lib/models/Amount.js";
     import {put, del} from "$lib/functions/requests.js";
+    import FormInputNumber from "$lib/components/FormInputNumber.svelte";
 
     interface Props {
         cartItems: CartSelectItem[];
@@ -48,10 +49,6 @@
         let element = event.target as HTMLInputElement;
         element.select();
     }
-    
-    function onOpen() {
-        document.getElementById('fractionInput')?.focus();
-    }
 
     async function onSubmit() {
         await put(`/api/cart/selection/items/${itemId}/edit` + (prepId !== undefined ? `?prepId=${prepId}` : ''), {amount: amount});
@@ -64,6 +61,8 @@
         isOpen = false;
         await invalidateAll();
     }
+    
+    let firstElement: HTMLInputElement | undefined = $state(undefined);
 </script>
 
 <ModalCustom title="Edit Cart Entry Item"
@@ -71,14 +70,12 @@
              action={({label: "Update", action: onSubmit})}
              actionIsDisabled={isSubmitDisabled}
              actionDelete={{label: "Remove", action: onDelete}}
-             onOpen={onOpen}>
+             autoFocusElement={firstElement}>
             <h4>{item?.item.name}</h4>
 
             <div class="d-flex flex-column flex-sm-row justify-content-between">
-                <FormGroup floating label="Amount" class="flex-sm-grow-1">
-                    <Input id="fractionInput" name="fraction" type="number" min={0} step={0.001} bind:value={fraction} onfocus={onfocus}>
-                    </Input>
-                </FormGroup>
+                <FormInputNumber id="fractionInput" label="Amount" min={0} step={0.001} bind:value={fraction} bind:element={firstElement} />
+                
                 <FormGroup floating label="Units" class="ms-sm-3">
                     <Input type="select" name="unitType" bind:value={unitType}>
                         {#each UnitType.Types as type}

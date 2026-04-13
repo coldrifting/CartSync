@@ -3,6 +3,7 @@
     import ModalCustom from "$lib/components/modal/ModalCustom.svelte";
     import {del, patch, put} from "$lib/functions/requests.js";
     import {invalidateAll} from "$app/navigation";
+    import FormInputText from "$lib/components/FormInputText.svelte";
 
     let isOpen: boolean = $state(false);
     
@@ -32,18 +33,20 @@
         await invalidateAll();
     }
     
-    function onOpen() {
-        document.getElementById('stepContentsInput')?.focus();
-    }
+    let firstElement: HTMLTextAreaElement | undefined = $state(undefined);
 </script>
+
 
 <ModalCustom title="Update Recipe Step"
              bind:isOpen
              action={{label: "Update", action: onUpdate}}
              actionIsDisabled={content.trim() === ""}
-             actionDelete={{label: "Delete", action: onDelete}}
-             onOpen={onOpen}>
-    <FormGroup floating label="Step Details or Image URL">
-        <Input id="stepContentsInput" name="stepContents" type="textarea" class="text-area" rows={5} bind:value={content} required/>
-    </FormGroup>
+             autoFocusElement={firstElement}
+             isExpanded={true}>
+    <FormInputText id="inputAddStep" 
+                   label="Step Details or Image URL" 
+                   bind:element={firstElement} 
+                   bind:value={content} 
+                   rows={5}
+                   required/>
 </ModalCustom>

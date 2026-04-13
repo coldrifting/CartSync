@@ -1,4 +1,5 @@
 <script lang="ts">
+    import '$lib/css/fonts/fontawesome-webfont.eot';
     import '$lib/css/app.css';
     import {page} from '$app/state';
     import favicon from '$lib/assets/favicon.svg';
@@ -21,6 +22,20 @@
 
     let showNavigation: boolean = $derived(!page.url.pathname.startsWith("/login"))
 </script>
+
+<style>
+    main {
+        max-width: 960px;
+        margin-top: 1rem;
+        padding: 1.25rem 1.5rem calc(var(--appbar-height) + 1.5rem) 1.5rem;
+        overflow-x: hidden;
+        
+        @media (width >= 576px) {
+            padding: 2.25rem 1.5rem 1.5rem calc(var(--sidebar-width) + 1.5rem);
+            margin: auto;
+        }
+    }
+</style>
 
 <svelte:head>
     <link rel="icon" href={favicon}/>

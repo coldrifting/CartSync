@@ -1,5 +1,6 @@
 <script lang="ts">
     import ListItem from "$lib/components/lists/ListItem.svelte";
+    import ContextInfo from "$lib/components/lists/ContextInfo.svelte";
 
     interface Props {
         label: string;
@@ -44,28 +45,35 @@
     });
 </script>
 
+<style>
+    a {
+        margin-left: 0.75rem;
+        padding-left: 0.75rem;
+        margin-right: 0.75rem;
+        padding-right: 0.75rem;
+        
+        line-height: 2.25rem;
+        border-radius: 0.375rem;
+        
+        &:focus-visible {
+            outline: 0.25rem solid rgba(var(--bs-info-rgb), 0.5);
+        }
+    }
+</style>
+
 <ListItem actionLeft={actionLeft} actionRight={actionRight}>
     <a href={formatedUrl}
        target={isExternalLink ? "_blank" : ""} 
-       class="d-flex flex-row justify-content-between w-100 text-decoration-none text-light align-items-center" role={isExternalLink ? "button" : "link"}>
+       class="d-flex flex-row justify-content-between w-100 text-decoration-none text-light align-items-center overflow-hidden text-nowrap" 
+       class:me-0={true}
+       role={isExternalLink ? "button" : "link"}>
         <div class="d-flex flex-row justify-content-between align-items-center w-100">
-            <span class="w-full">{label}</span>
-            <div class="d-flex flex-row justify-content-between align-items-center">
-                {#if info !== undefined || subInfo !== undefined}
-                    <div class="d-flex flex-column">
-                        {#if info !== undefined}
-                            <span class="{infoColor}">{info}</span>
-                        {/if}
-                        {#if subInfo !== undefined}
-                            <span class="text-warning">{subInfo}</span>
-                        {/if}
-                    </div>
-                {/if}
-            </div>
+            <span class="truncate">{label}</span>
+            <ContextInfo info={info} subInfo={subInfo} infoOffset={showArrow}/>
         </div>
         {#if showArrow}
             <svg aria-hidden="true"
-                 class={infoColor}
+                 class="me-2 {infoColor}"
                  xmlns="http://www.w3.org/2000/svg"
                  width="16"
                  height="16"

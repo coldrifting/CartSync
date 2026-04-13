@@ -18,7 +18,7 @@
     <title>Cart</title>
 </svelte:head>
 
-<Header title='Cart' back={['/cart','Cart Selection']} subtitle={storeName}/>
+<Header title='Cart List' back={['/cart','Cart']} subtitle={storeName}/>
 
 {#each aisles as aisle}
     <h5 class="mt-3">{aisle.aisleName}</h5>

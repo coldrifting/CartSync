@@ -1,11 +1,12 @@
 <script lang="ts">
+    import {invalidateAll} from "$app/navigation";
+    import {patch, post, del, put} from "$lib/functions/requests.js";
     import type {PageProps} from './$types';
     import ModalAdd from "$lib/components/modal/generic/ModalAdd.svelte";
     import ModalRename from "$lib/components/modal/generic/ModalRename.svelte";
     import Header from "$lib/components/nav/Header.svelte";
     import ListItemLink from "$lib/components/lists/ListItemLink.svelte";
     import ListItemRadio from "$lib/components/lists/ListItemRadio.svelte";
-    import {patch, post, del, put} from "$lib/functions/requests.js";
     
     let {data}: PageProps = $props();
     
@@ -31,7 +32,8 @@
     }
     
     async function onChange(value: string) {
-        await put(`/api/stores/${value}/select`, {})
+        await put(`/api/stores/${value}/select`, {});
+        await invalidateAll();
     }
 </script>
 

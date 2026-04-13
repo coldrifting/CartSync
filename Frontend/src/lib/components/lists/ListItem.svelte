@@ -1,5 +1,5 @@
 <script lang="ts">
-    import {Button} from "@sveltestrap/sveltestrap";
+    import ContextButton from "$lib/components/lists/ContextButton.svelte";
 
     interface Props {
         children: any;
@@ -14,24 +14,12 @@
     }: Props = $props()
 </script>
 
-<div class="d-flex flex-row justify-content-between l-item align-items-center">
+<div class="d-flex flex-row justify-content-between list-item align-items-center w-100">
     {#if actionLeft !== undefined}
-        <Button aria-label={actionLeft.label} 
-                color={actionLeft.color} 
-                type="button" 
-                class="rounded-5 ms-2"
-                onclick={() => actionLeft.action()}>
-            <i class="fa fa-lg {actionLeft.icon}"></i>
-        </Button>
+        <ContextButton label={actionLeft.label} icon={actionLeft.icon} onClick={actionLeft.action} class="ms-3"/>
     {/if}
     {@render children()}
     {#if actionRight !== undefined}
-        <Button aria-label={actionRight.label} 
-                color={actionRight.color} 
-                type="button" 
-                class="rounded-5 m-auto me-2"
-                onclick={() => actionRight.action()}>
-            <i class="fa fa-lg {actionRight.icon}"></i>
-        </Button>
+        <ContextButton label={actionRight.label} icon={actionRight.icon} onClick={actionRight.action} class="m-auto me-3"/>
     {/if}
 </div>

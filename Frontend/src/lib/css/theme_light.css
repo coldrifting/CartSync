@@ -1,52 +1,42 @@
 :root {
     @media (prefers-color-scheme: light) {
-        --nav-current: var(--bs-primary-border-subtle);
-        --nav-highlight: var(--bs-primary);
-
-        --appbar-item-current: var(--bs-primary);
-        --appbar-item-pressed: var(--bs-primary-text-emphasis);
-
-        --bs-dark: black;
-        --bs-body-bg: #ffffff;
-        --bs-border-color: #9aaaaa;
-        --bs-border-color-translucent: #9aaaaa;
-        --bs-card-color: #ffffff;
-        --bs-card-bg: #ffffff;
-        --bs-card-cap-bg: #eeeeee;
-        --bs-modal-bg: #1e2938;
+        --theme-fg: #111111;
+        --theme-fg-rgb: 18, 18, 18;
         
-        --body-bg: #ffffff;
-        --border-color: #9aaaaa;
-        --form-bg: #162028;
+        --theme-bg: #eeeeee;
+        --theme-input-bg: #ffffff;
+        --theme-card-bg: #f7f7f7;
+        --theme-modal-bg: #eeeeee;
+        --theme-modal-footer-bg: #dddddd;
+        --theme-modal-input-bg: #ffffff;
         
-        .form-control {
-            --bs-body-bg: #162028;
-        }
+        --theme-border: #dddddd;
         
-        .form-select {
-            --bs-body-bg: #162028;
-        }
+        --theme-primary: var(--bs-primary);
+        --theme-primary-hover: rgba(var(--bs-primary-rgb), 0.5);
+        --theme-primary-active: rgba(var(--bs-primary-rgb), 0.25);
         
-        .card {
-            --bs-card-title-color: white;
-            --bs-card-bg: #ffffff;
-        }
+        --nav-sidebar-current: var(--bs-primary-border-subtle);
+        --nav-sidebar-highlight: var(--bs-primary);
+        --nav-sidebar-highlight-border: var(--bs-primary-text-emphasis);
 
-        .card-body {
-            --bs-card-color: #ffffff;
-        }
-
-        .card-footer {
-            border-top: none;
-            --bs-card-cap-bg: #eeeeee;
-        }
-
-        .modal-content {
-            --bs-modal-bg: #1e2938;
+        --nav-appbar-current: var(--bs-primary);
+        --nav-appbar-pressed: var(--bs-primary-text-emphasis);
+        
+        .btn-close {
+            filter: none;
         }
         
-        .modal-footer {
-            --bs-modal-footer-bg: #242f3f;
+        .text-muted {
+            color: grey !important;
+        }
+        
+        .text-info {
+            color: #3298d6 !important;
+        }
+        
+        .text-warning {
+            color: #ea731e !important;
         }
     }
 }

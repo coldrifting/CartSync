@@ -48,7 +48,7 @@
 <ModalCartEditRecipe bind:this={modalCartEditRecipe} cartRecipes={data.recipes}/>
 <ModalCartEditItem bind:this={modalCartEditItem} cartItems={data.items}/>
 
-<Header title="Cart Selection" headerActions={headerActions}/>
+<Header title="Cart" headerActions={headerActions}/>
 
 {#if data.recipes.length > 0}
     <h4>Recipes</h4>

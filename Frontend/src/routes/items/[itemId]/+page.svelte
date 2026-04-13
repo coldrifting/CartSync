@@ -80,10 +80,12 @@
 
 <h4>Preps</h4>
 
-<ListItemLink label={prepText === "" ? "(None)" : prepText}
-                 showArrow={true}
-                 href="/items/{itemId}/preps"
-                 info="Edit"/>
+<div>
+    <ListItemLink label={prepText === "" ? "(None)" : prepText}
+                     showArrow={true}
+                     href="/items/{itemId}/preps"
+                     info="Edit"/>
+</div>
 
 <h4>Location</h4>
 <FormGroup floating label="Store">

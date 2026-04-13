@@ -1,59 +1,26 @@
 :root {
     @media (prefers-color-scheme: dark) {
-        --nav-current: var(--bs-primary-border-subtle);
-        --nav-highlight: var(--bs-primary);
-        --nav-highlight-border: var(--bs-primary-text-emphasis);
-
-        --appbar-item-current: var(--bs-primary);
-        --appbar-item-pressed: var(--bs-primary-text-emphasis);
-
-        --bs-dark: white;
-        --bs-body-bg: #101828;
-        --bs-border-color: #3a4451;
-        --bs-border-color-translucent: #3a4451;
-        --bs-card-color: #9aaaaa;
-        --bs-card-bg: #1e2938;
-        --bs-card-cap-bg: #242f3f;
-        --bs-modal-bg: #1e2938;
+        --theme-fg: #eeeeee;
+        --theme-fg-rgb: 240, 240, 240;
         
-        --body-bg: #101828;
-        --border-color: #3a4451;
-        --form-bg: #162028;
-
-        .form-control {
-            --bs-body-bg: #162028;
-        }
+        --theme-bg: #101828;
+        --theme-input-bg: #1c2433;
+        --theme-card-bg: #292e3c;
+        --theme-modal-bg: #1b2432;
+        --theme-modal-footer-bg: #1e2938;
+        --theme-modal-input-bg: #151b26;
         
-        .form-select {
-            --bs-body-bg: #162028;
-        }
+        --theme-border: #3a4451;
         
-        .card {
-            --bs-card-title-color: white;
-            --bs-card-bg: #1e2938;
-        }
+        --theme-primary: var(--bs-primary);
+        --theme-primary-hover: rgba(var(--bs-primary-rgb), 0.5);
+        --theme-primary-active: rgba(var(--bs-primary-rgb), 0.25);
+        
+        --nav-sidebar-current: var(--bs-primary-border-subtle);
+        --nav-sidebar-highlight: var(--bs-primary);
+        --nav-sidebar-highlight-border: var(--bs-primary-text-emphasis);
 
-        .card-body {
-            --bs-card-color: #9aaaaa;
-        }
-
-        .card-footer {
-            border-top: none;
-            --bs-card-cap-bg: #242f3f;
-        }
-
-        .modal-content {
-            --bs-modal-bg: #1e2938;
-        }
-
-        .modal-footer {
-            --bs-modal-footer-bg: #242f3f;
-        }
-
-        .modal {
-            .list-item {
-                background-color: #162028;
-            }
-        }
+        --nav-appbar-current: var(--bs-primary);
+        --nav-appbar-pressed: var(--bs-primary-text-emphasis);
     }
 }

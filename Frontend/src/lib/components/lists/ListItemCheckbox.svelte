@@ -1,5 +1,6 @@
 <script lang="ts">
     import ListItem from "$lib/components/lists/ListItem.svelte";
+    import ContextInfo from "$lib/components/lists/ContextInfo.svelte";
 
     interface Props {
         id: string;
@@ -30,27 +31,25 @@
     }
 </script>
 
+<style>
+    input[type="checkbox"] {
+        cursor: pointer;
+        margin-left: 0.75rem !important;
+    }
+</style>
+
 <ListItem actionRight={actionRight}>
-    <label class="d-flex flex-row justify-content-start align-items-center w-100 cursor-pointer">
+    <label class="d-flex flex-row justify-content-start align-items-center w-100 cursor-pointer me-3 overflow-hidden text-nowrap">
         {#if isSingle}
             <input type='hidden' name='id' value={id} class="cursor-pointer"/>
         {/if}
-        <input class="form-check-input p-3"
+        <input class="form-check-input p-2p5"
                type="checkbox"
                name={isSingle ? 'isChecked' : name}
                value={isSingle ? checked : id}
                bind:checked={checked}
                onchange={onchange}/>
-        <span class="ms-3 me-auto">{label}</span>
-        {#if info !== undefined || subInfo !== undefined}
-            <div class="d-flex flex-column align-items-end me-3">
-                {#if info !== undefined}
-                    <span class="text-info">{info}</span>
-                {/if}
-                {#if subInfo !== undefined}
-                    <span class="text-warning">{subInfo}</span>
-                {/if}
-            </div>
-        {/if}
+        <span class="ms-3 me-auto truncate">{label}</span>
+        <ContextInfo info={info} subInfo={subInfo} />
     </label>
 </ListItem>

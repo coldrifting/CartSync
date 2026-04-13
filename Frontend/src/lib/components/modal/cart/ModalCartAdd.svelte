@@ -154,7 +154,6 @@
 
 <ModalCustom title="Add Cart Entry"
              bind:isOpen
-             keyboard={allowEscapeKey}
              action={{label: "Add", action: onSubmit}}
              actionIsDisabled={isSubmitDisabled}>
             <FormGroup floating label="Cart Item Type">
@@ -165,10 +164,11 @@
             </FormGroup>
 
             {#if isRecipeSelectionEnabled}
-                <input name="recipeId" bind:value={recipeId} hidden/>
-                <FormLink label="Recipe Selection"
-                          text={recipe?.name ?? "(None)"}
-                          onclick={onRecipeClick}/>
+                <div>
+                    <FormLink label="Recipe Selection"
+                              text={recipe?.name ?? "(None)"}
+                              onclick={onRecipeClick}/>
+                </div>
 
                 <FormGroup floating label="Quantity">
                     <Input id="recipeQuantityInput"
@@ -182,10 +182,11 @@
                 </FormGroup>
 
             {:else}
-                <input name="itemId" bind:value={itemId} hidden/>
-                <FormLink label="Item Selection"
-                          text={item?.item.name ?? "(None)"}
-                          onclick={onItemClick}/>
+                <div>
+                    <FormLink label="Item Selection"
+                              text={item?.item.name ?? "(None)"}
+                              onclick={onItemClick}/>
+                </div>
 
                 {#if showPrepsSelect}
                     <FormGroup floating label="Prep">

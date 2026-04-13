@@ -24,8 +24,7 @@
 		"@dnd-kit-svelte/svelte": "^0.1.6",
 		"@dnd-kit/helpers": "^0.3.2",
 		"@sveltejs/adapter-static": "^3.0.10",
-		"@sveltestrap/sveltestrap": "^7.1.0",
-		"trap-focus-svelte": "^1.1.0"
+		"@sveltestrap/sveltestrap": "^7.1.0"
 	},
 	"overrides": {
 		"cookie": "^0.7.0"

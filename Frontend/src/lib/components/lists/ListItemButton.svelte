@@ -16,19 +16,41 @@
     }: Props = $props()
 </script>
 
-<button class="btn btn-primary list-item d-flex flex-row justify-content-between align-items-center w-100 text-light l-item" 
-        onclick={() => action()}>
-    <span class="ms-2">{label}</span>
-    <span class="d-flex flex-row justify-content-between align-items-center me-0">
-        {#if info !== undefined || subInfo !== undefined}
-            <span class="d-flex flex-column align-items-end me-2">
-                {#if info !== undefined}
-                    <span class="text-info">{info}</span>
-                {/if}
-                {#if subInfo !== undefined}
-                    <span class="text-warning">{subInfo}</span>
-                {/if}
-            </span>
-        {/if}
-    </span>
-</button>
+<style>
+    button {
+        margin: 0.25rem 0.75rem;
+        width: 100%;
+        height: 2.5rem;
+        background: none;
+        border: none;
+        color: var(--theme-fg);
+        border-radius: 0.375rem;
+        
+        .text-info {
+            line-height: 1.5rem;
+        }
+        
+        .text-warning {
+            line-height: 0.7rem;
+            font-size: 0.7rem;
+        }
+    
+        &:focus-visible {
+            outline: 0.25rem solid rgba(var(--bs-info-rgb), 0.5);
+        }
+    }
+</style>
+
+<ListItem>
+    <button class="d-flex flex-row align-items-center w-100 overflow-hidden text-nowrap" onclick={action}>
+        <span class="me-auto truncate">{label}</span>
+        <span class="d-flex flex-column align-items-center ms-2">
+            {#if info !== undefined}
+                <span class="text-info">{info}</span>
+            {/if}
+            {#if subInfo !== undefined}
+                <span class="text-warning">{subInfo}</span>
+            {/if}
+        </span>
+    </button>
+</ListItem>

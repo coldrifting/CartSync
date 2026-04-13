@@ -86,7 +86,6 @@
     }
 
     let isItemSearchOpen: boolean = $state(false);
-    let allowEscapeKey: boolean = $derived(!isItemSearchOpen);
     
     let modalSearch: ModalSearch<ValidItem>;
     
@@ -112,9 +111,7 @@
         }
     }
     
-    function onOpen() {
-        document.getElementById('sectionIdSelect')?.focus();
-    }
+    let firstElement: HTMLButtonElement | undefined = $state(undefined);
 </script>
 
 <ModalSearch bind:this={modalSearch} 
@@ -128,8 +125,7 @@
              bind:isOpen
              action={{label: "Add", action: onAdd}}
              actionIsDisabled={isSubmitDisabled}
-             keyboard={allowEscapeKey}
-             onOpen={onOpen}>
+             autoFocusElement={firstElement}>
     <FormGroup floating label="Recipe Section">
         <Input type="select"
                name="recipeSectionId"
@@ -146,10 +142,12 @@
         <Input name="recipeSectionName" id="sectionNameEdit" bind:value={newSectionName}/>
     </FormGroup>
 
-    <input name="itemId" bind:value={itemId} hidden required/>
-    <FormLink text={item?.name ?? "(No Item Selected)"}
-              label="Ingredient Selection"
-              onclick={() => modalSearch.show(filteredItems)}/>
+    <div>
+        <FormLink text={item?.name ?? "(No Item Selected)"}
+                  label="Ingredient Selection"
+                  onclick={() => modalSearch.show(filteredItems)}
+                  bind:element={firstElement}/>
+    </div>
 
     <FormGroup hidden={!showPrepsSelect} floating label="Prep">
         <Input type="select"

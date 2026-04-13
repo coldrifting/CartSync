@@ -1,8 +1,8 @@
 <script lang="ts">
-    import {FormGroup, Input} from "@sveltestrap/sveltestrap";
+    import {invalidateAll} from "$app/navigation";
     import ModalDelete from "$lib/components/modal/generic/ModalDelete.svelte";
     import ModalCustom from "$lib/components/modal/ModalCustom.svelte";
-    import {invalidateAll} from "$app/navigation";
+    import FormInputText from "$lib/components/FormInputText.svelte";
 
     interface Props {
         type: string;
@@ -71,9 +71,7 @@
         await invalidateAll();
     }
     
-    function onOpen() {
-        document.getElementById('inputRename')?.focus();
-    }
+    let firstElement: HTMLInputElement | undefined = $state(undefined);
 </script>
 
 <ModalDelete bind:this={deleteDialog} 
@@ -86,9 +84,7 @@
              bind:isOpen
              action={{label: uiVerb, action: onRename}}
              actionIsDisabled={value.trim() === ""}
-             actionDelete={ showDeleteButton ? ({label: "Remove", action: onDelete}) : undefined }
-             onOpen={onOpen}>
-        <FormGroup floating label="{type} Name">
-            <Input id="inputRename" name="inputRename" bind:value={value} required/>
-        </FormGroup>
+             actionDelete={ showDeleteButton ? ({label: "Delete", action: onDelete}) : undefined }
+             autoFocusElement={firstElement}>
+    <FormInputText id="inputRename" label="{type} Name" bind:element={firstElement} bind:value={value} required/>
 </ModalCustom>

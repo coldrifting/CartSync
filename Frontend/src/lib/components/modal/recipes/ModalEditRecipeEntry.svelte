@@ -7,6 +7,7 @@
     import ModalCustom from "$lib/components/modal/ModalCustom.svelte";
     import {del, patch} from "$lib/functions/requests.js";
     import {invalidateAll} from "$app/navigation";
+    import FormInputNumber from "$lib/components/FormInputNumber.svelte";
     
     let isOpen: boolean = $state(false);
 
@@ -58,17 +59,15 @@
         await invalidateAll();
     }
     
-    function onOpen() {
-        document.getElementById('fractionInput')?.focus();
-    }
+    let firstElement: HTMLInputElement | undefined = $state(undefined);
 </script>
 
 <ModalCustom title="Update Recipe Entry"
              bind:isOpen
              action={{label: "Update", action: onEdit}}
              actionIsDisabled={isSubmitDisabled}
-             actionDelete={{label: "Delete", action: onDelete}}
-             onOpen={onOpen}>
+             actionDelete={{label: "Remove", action: onDelete}}
+             autoFocusElement={firstElement}>
     <h5>{itemName}</h5>
     
     {#if showPrepsSelect}
@@ -83,9 +82,8 @@
         </FormGroup>
     {/if}
     <div class="d-flex flex-column flex-sm-row justify-content-between">
-        <FormGroup floating label="Amount" class="flex-sm-grow-1">
-            <Input id="fractionInput" name="fraction" type="number" min={0} step={0.001} bind:value={fraction}/>
-        </FormGroup>
+        <FormInputNumber id="fractionInput" label="Amount" min={0} step={0.001} bind:value={fraction} bind:element={firstElement} />
+
         <FormGroup floating label="Units" class="ms-sm-3">
             <Input type="select"
                    name="unitType"

@@ -2,6 +2,7 @@
     import {FormGroup, Input} from "@sveltestrap/sveltestrap";
     import FormLink from "$lib/components/FormLink.svelte";
     import ModalCustom from "$lib/components/modal/ModalCustom.svelte";
+    import FormInputText from "$lib/components/FormInputText.svelte";
     
     type T = $$Generic
     interface Props<T> {
@@ -44,20 +45,17 @@
         }
     }
     
-    function onOpen() {
-        document.getElementById('filterInput')?.focus();
-    }
+    let firstElement: HTMLInputElement | undefined = $state(undefined);
 </script>
 
 <ModalCustom title="Select {getArticle(itemType)} {itemType}"
              bind:isOpen
-             onOpen={onOpen}>
-            <FormGroup floating label="{itemType} Name">
-                <Input id="filterInput" bind:value={filterText} />
-            </FormGroup>
-            <ul>
-            {#each filteredItems as item, i}
-                <FormLink text={getItemName(item)} onclick={() => {onclick(item)}} showArrow={false} isSubmitButton={i === 0}/>
-            {/each}
-            </ul>
+             autoFocusElement={firstElement}>
+    <FormInputText id="inputRename" label="{itemType} Name" bind:element={firstElement} bind:value={filterText}/>
+    <ul>
+        {#each filteredItems as item, i}
+            <FormLink text={getItemName(item)} onclick={() => {onclick(item)}} showArrow={false}
+                      isSubmitButton={i === 0}/>
+        {/each}
+    </ul>
 </ModalCustom>

@@ -60,16 +60,9 @@
         }
         await invalidateAll();
     }
-    
-    function onOpen() {
-        //document.getElementById('inputDeleteCancel')?.focus();
-    }
 </script>
 
-<ModalCustom title="Delete {type}"
-             bind:isOpen
-             actionDelete={{label: "Delete", action: onDelete}}
-             onOpen={onOpen}>
+<ModalCustom title="Delete {type}" bind:isOpen actionDelete={{label: "Delete", action: onDelete}}>
     <p>
         {#if usages !== undefined}
             {itemName} is currently used in:

@@ -2,6 +2,7 @@
 	import {useSortable, type UseSortableInput} from '@dnd-kit-svelte/svelte/sortable';
 	import {untrack} from "svelte";
 	import {Button} from "@sveltestrap/sveltestrap";
+	import ContextButton from "$lib/components/lists/ContextButton.svelte";
 
 	interface Props extends UseSortableInput {
 		numItems: number;
@@ -20,12 +21,9 @@
 	const width: number = $derived.by(() => {
 		return clamp(Number.parseFloat((numItems / 15).toFixed(2)), 1, 4);
 	});
-	
 </script>
 
-<div class="relative select-none l-item d-flex flex-row align-items-center {item.isContent ? 'expanded' : ''}" 
-
-     {@attach ref} >
+<div class="relative select-none d-flex list-item flex-row align-items-center" class:expanded={item.isContent} {@attach ref} >
 	<div class={['d-flex flex-row align-items-center', {invisible: isDragging.current && !isOverlay}]}>
         <span class='prefix me-3 ms-3 text-secondary' style="width: {width}rem">
 			{item.subtitle}
@@ -37,12 +35,6 @@
 		{/if}
 	</div>
 		{#if item.actionRight !== undefined}
-			<Button aria-label={item.actionRight.label} 
-					color={item.actionRight.color} 
-                	class="rounded-5 m-auto me-2"
-					type="button" 
-					onclick={() => item.actionRight?.action()}>
-				<i class="fa fa-lg {item.actionRight.icon}"></i>
-			</Button>
+        	<ContextButton label={item.actionRight.label} icon={item.actionRight.icon} onClick={item.actionRight.action} class="m-auto me-2"/>
 		{/if}
 </div>

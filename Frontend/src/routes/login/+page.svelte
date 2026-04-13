@@ -15,6 +15,7 @@
     import {goto} from '$app/navigation';
     import {fail, redirect} from "@sveltejs/kit";
     import {browser} from "$app/environment";
+    import FormInputText from "$lib/components/FormInputText.svelte";
 
     let username = $state('');
     let password = $state('');
@@ -46,40 +47,38 @@
     }
 </script>
 
+<style>
+    .login-container {
+        width: 100%;
+        max-width: 576px;
+        background-color: var(--theme-card-bg);
+        
+        button {
+            width: 50%;
+            @media(width < 576px) {
+                width: 100%;
+            }
+        }
+    }
+</style>
+
 <svelte:head>
     <title>CartSync - Login</title>
     <link rel="icon" href={favicon}/>
 </svelte:head>
 
-<Container class="vh-100">
-    <Row class="vh-100 justify-content-center align-items-center">
-        <Col>
-            <form onsubmit={handleSubmit} class="d-flex justify-content-center align-items-center">
-                <Card class="bg-modal login-container">
-                    <CardBody>
-                        <CardTitle class="mb-3">Login</CardTitle>
-                        <FormGroup floating label="Username">
-                            <Input name="username" bind:value={username} required/>
-                        </FormGroup>
-                        <FormGroup floating label="Password">
-                            <Input name="password" type="password" bind:value={password} required/>
-                        </FormGroup>
-
-                    </CardBody>
-                    <CardFooter>
-                        <Row>
-                            <Col sm="7">
-                                {#if isError}
-                                    <h6 class="text-danger m-6">Invalid username or password</h6>
-                                {/if}
-                            </Col>
-                            <Col sm="5">
-                                <Button color="primary" block type="submit">Login</Button>
-                            </Col>
-                        </Row>
-                    </CardFooter>
-                </Card>
-            </form>
-        </Col>
-    </Row>
-</Container>
+<div class="vh-100 vw-100 d-flex justify-content-center align-items-center p-3">
+    <div class="login-container p-3 rounded-3">
+        <form onsubmit={handleSubmit}>
+            <h2 class="p-3">Login</h2>
+            <FormInputText id="username" label="Username" bind:value={username} required />
+            <FormInputText id="password" label="Password" bind:value={password} required type="password" />
+            <div class="d-flex flex-column flex-sm-row align-items-center">
+                {#if isError}
+                    <h6 class="text-danger m-2">Invalid username or password</h6>
+                {/if}
+                <button class="btn btn-primary ms-auto m-2" type="submit">Login</button>
+            </div>
+        </form>
+    </div>
+</div>
