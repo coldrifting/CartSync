@@ -43,7 +43,7 @@ jobs:
         
       - name: Update appsettings.json
         run: |
-          sed -i 's/"AllowedHosts": "localhost"/"AllowedHosts": "localhost;${{ secrets.HOST }}"/g' output/appsettings.json
+          sed -i 's/"AllowedHosts": "localhost"/"AllowedHosts": "localhost;${{ secrets.HOST }};${{ secrets.DOMAIN }}"/g' output/appsettings.json
 
       - name: Stop Server
         uses: appleboy/ssh-action@v1

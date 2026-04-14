@@ -118,13 +118,21 @@ builder.Services.Configure<RouteOptions>(options =>
     options.LowercaseUrls = true;
 });
 
-WebApplication app = builder.Build();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAnyLocalhost", policy =>
+    {
+        policy.SetIsOriginAllowed(origin => new Uri(origin).IsLoopback)
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
-//app.UseAuthentication();
+WebApplication app = builder.Build();
 
 app.UseStaticFiles();
 app.UseRouting();
-
+app.UseCors("AllowAnyLocalhost");
 app.UseAuthorization();
 
 // Configure the HTTP request pipeline.
