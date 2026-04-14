@@ -1,0 +1,77 @@
+name: Build and deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: self-hosted
+    permissions:
+      contents: read #This is required for actions/checkout
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.x'
+
+      - name: Build Backend API
+        run: dotnet build --configuration Release
+        working-directory: API/CartSync
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+        
+      - name: Install Node Packages
+        run: npm ci
+        working-directory: Frontend
+        
+      - name: Build and Publish Frontend
+        run: npm run build
+        working-directory: Frontend
+        
+      - name: Publish Backend API
+        run: dotnet publish --configuration Release --output ../../output
+        working-directory: API/CartSync
+        
+      - name: Update appsettings.json
+        run: |
+          sed -i 's/"AllowedHosts": "localhost"/"AllowedHosts": "localhost;${{ secrets.HOST }}"/g' output/appsettings.json
+
+      - name: Clear server files
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            rm -r /var/www/cartsync || true
+            mkdir /var/www/cartsync || true
+
+      - name: Deploy to VPS
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
+          source: "output/cartsync,output/appsettings.json,output/wwwroot"
+          target: /var/www/cartsync
+          strip_components: 1
+
+      - name: Restart Server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
+          script: systemctl --user restart cartsync.service
