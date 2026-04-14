@@ -10,7 +10,7 @@
 
     let headerActions: HeaderAction[] = [
         {
-            label: "Add Step", icon: 'fa-plus', action: () => {
+            label: "Add", icon: 'fa-plus', color: 'primary', action: () => {
                 modalAddStep.show();
             }
         }

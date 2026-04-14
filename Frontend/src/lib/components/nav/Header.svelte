@@ -1,5 +1,4 @@
 <script lang='ts'>
-    import {Button, Col, FormGroup, Input} from "@sveltestrap/sveltestrap";
     import LinkHeader from "$lib/components/nav/LinkHeader.svelte";
     import FormInputTextSearch from "$lib/components/FormInputTextSearch.svelte";
 
@@ -15,6 +14,9 @@
 
     let scrollY: number = $state(0);
     let detached: boolean = $derived(scrollY > 0);
+    
+    let themeColorDark = $derived(detached ? "#292e3c" : "#101828");
+    let themeColorLight = $derived(detached ? "#f7f7f7" : "#eeeeee");
 </script>
 
 <style>
@@ -84,8 +86,13 @@
     }
 </style>
 
-<svelte:window bind:scrollY={scrollY}/>
+<svelte:head>
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content={themeColorDark} />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content={themeColorLight} />
+</svelte:head>
 
+<svelte:window bind:scrollY={scrollY}/>
+     
 <header class:detached={detached}>
     <div class="header-main">
         <div class="actions-row d-flex flex-row align-items-center justify-content-between gap-2">
@@ -108,18 +115,24 @@
                 {/if}
             </div>
 
-            <div class="end">
-                <div class="d-flex flex-row gap-2">
-                    {#each headerActions as action}
-                        <div>
-                            <Button color={action.icon.endsWith('refresh') ? "success" : "primary"} block type="button" aria-label={action.label}
-                                    onclick={action.action}>
-                                <span>{action.label}</span>
-                                <i class="fa {action.icon}"></i>
-                            </Button>
-                        </div>
-                    {/each}
-                </div>
+            <div class="end d-flex flex-row gap-2 truncate">
+                {#each headerActions as action}
+                    <div class="header-button">
+                        <button class="btn btn-block truncate"
+                                class:btn-primary={action.color === 'primary'}
+                                class:btn-success={action.color === 'success'}
+                                class:btn-warning={action.color === 'warning'}
+                                class:btn-danger={action.color === 'danger'}
+                                class:hide-from-mobile={action.hideFromMobile}
+                                class:hide-from-desktop={action.hideFromDesktop}
+                                type="button" 
+                                aria-label={action.label}
+                                onclick={action.action}>
+                            <span class="hide-from-mobile">{action.label}</span>
+                            <i class="fa {action.icon}"></i>
+                        </button>
+                    </div>
+                {/each}
             </div>
         </div>
         {#if filterText !== undefined}

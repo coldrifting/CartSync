@@ -23,8 +23,8 @@
 	});
 </script>
 
-<div class="relative select-none d-flex list-item flex-row align-items-center" class:expanded={item.isContent} {@attach ref} >
-	<div class={['d-flex flex-row align-items-center', {invisible: isDragging.current && !isOverlay}]}>
+<div class="relative select-none d-flex list-item list-item-reorderable flex-row align-items-center" class:expanded={item.isContent} {@attach ref} >
+	<div class='d-flex flex-row align-items-center' class:invisible={isDragging.current && !isOverlay} class:test={isDragging.current && !isOverlay}>
         <span class='prefix me-3 ms-3 text-secondary' style="width: {width}rem">
 			{item.subtitle}
 		</span>

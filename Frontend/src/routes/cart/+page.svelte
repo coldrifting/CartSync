@@ -14,8 +14,8 @@
     let {data}: PageProps = $props();
     
     const headerActions: HeaderAction[] = [
-        {label: "Add", icon: "fa-plus", action: () => { modalCartAdd.show() }},
-        {label: "Generate", icon: "fa-refresh", action: async () => { 
+        {label: "Add", icon: "fa-plus", color: 'primary', action: () => { modalCartAdd.show() }},
+        {label: "Generate", icon: "fa-refresh", color: 'success', action: async () => { 
             try {
                 await post('/api/cart/generate', {});
                     
@@ -38,7 +38,7 @@
 </script>
 
 <svelte:head>
-    <title>Cart</title>
+    <title>CartSync - Cart</title>
 </svelte:head>
 
 <ModalCartAdd bind:this={modalCartAdd}

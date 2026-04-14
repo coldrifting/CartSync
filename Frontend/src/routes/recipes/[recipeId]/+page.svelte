@@ -64,7 +64,7 @@
 
     let headerActions: HeaderAction[] = [
         {
-            label: "Add Item", icon: 'fa-plus', action: () => {
+            label: "Add", icon: 'fa-plus', color: 'primary', action: () => {
                 addDialog.show();
             }
         }

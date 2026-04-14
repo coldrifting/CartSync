@@ -22,7 +22,7 @@
     let addDialog: ModalAdd
     let renameDialog: ModalRename
 
-    const headerActions: HeaderAction[] = [{ label: "Add Item", icon: "fa-plus", action: () => { addDialog.show() }}];
+    const headerActions: HeaderAction[] = [{ label: "Add", icon: "fa-plus", color: 'primary', action: () => { addDialog.show() }}];
     
     async function onAdd(value: string) {
         await post('/api/items/add', {name: value});
@@ -43,7 +43,7 @@
 </script>
 
 <svelte:head>
-    <title>Ingredients</title>
+    <title>CartSync - Items</title>
 </svelte:head>
 
 <Header title="Items" headerActions={headerActions} bind:filterText={filterText}/>

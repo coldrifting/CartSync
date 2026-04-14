@@ -18,7 +18,7 @@
     let renameDialog: ModalRename
     
     const headerActions: HeaderAction[] = [
-        {label: "Add Prep", icon: "fa-plus", action: () => {addDialog.show()}}
+        {label: "Add", icon: "fa-plus", color: 'primary', action: () => {addDialog.show()}}
     ];
     
     async function onAdd(value: string) {

@@ -36,28 +36,19 @@ button {
     text-overflow: ellipsis;
 }
 
-header {
-    @media (width < 520px) {
-        button {
-            span {
-                display: none;
-            }
-        }
-        
-        .title-navigation {
-            .label {
-                display: none;
-            }
-            
-            .label-small {
-                display: block;
-            }
-        }
-        
-        .title {
-            display: none;
-        }
+.hide-from-desktop {
+    @media (width >= 576px) {
+        display: none;
     }
+}
+
+.hide-from-mobile {
+    @media (width < 576px) {
+        display: none;
+    }
+}
+
+header {
 }
     
 .list-item {
@@ -69,6 +60,10 @@ header {
     font-size: 0.9rem;
     user-select: none;
     border: none;
+    
+    * {
+        user-select: none;
+    }
 
     &.expanded {
         height: auto;
@@ -81,8 +76,11 @@ header {
         }
     }
     
-    &:hover {
-        background-color: var(--theme-primary-hover) !important;
+    
+    @media (hover: hover) {
+        &:hover {
+            background-color: var(--theme-primary-hover) !important;
+        }
     }
 
     &:active {

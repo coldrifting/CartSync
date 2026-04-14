@@ -45,6 +45,15 @@ jobs:
         run: |
           sed -i 's/"AllowedHosts": "localhost"/"AllowedHosts": "localhost;${{ secrets.HOST }}"/g' output/appsettings.json
 
+      - name: Stop Server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
+          script: systemctl --user stop cartsync.service
+          
       - name: Clear server files
         uses: appleboy/ssh-action@v1
         with:

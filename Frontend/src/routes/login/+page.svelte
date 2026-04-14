@@ -1,17 +1,5 @@
 <script lang='ts'>
-    import favicon from '$lib/assets/favicon.svg';
-    import {
-        Button,
-        Col,
-        Row,
-        Container,
-        Card,
-        CardBody,
-        CardFooter,
-        CardTitle,
-        FormGroup,
-        Input
-    } from '@sveltestrap/sveltestrap';
+    import favicon from '$lib/assets/cartsync.svg';
     import {goto} from '$app/navigation';
     import {fail, redirect} from "@sveltejs/kit";
     import {browser} from "$app/environment";
@@ -45,9 +33,25 @@
             redirect(307, `/cart`);
         }
     }
+      
+    let usernameElement: HTMLInputElement | undefined = $state(undefined);
+    let passwordElement: HTMLInputElement | undefined = $state(undefined);
+    
+    function handleEnter(e) {
+        if (e.key === 'Enter' && (usernameElement?.value.trim() ?? '') !== '') {
+            e.preventDefault(); // Stop form submission
+            passwordElement?.focus();
+        }
+    }
+    
 </script>
 
 <style>
+    .login-window {
+        height: 90dvh;
+        max-height: 90dvh;
+    }
+    
     .login-container {
         width: 100%;
         max-width: 576px;
@@ -65,14 +69,33 @@
 <svelte:head>
     <title>CartSync - Login</title>
     <link rel="icon" href={favicon}/>
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#101828"/>
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#eeeeee"/>
 </svelte:head>
 
-<div class="vh-100 vw-100 d-flex justify-content-center align-items-center p-3">
+<div class="d-flex justify-content-center align-items-center p-3 login-window">
     <div class="login-container p-3 rounded-3">
         <form onsubmit={handleSubmit}>
             <h2 class="p-3">Login</h2>
-            <FormInputText id="username" label="Username" bind:value={username} required />
-            <FormInputText id="password" label="Password" bind:value={password} required type="password" />
+            <FormInputText id="username" 
+                           label="Username" 
+                           autocomplete="username" 
+                           autocapitalize="none" 
+                           spellcheck="false"
+                           enterkeyhint="next"
+                           onkeydown={handleEnter}
+                           bind:value={username} 
+                           bind:element={usernameElement}
+                           required/>
+            
+            <FormInputText id="password" 
+                           label="Password" 
+                           type="password"
+                           autocomplete="password"
+                           enterkeyhint="go"
+                           bind:value={password} 
+                           bind:element={passwordElement}
+                           required/>
             <div class="d-flex flex-column flex-sm-row align-items-center">
                 {#if isError}
                     <h6 class="text-danger m-2">Invalid username or password</h6>

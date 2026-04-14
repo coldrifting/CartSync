@@ -7,9 +7,19 @@
         element?: HTMLInputElement | HTMLTextAreaElement;
         type?: string;
         rows?: number;
+        autocomplete?: string;
     }
     
-    let {id, label, value = $bindable(), required = undefined, element = $bindable(undefined), type = undefined, rows = undefined, ...rest}: Props = $props();
+    let {id,
+        label,
+        value = $bindable(),
+        required = undefined,
+        element = $bindable(undefined),
+        type = undefined,
+        rows = undefined,
+        autocomplete = undefined,
+        ...rest
+    }: Props = $props();
 </script>
 
 <div class="mb-3 form-floating flex-sm-grow-1">
@@ -23,6 +33,7 @@
                required={required !== undefined}
                rows={rows}
                placeholder={label}
+               autocomplete={autocomplete}
                {...rest}
         >
         </textarea>

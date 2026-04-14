@@ -1,5 +1,4 @@
 <script lang="ts">
-    import {enhance} from '$app/forms';
     import type {PageProps} from './$types';
 	import ReorderableList from "$lib/components/dragAndDrop/ReorderableList.svelte";
     import ModalAdd from "$lib/components/modal/generic/ModalAdd.svelte";
@@ -25,17 +24,11 @@
     }));
 	
     const headerActions: HeaderAction[] = [
-        {label: "Add Aisle", icon: "fa-plus", action: () => addDialog.show()}
+        {label: "Add", icon: "fa-plus", color: 'primary', action: () => addDialog.show()}
     ];
     
     let addDialog: ModalAdd
     let renameDialog: ModalRename
-    
-	let reorderForm: HTMLFormElement;
-    
-	let reorderState = $state<{id: string, index: number}>({id: "", index: -1})
-	let reorderId = $derived(reorderState.id);
-	let reorderIndex = $derived(reorderState.index);
 	
 	async function onAdd(value: string) {
 		await post(`/api/aisles/add?storeId=${data.store.id}`, {name: value});
@@ -64,10 +57,3 @@
 <Header back={['/stores', 'Stores']} title={storeName} subtitle="Aisles" headerActions={headerActions}/>
 
 <ReorderableList listName='list' items={aisles} onReorder={onReorder} />
-<form method="POST"
-	  action="?/reorderAisle"
-	  bind:this={reorderForm}
-	  use:enhance>
-	<input hidden name="id" bind:value={reorderId} />
-	<input hidden name="aisleSortOrder" bind:value={reorderIndex} />
-</form>

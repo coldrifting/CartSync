@@ -2,7 +2,6 @@
     import '$lib/css/fonts/fontawesome-webfont.eot';
     import '$lib/css/app.css';
     import {page} from '$app/state';
-    import favicon from '$lib/assets/favicon.svg';
     import Appbar from "$lib/components/nav/Appbar.svelte";
     import Sidebar from "$lib/components/nav/Sidebar.svelte";
 
@@ -38,7 +37,7 @@
 </style>
 
 <svelte:head>
-    <link rel="icon" href={favicon}/>
+    <link rel="shortcut icon" href="data:;base64,iVBORw0KGgo=">
 </svelte:head>
 
 {#if showNavigation}

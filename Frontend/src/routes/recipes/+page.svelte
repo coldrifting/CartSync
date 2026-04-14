@@ -12,7 +12,7 @@
     let renameDialog: ModalRename
     
     const headerActions: HeaderAction[] = [
-        {label: "Add Recipe", icon: "fa-plus", action: () => {addDialog.show()}}
+        {label: "Add", icon: "fa-plus", color: 'primary', action: () => {addDialog.show()}}
     ];
     
     async function addAction(value: string) {
@@ -34,7 +34,7 @@
 </script>
 
 <svelte:head>
-    <title>Recipes</title>
+    <title>CartSync - Recipes</title>
 </svelte:head>
 
 <ModalAdd bind:this={addDialog} type="Recipe" addAction={addAction} />

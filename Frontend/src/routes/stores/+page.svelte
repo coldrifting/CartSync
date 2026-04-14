@@ -1,5 +1,7 @@
 <script lang="ts">
-    import {invalidateAll} from "$app/navigation";
+    import {browser} from "$app/environment";
+    import {redirect} from "@sveltejs/kit";
+    import {goto, invalidateAll} from "$app/navigation";
     import {patch, post, del, put} from "$lib/functions/requests.js";
     import type {PageProps} from './$types';
     import ModalAdd from "$lib/components/modal/generic/ModalAdd.svelte";
@@ -17,7 +19,19 @@
     let addDialog: ModalAdd
     let renameDialog: ModalRename
     
-    const headerActions: HeaderAction[] = [{label: "Add Store", icon: "fa-plus", action: () => {addDialog.show()}}];
+    async function logout() {
+        if (browser) {
+            await goto('/logout');
+        }
+        else {
+            throw redirect(303, "/logout");
+        }
+    }
+    
+    const headerActions: HeaderAction[] = [
+        {label: "Logout", icon: "fa-sign-out", color: 'danger', action: logout, hideFromDesktop: true},
+        {label: "Add", icon: "fa-plus", color: 'primary', action: () => {addDialog.show()}}
+    ];
     
     async function addAction(value: string) {
         await post("/api/stores/add", {name: value});
@@ -38,7 +52,7 @@
 </script>
 
 <svelte:head>
-    <title>Stores</title>
+    <title>CartSync - Stores</title>
 </svelte:head>
 
 <ModalAdd bind:this={addDialog} type="Store" addAction={addAction}/>

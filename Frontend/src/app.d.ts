@@ -22,6 +22,9 @@ declare global {
 		label: string;
 		icon: string;
 		action: () => void;
+		color?: string;
+		hideFromMobile?: boolean;
+		hideFromDesktop?: boolean;
 	}
 	
 	class PrepSelect {
