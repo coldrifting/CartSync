@@ -15,6 +15,7 @@
 		"@sveltejs/adapter-auto": "^7.0.0",
 		"@sveltejs/kit": "^2.50.2",
 		"@sveltejs/vite-plugin-svelte": "^6.2.4",
+		"@types/js-cookie": "^3.0.6",
 		"svelte": "^5.55.0",
 		"svelte-check": "^4.4.2",
 		"typescript": "^5.9.3",
@@ -24,7 +25,8 @@
 		"@dnd-kit-svelte/svelte": "^0.1.6",
 		"@dnd-kit/helpers": "^0.3.2",
 		"@sveltejs/adapter-static": "^3.0.10",
-		"@sveltestrap/sveltestrap": "^7.1.0"
+		"@sveltestrap/sveltestrap": "^7.1.0",
+		"js-cookie": "^3.0.5"
 	},
 	"overrides": {
 		"cookie": "^0.7.0"

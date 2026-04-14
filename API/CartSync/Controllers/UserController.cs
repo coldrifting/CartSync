@@ -45,14 +45,17 @@ public class UserController(CartSyncContext context, JwtAuthentication auth) : C
             return ErrorResponse.BadRequestInvalidLogin();
         }
 
-        await HttpContext.SignInAsync(new ClaimsPrincipal([
-            new ClaimsIdentity([
-                new Claim("sub", user.Username)
-            ], CookieAuthenticationDefaults.AuthenticationScheme)
-        ]));
-
-        // Send JWT token to avoid expensive hash calls for each authenticated endpoint
-        string token = auth.GenerateToken(user);
+        Claim claim = new("sub", user.Username);
+        ClaimsIdentity identity = new([claim], CookieAuthenticationDefaults.AuthenticationScheme);
+        ClaimsPrincipal principal = new(identity);
+        AuthenticationProperties properties = new()
+        {
+            IsPersistent = true,
+            ExpiresUtc = DateTime.UtcNow.AddDays(7)
+        };
+        
+        await HttpContext.SignInAsync(principal, properties);
+        
         return TypedResults.NoContent();
     }
     
@@ -61,6 +64,7 @@ public class UserController(CartSyncContext context, JwtAuthentication auth) : C
     public async Task<NoContent> LogoutCookie()
     {
         await HttpContext.SignOutAsync();
+        Response.Cookies.Delete("CartSyncCookieExpireTime");
         return TypedResults.NoContent();
     }
 }

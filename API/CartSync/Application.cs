@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using CartSync.Data.Responses;
 using CartSync.Database;
+using CartSync.Utils;
 using CartSync.Utils.Scalar;
 using CartSync.Utils.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -47,10 +48,31 @@ builder.Services.AddAuthentication(opt =>
     {
         options.Cookie.Name = "CartSyncCookie";
         options.Cookie.HttpOnly = true;
+        options.Cookie.SameSite = SameSiteMode.Strict;
+        options.Cookie.Path = "/";
         options.ExpireTimeSpan = TimeSpan.FromDays(7);
         options.SlidingExpiration = true;
-        options.Cookie.Path = "/";
-        options.Cookie.SameSite = SameSiteMode.Strict;
+        
+        // Add insecure cookie with just the expiration so client JavaScript can tell check authentication status
+        options.Events = new CookieAuthenticationEvents
+        {
+            OnSigningIn = async context =>
+            {
+                CookieOptions cookieOptions = new()
+                {
+                    Expires = context.Properties.ExpiresUtc,
+                    HttpOnly = false,
+                    SameSite = SameSiteMode.Strict,
+                    Path = "/",
+                };
+
+                DateTime expireTime = context.Properties.ExpiresUtc?.DateTime ?? DateTime.UtcNow.AddDays(7);
+                long expireTimestamp = Time.ConvertToTimestamp(expireTime);
+                context.Response.Cookies.Append("CartSyncCookieExpireTime", expireTimestamp.ToString(), cookieOptions);
+                
+                await Task.CompletedTask;
+            }
+        };
     })
     .AddJwtBearer(jwtOptions =>
     {
