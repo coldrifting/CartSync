@@ -1,0 +1,111 @@
+@import '_font-awesome.min.css';
+@import '_bootstrap.min.css';
+@import 'theme_dark.css';
+@import 'theme_light.css';
+@import 'theme.css';
+
+ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+h4 {
+    margin-top: 1.25rem;
+}
+
+button {
+    white-space: nowrap;
+}
+
+.p-2p5 {
+    padding: 0.66rem;
+}
+
+.whitespace-pre-line {
+    white-space: pre-line;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+header {
+    @media (width < 520px) {
+        button {
+            span {
+                display: none;
+            }
+        }
+        
+        .title-navigation {
+            .label {
+                display: none;
+            }
+            
+            .label-small {
+                display: block;
+            }
+        }
+        
+        .title {
+            display: none;
+        }
+    }
+}
+    
+.list-item {
+    color: var(--theme-fg);
+    background-color: var(--theme-input-bg);
+    border-radius: 0.5rem;
+    height: 2.75rem;
+    line-height: 3.5rem;
+    font-size: 0.9rem;
+    user-select: none;
+    border: none;
+
+    &.expanded {
+        height: auto;
+        line-height: 1.4rem;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        img {
+            width: 80%;
+            border-radius: 0.5rem;
+        }
+    }
+    
+    &:hover {
+        background-color: var(--theme-primary-hover) !important;
+    }
+
+    &:active {
+        background-color: var(--theme-primary-active) !important;
+    }
+
+    &:only-child {
+    }
+    
+    &:first-child:not(:only-child) {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        border-bottom: 1px solid var(--theme-border);
+    }
+
+    &:last-child:not(:only-child) {
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+    }
+
+    &:not(:first-child):not(:last-child) {
+        border-radius: 0;
+        border-bottom: 0;
+        border-bottom: 1px solid var(--theme-border);
+    }
+}

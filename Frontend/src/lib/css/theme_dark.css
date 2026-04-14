@@ -1,0 +1,26 @@
+:root {
+    @media (prefers-color-scheme: dark) {
+        --theme-fg: #eeeeee;
+        --theme-fg-rgb: 240, 240, 240;
+        
+        --theme-bg: #101828;
+        --theme-input-bg: #1c2433;
+        --theme-card-bg: #292e3c;
+        --theme-modal-bg: #1b2432;
+        --theme-modal-footer-bg: #1e2938;
+        --theme-modal-input-bg: #151b26;
+        
+        --theme-border: #3a4451;
+        
+        --theme-primary: var(--bs-primary);
+        --theme-primary-hover: rgba(var(--bs-primary-rgb), 0.5);
+        --theme-primary-active: rgba(var(--bs-primary-rgb), 0.25);
+        
+        --nav-sidebar-current: var(--bs-primary-border-subtle);
+        --nav-sidebar-highlight: var(--bs-primary);
+        --nav-sidebar-highlight-border: var(--bs-primary-text-emphasis);
+
+        --nav-appbar-current: var(--bs-primary);
+        --nav-appbar-pressed: var(--bs-primary-text-emphasis);
+    }
+}

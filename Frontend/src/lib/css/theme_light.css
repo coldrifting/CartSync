@@ -1,0 +1,42 @@
+:root {
+    @media (prefers-color-scheme: light) {
+        --theme-fg: #111111;
+        --theme-fg-rgb: 18, 18, 18;
+        
+        --theme-bg: #eeeeee;
+        --theme-input-bg: #ffffff;
+        --theme-card-bg: #f7f7f7;
+        --theme-modal-bg: #eeeeee;
+        --theme-modal-footer-bg: #dddddd;
+        --theme-modal-input-bg: #ffffff;
+        
+        --theme-border: #dddddd;
+        
+        --theme-primary: var(--bs-primary);
+        --theme-primary-hover: rgba(var(--bs-primary-rgb), 0.5);
+        --theme-primary-active: rgba(var(--bs-primary-rgb), 0.25);
+        
+        --nav-sidebar-current: var(--bs-primary-border-subtle);
+        --nav-sidebar-highlight: var(--bs-primary);
+        --nav-sidebar-highlight-border: var(--bs-primary-text-emphasis);
+
+        --nav-appbar-current: var(--bs-primary);
+        --nav-appbar-pressed: var(--bs-primary-text-emphasis);
+        
+        .btn-close {
+            filter: none;
+        }
+        
+        .text-muted {
+            color: grey !important;
+        }
+        
+        .text-info {
+            color: #3298d6 !important;
+        }
+        
+        .text-warning {
+            color: #ea731e !important;
+        }
+    }
+}
