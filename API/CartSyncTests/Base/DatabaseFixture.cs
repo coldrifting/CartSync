@@ -1,0 +1,69 @@
+using System.Security.Claims;
+using CartSync.Controllers;
+using CartSync.Controllers.Core;
+using CartSync.Database;
+using CartSync.SeedData;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+
+namespace CartSyncTests.Base;
+
+public class DatabaseFixture(DatabaseSetup fixture) : IClassFixture<DatabaseSetup>, IAsyncLifetime
+{
+    // Prevent xunit warning by using and consuming fixture parameter
+    // ReSharper disable once UnusedMember.Global
+    protected DatabaseSetup Fixture = fixture;
+    
+    public required CartSyncContext Context;
+    public required StoreController StoreController;
+    public required AisleController AisleController;
+    public required ItemController ItemController;
+    public required PrepController PrepController;
+    public required RecipeController RecipeController;
+    public required RecipeEntryController RecipeEntryController;
+    public required CartController CartController;
+
+    /// Start
+    public async ValueTask InitializeAsync()
+    {
+        Context = DatabaseSetup.CreateContext();
+        
+        StoreController = AddTestController<StoreController>(Context);
+        AisleController = AddTestController<AisleController>(Context);
+        ItemController = AddTestController<ItemController>(Context);
+        PrepController = AddTestController<PrepController>(Context);
+        RecipeController = AddTestController<RecipeController>(Context);
+        RecipeEntryController = AddTestController<RecipeEntryController>(Context);
+        CartController = AddTestController<CartController>(Context);
+        
+        await Context.Database.BeginTransactionAsync();
+    }
+
+    /// End
+    public async ValueTask DisposeAsync()
+    {
+        await Context.Database.RollbackTransactionAsync();
+        GC.SuppressFinalize(this);
+    }
+
+    private static T AddTestController<T>(CartSyncContext context) where T : ControllerCore
+    {
+        T controller = (T)Activator.CreateInstance(typeof(T), context)!;
+        controller.ObjectValidator = new ModelValidator();
+        controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext
+            {
+                User = new ClaimsPrincipal(
+                    new ClaimsIdentity(
+                        [
+                            new Claim("sub", SeedData.Users[0].Username)
+                        ]
+                    )
+                ),
+            }
+        };
+        
+        return controller;
+    }
+}
