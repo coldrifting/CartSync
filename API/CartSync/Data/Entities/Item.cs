@@ -46,11 +46,6 @@ public class Item : IPatchableStoreSpecific<ItemEditRequest>
                 .FirstOrDefault(),
             DefaultUnitType = DefaultUnitType,
             UncapCartUnits = UncapCartUnits,
-            PrepIds = Preps
-                .OrderBy(p => p.PrepName)
-                .ThenBy(p => p.PrepId)
-                .Select(p => p.PrepId)
-                .ToList()
         };
         
         return Patch.TryPatch(modelState, this, jsonPatch, ref patch);
@@ -62,17 +57,6 @@ public class Item : IPatchableStoreSpecific<ItemEditRequest>
         Temp = editRequest.Temp;
         DefaultUnitType = editRequest.DefaultUnitType;
         UncapCartUnits = editRequest.UncapCartUnits;
-
-        ItemPreps.Clear();
-
-        foreach (Ulid prepId in editRequest.PrepIds.ToHashSet())
-        {
-            ItemPreps.Add(new ItemPrep
-            {
-                ItemId = ItemId,
-                PrepId = prepId
-            });
-        }
 
         ItemAisle? currentLocation = ItemAisles.FirstOrDefault(itemAisle => itemAisle.StoreId == storeId);
         if (currentLocation is not null)

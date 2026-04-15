@@ -11,7 +11,6 @@ public record ItemEditRequest
     [Required] public required Temp Temp { get; init; }
     [Required] public required UnitType DefaultUnitType { get; init; }
     [Required] public required bool UncapCartUnits { get; init; }
-    [Required] public required List<Ulid> PrepIds { get; init; }
     
     // Dont use required attribute
     public required LocationEditRequest? Location { get; init; }

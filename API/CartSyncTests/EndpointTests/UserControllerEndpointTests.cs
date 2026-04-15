@@ -14,7 +14,7 @@ public class UserControllerEndpointTests(AppSetupFactory<Program> setupFactory) 
     public async Task TestLogin_BadUsernameOrPassword(string username, string password)
     {
         UserLoginRequest details = new(username, password);
-        HttpResponseMessage loginAttemptResult = await PostAsyncAnonymous("/api/user/login", details);
+        HttpResponseMessage loginAttemptResult = await PostAsyncAnonymous("/api/user/login/token", details);
         Assert.Equal(HttpStatusCode.BadRequest, loginAttemptResult.StatusCode);
     }
 }

@@ -12,9 +12,9 @@ public record ItemResponse
     public required UnitType DefaultUnitType { get; init; }
     public required bool UncapCartUnits { get; init; }
     public required ReadOnlyList<PrepResponse> Preps { get; init; }
-    public required ItemAisleResponse? Location { get; init; }
+    public required ReadOnlyList<ItemAisleResponse> Locations { get; init; }
     
-    public static Expression<Func<Item, ItemResponse>> FromEntity(Ulid selectedStoreId) =>
+    public static Expression<Func<Item, ItemResponse>> FromEntity =>
         item => new ItemResponse
         {
             Id = item.ItemId,
@@ -28,9 +28,9 @@ public record ItemResponse
                 .ThenBy(p => p.PrepId)
                 .Select(PrepResponse.FromEntity)
                 .ToReadOnlyList(),
-            Location = item.ItemAisles
+            Locations = item.ItemAisles
                 .AsQueryable()
                 .Select(ItemAisleResponse.FromEntity)
-                .FirstOrDefault(a => a.StoreId == selectedStoreId)
+                .ToReadOnlyList()
         };
 }

@@ -73,7 +73,7 @@ public class AppFixture(AppSetupFactory<Program> setupFactory) : IClassFixture<A
     private async Task InitializeAuthorizedMethods()
     {
         string testUser = SeedData.Users[0].Username;
-        HttpResponseMessage result = await _client.PostAsJsonAsync("/api/user/login", 
+        HttpResponseMessage result = await _client.PostAsJsonAsync("/api/user/login/token", 
             new UserLoginRequest(testUser, testUser));
         Assert.Equal(HttpStatusCode.OK, result.StatusCode);
 

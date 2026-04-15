@@ -18,11 +18,21 @@ public class AisleController(CartSyncContext context) : ControllerCore(context)
 {
     [HttpGet]
     [Route("/api/aisles")]
-    public async Task<Results<Ok<ReadOnlyList<AisleResponse>>, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> All([Required] Ulid storeId)
+    public async Task<Results<Ok<ReadOnlyList<AisleResponse>>, BadRequest<ErrorResponse>, NotFound<ErrorResponse>>> All(Ulid? storeId)
     {
+        if (storeId is null)
+        {
+            ReadOnlyList<AisleResponse> allAisles = Db.Aisles
+                .Select(AisleResponse.FromEntity)
+                .OrderBy(aisle => aisle.SortOrder)
+                .ToReadOnlyList();
+            
+            return TypedResults.Ok(allAisles);
+        }
+        
         if (await Db.Stores.FindAsync(storeId) is null)
         {
-            return Store.NotFound(storeId);
+            return Store.NotFound(storeId.Value);
         }
 
         ReadOnlyList<AisleResponse> aisles = Db.Stores
@@ -32,6 +42,22 @@ public class AisleController(CartSyncContext context) : ControllerCore(context)
             .Aisles
             .Select(AisleResponse.FromEntity)
             .OrderBy(aisle => aisle.SortOrder)
+            .ToReadOnlyList();
+        
+        return TypedResults.Ok(aisles);
+    }
+    
+    [HttpGet]
+    [Route("/api/aisles/selected")]
+    public async Task<Ok<ReadOnlyList<AisleResponse>>> AllSelected()
+    {
+        Ulid storeId = await GetSelectedStoreId();
+        
+        ReadOnlyList<AisleResponse> aisles = Db.Aisles
+            .AsNoTracking()
+            .Where(aisle => aisle.StoreId == storeId)
+            .OrderBy(aisle => aisle.SortOrder)
+            .Select(AisleResponse.FromEntity)
             .ToReadOnlyList();
         
         return TypedResults.Ok(aisles);
