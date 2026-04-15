@@ -71,7 +71,6 @@ public class RecipeStepsController(CartSyncContext context) : ControllerCore(con
     {
         RecipeStep? recipeStep = await Db.RecipeSteps
             .Include(recipeStep => recipeStep.Recipe)
-            .ThenInclude(recipe => recipe.Steps)
             .FirstOrDefaultAsync(recipeStep => recipeStep.RecipeStepId == recipeStepId);
         if (recipeStep == null)
         {
@@ -80,8 +79,14 @@ public class RecipeStepsController(CartSyncContext context) : ControllerCore(con
 
         Db.RecipeSteps.Remove(recipeStep);
         
+        List<RecipeStep> remainingSteps = await Db.Recipes
+            .Include(recipe => recipe.Steps)
+            .SelectMany(recipe => recipe.Steps)
+            .Where(step => step.RecipeId == recipeStep.RecipeId && step.RecipeStepId != recipeStepId)
+            .ToListAsync();
+        
         // Refresh Sort Order
-        Sort.RefreshOrder(recipeStep.Recipe.Steps);
+        Sort.RefreshOrder(remainingSteps);
 
         await Db.SaveChangesAsync();
         
