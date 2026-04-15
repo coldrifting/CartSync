@@ -1,5 +1,4 @@
 <script lang="ts">
-    import {invalidateAll} from "$app/navigation";
     import ModalDelete from "$lib/components/modal/generic/ModalDelete.svelte";
     import ModalCustom from "$lib/components/modal/ModalCustom.svelte";
     import FormInputText from "$lib/components/FormInputText.svelte";
@@ -21,6 +20,7 @@
     let name: string = $state('');
     let value: string = $state('');
     let uiVerb: string = $derived(verb ?? "Rename");
+    let title: string = $derived(uiVerb + ' ' + type);
 
     let showDeleteButton: boolean = $state(false);
     
@@ -32,31 +32,39 @@
         isOpen = true;
     }
 
+    let isLoading: boolean = $state(false);
     async function onDelete() {
         if (deleteAction === undefined) {
             return;
         }
         
+        title = `Deleting ${type}...`
         if (tryDeleteAction !== undefined) {
+            isLoading = true;
             const usages = await tryDeleteAction(id);
             if ((usages['Items']?.length ?? 0) === 0 &&
                 (usages['Recipes']?.length ?? 0) === 0 &&
                 (usages['Preps']?.length ?? 0) === 0) {
                 await deleteAction(id);
+                isLoading = false;
                 isOpen = false;
-                await invalidateAll();
             }
             else {
+                isLoading = false;
+                title = uiVerb + ' ' + type;
                 deleteDialog.show(id, name, usages);
+                isOpen = false;
             }
         }
         else if (warning !== null) {
             deleteDialog.show(id, name);
+            isOpen = false;
         } 
         else {
+            isLoading = true;
             await deleteAction(id);
+            isLoading = false;
             isOpen = false;
-            await invalidateAll();
         }
     }
     
@@ -66,9 +74,10 @@
     }
 
     async function onRename() {
+        isLoading = true;
         await renameAction(id, value);
+        isLoading = false;
         isOpen = false;
-        await invalidateAll();
     }
     
     let firstElement: HTMLInputElement | undefined = $state(undefined);
@@ -80,8 +89,9 @@
              bind:parentIsOpen={isOpen} 
              deleteAction={deleteAction ?? placeholderDelete}/>
 
-<ModalCustom title="{uiVerb} {type}"
+<ModalCustom bind:title="{title}"
              bind:isOpen
+             bind:isLoading
              action={{label: uiVerb, action: onRename}}
              actionIsDisabled={value.trim() === ""}
              actionDelete={ showDeleteButton ? ({label: "Delete", action: onDelete}) : undefined }

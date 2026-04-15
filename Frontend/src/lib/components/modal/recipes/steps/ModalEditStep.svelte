@@ -1,11 +1,19 @@
 <script lang="ts">
-    import {FormGroup, Input} from "@sveltestrap/sveltestrap";
     import ModalCustom from "$lib/components/modal/ModalCustom.svelte";
-    import {del, patch, put} from "$lib/functions/requests.js";
-    import {invalidateAll} from "$app/navigation";
-    import FormInputText from "$lib/components/FormInputText.svelte";
+    import {del, patch} from "$lib/functions/requests.js";
+    import FormInputTextArea from "$lib/components/FormInputTextArea.svelte";
+    import {useQueryClient} from "@tanstack/svelte-query";
 
+    interface Props {
+        recipeId: string;
+    }
+
+    let {recipeId}: Props = $props();
+    
+    let title = $state("Update Recipe Step");
     let isOpen: boolean = $state(false);
+    
+    const client = useQueryClient()
     
     let stepId: string = $state('');
     let content: string = $state('');
@@ -19,34 +27,40 @@
         isOpen = true;
     }
     
+    let isLoading: boolean = $state(false);
     async function onUpdate() {
-        await patch(`/api/recipes/steps/${stepId}/edit`, {'/Content': content, '/IsImage': isImage})
-        
-        isOpen = false
-        await invalidateAll();
+        isLoading = true;
+        await patch(`/api/recipes/steps/${stepId}/edit`, {'/Content': content, '/IsImage': isImage});
+        await client.invalidateQueries({queryKey: ['recipes', recipeId]});
+        isLoading = false;
+        isOpen = false;
     }
     
     async function onDelete() {
+        title = "Deleting Recipe Step...";
+        isLoading = true;
         await del(`/api/recipes/steps/${stepId}/delete`);
-
-        isOpen = false
-        await invalidateAll();
+        await client.invalidateQueries({queryKey: ['recipes', recipeId]});
+        isLoading = false;
+        isOpen = false;
     }
     
     let firstElement: HTMLTextAreaElement | undefined = $state(undefined);
 </script>
 
 
-<ModalCustom title="Update Recipe Step"
+<ModalCustom bind:title
              bind:isOpen
+             bind:isLoading
              action={{label: "Update", action: onUpdate}}
              actionIsDisabled={content.trim() === ""}
+             actionDelete={{label: "Delete", action: onDelete}}
              autoFocusElement={firstElement}
              isExpanded={true}>
-    <FormInputText id="inputAddStep" 
-                   label="Step Details or Image URL" 
-                   bind:element={firstElement} 
-                   bind:value={content} 
-                   rows={5}
-                   required/>
+    <FormInputTextArea id="inputAddStep" 
+                       label="Step Details or Image URL" 
+                       bind:element={firstElement} 
+                       bind:value={content} 
+                       rows={5}
+                       required/>
 </ModalCustom>

@@ -29,7 +29,7 @@
     {#if info !== undefined || subInfo !== undefined}
         <div class="d-flex flex-column text-end">
             {#if info !== undefined}
-                <span class="text-info" class:text-muted={infoOffset}>{info}</span>
+                <span class="text-info" class:text-muted={infoOffset || info.startsWith('(')}>{info}</span>
             {/if}
             {#if subInfo !== undefined}
                 <span class="text-warning">{subInfo}</span>

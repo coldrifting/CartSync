@@ -1,55 +1,65 @@
 <script lang='ts'>
     import favicon from '$lib/assets/cartsync.svg';
     import {goto} from '$app/navigation';
-    import {fail, redirect} from "@sveltejs/kit";
+    import {tick} from "svelte";
+    import {fade} from 'svelte/transition';
+    import {redirect} from "@sveltejs/kit";
     import {browser} from "$app/environment";
     import FormInputText from "$lib/components/FormInputText.svelte";
+    import {Spinner} from "@sveltestrap/sveltestrap";
 
     let username = $state('');
     let password = $state('');
     let isError = $state(false);
+    let isLoading = $state(false);
 
     async function handleSubmit(event: SubmitEvent) {
         event.preventDefault();
 
-        const apiResponse = await fetch(`/api/user/login/cookie`, {
-            method: 'POST',
-            body: JSON.stringify({username, password}),
-            headers: {'Content-Type': 'application/json'},
-        });
-
-        if (!apiResponse.ok) {
-            isError = true;
-            return fail(400, {
-                username: username,
-                error: 'Invalid credentials'
+        isError = false;
+        isLoading = true;
+        try {
+            const apiResponse = await fetch(`/api/user/login/cookie`, {
+                method: 'POST',
+                body: JSON.stringify({username, password}),
+                headers: {'Content-Type': 'application/json'},
             });
-        }
 
-        if (browser) {
-            await goto('/cart')
+            if (!apiResponse.ok) {
+                isError = true;
+                isLoading = false;
+                tick().then(() => passwordElement?.focus());
+                return;
+            }
+
+            if (browser) {
+                await goto('/cart')
+            } else {
+                redirect(307, `/cart`);
+            }
         }
-        else {
-            redirect(307, `/cart`);
+        catch (error) {
+            console.error(error);
         }
+        isLoading = false;
     }
       
     let usernameElement: HTMLInputElement | undefined = $state(undefined);
     let passwordElement: HTMLInputElement | undefined = $state(undefined);
     
-    function handleEnter(e) {
+    function handleEnter(e: KeyboardEvent) {
         if (e.key === 'Enter' && (usernameElement?.value.trim() ?? '') !== '') {
             e.preventDefault(); // Stop form submission
             passwordElement?.focus();
         }
     }
-    
 </script>
 
 <style>
     .login-window {
-        height: 90dvh;
-        max-height: 90dvh;
+        height: 100dvh;
+        max-height: 100dvh;
+        background-color: rgba(0, 0, 0, 0.25);
     }
     
     .login-container {
@@ -63,6 +73,10 @@
                 width: 100%;
             }
         }
+    }
+    
+    .login-info {
+        height: 3rem;
     }
 </style>
 
@@ -84,6 +98,7 @@
                            spellcheck="false"
                            enterkeyhint="next"
                            onkeydown={handleEnter}
+                           disabled={isLoading}
                            bind:value={username} 
                            bind:element={usernameElement}
                            required/>
@@ -91,16 +106,22 @@
             <FormInputText id="password" 
                            label="Password" 
                            type="password"
-                           autocomplete="password"
+                           autocomplete="current-password"
                            enterkeyhint="go"
+                           disabled={isLoading}
                            bind:value={password} 
                            bind:element={passwordElement}
                            required/>
-            <div class="d-flex flex-column flex-sm-row align-items-center">
-                {#if isError}
-                    <h6 class="text-danger m-2">Invalid username or password</h6>
+            <div class="d-flex flex-column flex-sm-row align-items-center login-info">
+                {#if isLoading}
+                    <div in:fade={{duration: 0, delay: 300}}>
+                        <Spinner/>
+                    </div>
                 {/if}
-                <button class="btn btn-primary ms-auto m-2" type="submit">Login</button>
+                {#if isError}
+                    <h6 in:fade={{duration: 0, delay: 100}} class="text-danger m-2">Invalid username or password</h6>
+                {/if}
+                <button class="btn btn-primary ms-auto m-2" disabled={isLoading} type="submit">Login</button>
             </div>
         </form>
     </div>

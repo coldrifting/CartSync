@@ -3,6 +3,7 @@ import ErrorCustom from "$lib/models/ErrorCustom.js";
 import {goto} from "$app/navigation";
 import {redirect} from "@sveltejs/kit";
 import {browser} from '$app/environment'
+import {createMutation, type QueryClient} from "@tanstack/svelte-query";
 
 type fetchFunction = (input: (RequestInfo | URL), init?: RequestInit) => Promise<Response>;
 
@@ -36,7 +37,7 @@ export async function get<T>(url: string, fetchFunc: fetchFunction | undefined =
     return await response.json()
 }
 
-export async function post(url: string, body: any, fetchFunc: fetchFunction | undefined = undefined): Promise<void> {
+export async function post(url: string, body: any, fetchFunc: fetchFunction | undefined = undefined): Promise<string | null> {
     const requestInit: RequestInit = {
         method: "POST",
         headers: {
@@ -48,6 +49,13 @@ export async function post(url: string, body: any, fetchFunc: fetchFunction | un
         ? await fetchFunc(url, requestInit) 
         : await fetch(url, requestInit);
     await checkForErrors(response);
+    if (response.status === 201) {
+        let location: string | null = response.headers.get("Location");
+        if (location) {
+            return location.split('/').at(-1) ?? null;
+        }
+    }
+    return null;
 }
 
 export async function postAndGetId(url: string, body: any, fetchFunc: fetchFunction | undefined = undefined): Promise<string> {
@@ -113,4 +121,29 @@ export async function del(url: string, fetchFunc: fetchFunction | undefined = un
         ? await fetchFunc(url, requestInit) 
         : await fetch(url, requestInit);
     await checkForErrors(response);
+}
+
+export function mutate<T, TQuery>(client: QueryClient,
+                                  key: any,
+                                  promise: (value: T) => Promise<any>,
+                                  updateFunction: ((query: TQuery, value: T) => TQuery) | undefined = undefined) {
+    return createMutation(() => ({
+        mutationFn: (value: T) => promise(value),
+        onMutate: updateFunction ? async (value: T) => {
+            await client.cancelQueries({queryKey: key})
+
+            const previous = client.getQueryData<TQuery>(key);
+            if (previous) {
+                client.setQueryData(key, updateFunction(previous, value));
+            }
+
+            return previous;
+        } : undefined,
+        onError: async (_, __, context: any) => {
+            if (context?.previous) {
+                client.setQueryData<TQuery>(key, context.previous)
+            }
+        },
+        onSettled: _ => client.invalidateQueries({queryKey: key}),
+    }))
 }

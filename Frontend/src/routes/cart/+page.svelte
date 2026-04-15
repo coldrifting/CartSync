@@ -1,5 +1,4 @@
 <script lang="ts">
-    import type {PageProps} from './$types';
     import ListItemButton from "$lib/components/lists/ListItemButton.svelte";
     import Amount from "$lib/models/Amount.js";
     import Header from "$lib/components/nav/Header.svelte";
@@ -7,15 +6,24 @@
     import ModalCartEditRecipe from "$lib/components/modal/cart/ModalCartEditRecipe.svelte";
     import ModalCartEditItem from "$lib/components/modal/cart/ModalCartEditItem.svelte";
     import {goto} from "$app/navigation";
-    import {post} from "$lib/functions/requests.js";
+    import {get, post} from "$lib/functions/requests.js";
     import {browser} from "$app/environment";
     import {redirect} from "@sveltejs/kit";
+    import LoadingPage from "$lib/components/LoadingPage.svelte";
+    import ModalLoading from "$lib/components/modal/ModalLoading.svelte";
+    import {createQuery} from "@tanstack/svelte-query";
+    import type CartSelect from "$lib/models/CartSelect.ts";
     
-    let {data}: PageProps = $props();
+    const queryCart = createQuery(() => ({
+        queryKey: ['cart'],
+        queryFn: () => get<CartSelect>('/api/cart/selection', fetch)
+    }))
     
+    let isCartGenerating: boolean = $state(false);
     const headerActions: HeaderAction[] = [
-        {label: "Add", icon: "fa-plus", color: 'primary', action: () => { modalCartAdd.show() }},
+        {label: "Add", icon: "fa-plus", color: 'primary', action: async () => { modalCartAdd?.show() }},
         {label: "Generate", icon: "fa-refresh", color: 'success', action: async () => { 
+            isCartGenerating = true;
             try {
                 await post('/api/cart/generate', {});
                     
@@ -26,49 +34,61 @@
                     redirect(307, '/cart/list');
                 }
             }
-            catch {
-                console.log('Error generating cart');
+            catch(error) {
+                console.error(error);
             }
+            isCartGenerating = false;
         }}
     ];
     
-    let modalCartAdd: ModalCartAdd;
-    let modalCartEditRecipe: ModalCartEditRecipe;
-    let modalCartEditItem: ModalCartEditItem;
+    let modalCartAdd: ModalCartAdd | undefined = $state(undefined);
+    let modalCartEditRecipe: ModalCartEditRecipe | undefined = $state(undefined);
+    let modalCartEditItem: ModalCartEditItem | undefined = $state(undefined);
+    
 </script>
 
 <svelte:head>
     <title>CartSync - Cart</title>
 </svelte:head>
 
-<ModalCartAdd bind:this={modalCartAdd}
-              remainingRecipes={data.remainingRecipes}
-              remainingItems={data.remainingItems}/>
-
-<ModalCartEditRecipe bind:this={modalCartEditRecipe} cartRecipes={data.recipes}/>
-<ModalCartEditItem bind:this={modalCartEditItem} cartItems={data.items}/>
-
 <Header title="Cart" headerActions={headerActions}/>
 
-{#if data.recipes.length > 0}
-    <h4>Recipes</h4>
-    <ul>
-        {#each data.recipes as recipe}
-            <ListItemButton label={recipe.name} 
-                            info="Qty: {recipe.quantity.toFixed(0)}" 
-                            action={() => {modalCartEditRecipe.show(recipe.id)}}/>
-        {/each}
-    </ul>
+{#if isCartGenerating}
+<ModalLoading title="Generating Cart..."></ModalLoading>
 {/if}
 
-{#if data.items.length > 0}
-    <h4>Items</h4>
-    <ul>
-        {#each data.items as item}
-            <ListItemButton label={item.item.name}
-                            info={Amount.asString(item.amount)}
-                            subInfo={item.prep?.name}
-                            action={() => {modalCartEditItem.show(item.item.id, item.prep?.id ?? null)}}/>
-        {/each}
-    </ul>
+{#if queryCart.isLoading}
+    <LoadingPage/>
+{:else if queryCart.isError}
+    <p>Error: {queryCart.error?.message}</p>
+{:else if queryCart.isSuccess}
+    <ModalCartAdd bind:this={modalCartAdd}
+                  remainingRecipes={queryCart.data.remainingRecipes}
+                  remainingItems={queryCart.data.remainingItems}/>
+    
+    <ModalCartEditRecipe bind:this={modalCartEditRecipe} cartRecipes={queryCart.data.recipes}/>
+    <ModalCartEditItem bind:this={modalCartEditItem} cartItems={queryCart.data.items}/>
+    
+    {#if queryCart.data.recipes.length > 0}
+        <h4>Recipes</h4>
+        <ul>
+            {#each queryCart.data.recipes as recipe}
+                <ListItemButton label={recipe.name} 
+                                info="Qty: {recipe.quantity.toFixed(0)}" 
+                                action={() => {modalCartEditRecipe?.show(recipe.id)}}/>
+            {/each}
+        </ul>
+    {/if}
+    
+    {#if queryCart.data.items.length > 0}
+        <h4>Items</h4>
+        <ul>
+            {#each queryCart.data.items as item}
+                <ListItemButton label={item.item.name}
+                                info={Amount.asString(item.amount)}
+                                subInfo={item.prep?.name}
+                                action={() => {modalCartEditItem?.show(item.item.id, item.prep?.id ?? null)}}/>
+            {/each}
+        </ul>
+    {/if}
 {/if}

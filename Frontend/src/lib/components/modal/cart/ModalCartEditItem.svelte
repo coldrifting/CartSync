@@ -4,18 +4,21 @@
     import type CartSelectItem from "$lib/models/CartSelectItem.ts";
     import Fraction from "$lib/models/Fraction.js";
     import ModalCustom from "$lib/components/modal/ModalCustom.svelte";
-    import {invalidateAll} from "$app/navigation";
     import Amount from "$lib/models/Amount.js";
     import {put, del} from "$lib/functions/requests.js";
     import FormInputNumber from "$lib/components/FormInputNumber.svelte";
+    import {useQueryClient} from "@tanstack/svelte-query";
 
     interface Props {
         cartItems: CartSelectItem[];
     }
+    
+    const client = useQueryClient();
 
     let {cartItems}: Props = $props();
 
     let isOpen: boolean = $state(false);
+    let title = $state("Edit Cart Entry Item");
 
     let item: CartSelectItem | undefined = $derived(undefined);
     let itemId: string | undefined = $derived.by(() => {
@@ -45,28 +48,30 @@
         isOpen = true;
     }
 
-    function onfocus(event: Event) {
-        let element = event.target as HTMLInputElement;
-        element.select();
-    }
-
+    let isLoading: boolean = $state(false);
     async function onSubmit() {
+        isLoading = true;
         await put(`/api/cart/selection/items/${itemId}/edit` + (prepId !== undefined ? `?prepId=${prepId}` : ''), {amount: amount});
+        isLoading = false;
         isOpen = false;
-        await invalidateAll();
+        await client.invalidateQueries({queryKey: ['cart']});
     }
 
     async function onDelete() {
+        title = "Removing Cart Entry Item..."
+        isLoading = true;
         await del(`/api/cart/selection/items/${itemId}/delete` + (prepId !== undefined ? `?prepId=${prepId}` : ''));
+        isLoading = false;
         isOpen = false;
-        await invalidateAll();
+        await client.invalidateQueries({queryKey: ['cart']});
     }
     
     let firstElement: HTMLInputElement | undefined = $state(undefined);
 </script>
 
-<ModalCustom title="Edit Cart Entry Item"
+<ModalCustom bind:title
              bind:isOpen
+             bind:isLoading
              action={({label: "Update", action: onSubmit})}
              actionIsDisabled={isSubmitDisabled}
              actionDelete={{label: "Remove", action: onDelete}}

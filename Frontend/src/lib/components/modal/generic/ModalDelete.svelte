@@ -1,6 +1,5 @@
 <script lang="ts">
     import ModalCustom from "$lib/components/modal/ModalCustom.svelte";
-    import {invalidateAll} from "$app/navigation";
     
     interface Usages {
         recipes: string[];
@@ -52,17 +51,22 @@
         return str.charAt(0).toUpperCase() + str.slice(1);
     }
     
+    let isLoading: boolean = $state(false);
     async function onDelete() {
+        isLoading = true;
         await deleteAction(id);
-        isOpen = false
+        isLoading = false;
+        isOpen = false;
         if (parentIsOpen) {
             parentIsOpen = false;
         }
-        await invalidateAll();
     }
 </script>
 
-<ModalCustom title="Delete {type}" bind:isOpen actionDelete={{label: "Delete", action: onDelete}}>
+<ModalCustom title="Delete {type}" 
+             bind:isOpen 
+             bind:isLoading 
+             actionDelete={{label: "Delete", action: onDelete}}>
     <p>
         {#if usages !== undefined}
             {itemName} is currently used in:

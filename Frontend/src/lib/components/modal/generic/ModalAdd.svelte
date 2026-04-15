@@ -1,6 +1,5 @@
 <script lang="ts">
     import {tick} from "svelte";
-    import {invalidateAll} from "$app/navigation";
     import ModalCustom from "$lib/components/modal/ModalCustom.svelte";
     import FormInputText from "$lib/components/FormInputText.svelte";
 
@@ -20,10 +19,12 @@
         isOpen = true;
     }
     
+    let isLoading: boolean = $state(false);
     async function onAdd() {
+        isLoading = true;
         await addAction(value);
+        isLoading = false;
         isOpen = false;
-        await invalidateAll();
         
         if (scrollOnAdd) {
             tick().then(() => {
@@ -37,6 +38,7 @@
 
 <ModalCustom title="Add {type}"
              bind:isOpen
+             bind:isLoading
              action={{label: "Add", action: onAdd}}
              autoFocusElement={firstElement}>
     <FormInputText id="inputAdd" label="{type} Name" bind:element={firstElement} bind:value={value} required/>

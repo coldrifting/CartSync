@@ -6,11 +6,19 @@
     import type Amount from "$lib/models/Amount.ts";
     import ModalCustom from "$lib/components/modal/ModalCustom.svelte";
     import {del, patch} from "$lib/functions/requests.js";
-    import {invalidateAll} from "$app/navigation";
     import FormInputNumber from "$lib/components/FormInputNumber.svelte";
+    import {useQueryClient} from "@tanstack/svelte-query";
+    
+    interface Props {
+        recipeId: string;
+    }
+
+    let {recipeId}: Props = $props();
     
     let isOpen: boolean = $state(false);
 
+    const client = useQueryClient()
+    
     let recipeEntryId: string = $state("");
     let itemName: string = $state("");
     let preps: (Prep | null)[] = $state([]);
@@ -45,18 +53,21 @@
         isOpen = true;
     }
     
+    let isLoading: boolean = $state(false);
     async function onEdit() {
+        isLoading = true;
         await patch(`/api/recipes/entries/${recipeEntryId}/edit`, {'/PrepId': prepId, '/Amount': amount});
-
-        isOpen = false
-        await invalidateAll();
+        await client.invalidateQueries({queryKey: ['recipes', recipeId]});
+        isLoading = false;
+        isOpen = false;
     }
     
     async function onDelete() {
+        isLoading = true;
         await del(`/api/recipes/entries/${recipeEntryId}/delete`);
-
-        isOpen = false
-        await invalidateAll();
+        await client.invalidateQueries({queryKey: ['recipes', recipeId]});
+        isLoading = false;
+        isOpen = false;
     }
     
     let firstElement: HTMLInputElement | undefined = $state(undefined);
@@ -64,6 +75,7 @@
 
 <ModalCustom title="Update Recipe Entry"
              bind:isOpen
+             bind:isLoading
              action={{label: "Update", action: onEdit}}
              actionIsDisabled={isSubmitDisabled}
              actionDelete={{label: "Remove", action: onDelete}}

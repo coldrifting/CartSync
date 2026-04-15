@@ -7,6 +7,7 @@ class RecipeEntry {
     item: Item = new Item();
     prep: Prep | null = null;
     amount: Amount = new Amount();
+    isChecked?: boolean = false;
 }
 
 export default RecipeEntry;

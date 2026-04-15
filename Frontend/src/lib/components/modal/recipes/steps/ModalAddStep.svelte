@@ -1,9 +1,9 @@
 <script lang="ts">
     import {tick} from "svelte";
     import ModalCustom from "$lib/components/modal/ModalCustom.svelte";
-    import {invalidateAll} from "$app/navigation";
     import {post} from "$lib/functions/requests.js";
-    import FormInputText from "$lib/components/FormInputText.svelte";
+    import FormInputTextArea from "$lib/components/FormInputTextArea.svelte";
+    import {useQueryClient} from "@tanstack/svelte-query";
 
     interface Props {
         recipeId: string;
@@ -11,6 +11,8 @@
 
     let {recipeId}: Props = $props();
 
+    const client = useQueryClient()
+    
     let isOpen: boolean = $state(false);
     
     let content: string = $state('');
@@ -23,11 +25,14 @@
         isOpen = true;
     }
     
+    let isLoading: boolean = $state(false);
     async function onAdd() {
-        await post(`/api/recipes/steps/add?recipeId=${recipeId}`, {content: content, isImage: isImage})
-
-        isOpen = false
-        await invalidateAll();
+        isLoading = true;
+        await post(`/api/recipes/steps/add?recipeId=${recipeId}`, {content: content, isImage: isImage});
+        await client.invalidateQueries({queryKey: ['recipes', recipeId]});
+        isLoading = false;
+        isOpen = false;
+        
         tick().then(() => {
             window.scrollTo(0, document.body.scrollHeight);
         });
@@ -38,14 +43,15 @@
 
 <ModalCustom title="Add Recipe Step"
              bind:isOpen
+             bind:isLoading
              action={{label: "Add", action: onAdd}}
              actionIsDisabled={content.trim() === ""}
              autoFocusElement={firstElement}
              isExpanded={true}>
-    <FormInputText id="inputAddStep" 
-                   label="Step Details or Image URL" 
-                   bind:element={firstElement} 
-                   bind:value={content} 
-                   rows={5}
-                   required/>
+    <FormInputTextArea id="inputAddStep"
+                       label="Step Details or Image URL"
+                       bind:element={firstElement}
+                       bind:value={content}
+                       rows={5}
+                       required/>
 </ModalCustom>

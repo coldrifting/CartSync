@@ -7,7 +7,7 @@ class ItemDetails {
     temp: string = "";
     defaultUnitType: string = "";
     preps: Prep[] = [];
-    location: ItemLocation | null = null;
+    locations: ItemLocation[] = [];
 }
 
 export default ItemDetails;

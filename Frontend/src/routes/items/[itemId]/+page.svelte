@@ -1,130 +1,77 @@
 <script lang="ts">
-    import type {PageProps} from './$types';
-    import {FormGroup, Input} from "@sveltestrap/sveltestrap";
-    import type ItemDetails from "$lib/models/ItemDetails.ts";
-    import ItemTemp from "$lib/models/ItemTemp.js";
-    import BayType from "$lib/models/BayType.js";
-    import UnitType from "$lib/models/UnitType.js";
     import Header from "$lib/components/nav/Header.svelte";
     import ListItemLink from "$lib/components/lists/ListItemLink.svelte";
-    import {patch, put} from "$lib/functions/requests.js";
-    import {invalidateAll} from "$app/navigation";
+    import LoadingPage from "$lib/components/LoadingPage.svelte";
+    import SelectDefaultUnits from "$lib/components/item/SelectDefaultUnits.svelte";
+    import SelectLocation from "$lib/components/item/SelectLocation.svelte";
+    import SelectTemp from "$lib/components/item/SelectTemp.svelte";
+    import type ItemDetails from "$lib/models/ItemDetails.ts";
+    import {createQuery} from "@tanstack/svelte-query";
+    import {get} from "$lib/functions/requests.js";
+    import {page} from "$app/state";
+    import type Store from "$lib/models/Store.ts";
+    import type Aisle from "$lib/models/Aisle.ts";
 
-    let {data}: PageProps = $props();
-    let item: ItemDetails = $derived(data.item);
-
-    let itemId: string = $derived(data.item.id);
-    let itemTemp: string = $derived(data.item.temp);
-    let itemDefaultUnits: string = $derived(data.item.defaultUnitType);
-
-    let prepText = $derived(data.item.preps
+    function getPrepsString(item: ItemDetails): string {
+        return item.preps
             .map(prep => prep.name)
             .slice(0, 3)
-            .join(", ") +
-        (data.item.preps.length > 3 ? ", ..." : ""));
-
-    let stores = $derived(data.stores);
-    let selectedStoreId = $derived(data.selectedStore.id);
-    let aisles = $derived(data.aisles.sort((a, b) => a.name > b.name ? 1 : -1));
-    let aisleId = $derived(item.location?.aisleId ?? "");
-    let bay = $derived(item.location?.bay ?? BayType.Types[1]);
-    
-    async function onTempChange() {
-        await patch(`/api/items/${itemId}/edit`, {"/Temp": itemTemp});
-        await invalidateAll();
+            .join(", ") + (item.preps.length > 3 ? ", ..." : "");
     }
     
-    async function onDefaultUnitsChange() {
-        await patch(`/api/items/${itemId}/edit`, {"/DefaultUnitType": itemDefaultUnits});
-        await invalidateAll();
-    }
+    const queryStores = createQuery(() => ({
+        queryKey: ['stores'],
+        queryFn: () => get<Store[]>('/api/stores', fetch),
+    }))
     
-    async function onStoreChange() {
-        await put(`/api/stores/${selectedStoreId}/select`, {});
-        await invalidateAll();
-    }
+    const queryAisles = createQuery(() => ({
+        queryKey: ['aisles'],
+        queryFn: () => get<Aisle[]>('/api/aisles', fetch),
+    }))
     
-    async function onLocationChange() {
-        await patch(`/api/items/${itemId}/edit`, {"/Location": {aisleId: aisleId, bay: bay}});
-        await invalidateAll();
-    }
+    const queryItem = createQuery(() => ({
+        queryKey: ['items', page.params.itemId],
+        queryFn: () => get<ItemDetails>(`/api/items/${page.params.itemId}`, fetch),
+    }))
+    
+    
 </script>
 
 <svelte:head>
-    <title>{data.item.name}</title>
+    {#if queryItem.isSuccess}
+        <title>{queryItem.data.name}</title>
+    {/if}
 </svelte:head>
 
-<Header back={['/items', 'Items']} title={item.name}/>
+{#if queryStores.isLoading || queryAisles.isLoading || queryItem.isLoading}
+<Header back={[`/items/`, 'Item']}
+        title="Item Details"
+        headerActions={[]}/>
+    <LoadingPage/>
+{:else if queryStores.isError || queryAisles.isError || queryItem.isError}
+    <p>ErrorStore: {queryStores.error?.message}</p>
+    <p>ErrorAisles: {queryAisles.error?.message}</p>
+    <p>ErrorItem: {queryItem.error?.message}</p>
+{:else if queryStores.isSuccess && queryAisles.isSuccess && queryItem.isSuccess}
+    {@const prepsString = getPrepsString(queryItem.data)}
+    <Header back={['/items', 'Items']} title={queryItem.data.name}/>
 
-<h4>Details</h4>
-<FormGroup floating label="Temperature">
-    <Input type="select"
-           name="itemTemp"
-           bind:value={itemTemp}
-           onchange={() => onTempChange()}>
-        {#each ItemTemp.Temps as temp}
-            <option value="{temp}">{temp}</option>
-        {/each}
-    </Input>
-</FormGroup>
-<FormGroup floating label="Default Units">
-    <Input type="select"
-           name="itemDefaultUnits"
-           bind:value={itemDefaultUnits}
-           onchange={() => onDefaultUnitsChange()}>
-        {#each UnitType.Types as type}
-            <option value="{type}">{UnitType.asString(type)}</option>
-        {/each}
-    </Input>
-</FormGroup>
+    <h4>Details</h4>
+    
+    <SelectTemp itemId={queryItem.data.id} itemTemp={queryItem.data.temp} />
+    <SelectDefaultUnits itemId={queryItem.data.id} itemDefaultUnitType={queryItem.data.defaultUnitType} />
 
-<h4>Preps</h4>
+    <h4>Preps</h4>
+    <div>
+        <ListItemLink label={prepsString === "" ? "(None)" : prepsString}
+                      showArrow={true}
+                      href="/items/{queryItem.data.id}/preps"
+                      info="Edit"/>
+    </div>
 
-<div>
-    <ListItemLink label={prepText === "" ? "(None)" : prepText}
-                     showArrow={true}
-                     href="/items/{itemId}/preps"
-                     info="Edit"/>
-</div>
+    <h4>Location</h4>
+    <SelectLocation aisles={queryAisles.data} 
+                    stores={queryStores.data} 
+                    item={queryItem.data}/>
 
-<h4>Location</h4>
-<FormGroup floating label="Store">
-    <Input type="select"
-           name="storeId"
-           bind:value={selectedStoreId}
-           onchange={() => onStoreChange()}>
-        {#each stores as store}
-            <option value="{store.id}">{store.name}</option>
-        {/each}
-    </Input>
-</FormGroup>
-
-<FormGroup floating label="Aisle">
-    <input name="itemId" bind:value={itemId} hidden/>
-    <input name="bay" bind:value={bay} hidden/>
-    <Input type="select"
-           name="aisleId"
-           bind:value={aisleId}
-           placeholder="Blah"
-           onchange={() => onLocationChange()}>
-        <option value="" disabled selected hidden>Select an Aisle</option>
-        {#each aisles as aisle}
-            <option value="{aisle.id}">{aisle.name}</option>
-        {/each}
-    </Input>
-</FormGroup>
-
-{#if aisleId !== ""}
-    <input name="itemId" bind:value={itemId} hidden/>
-    <input name="aisleId" bind:value={aisleId} hidden/>
-    <FormGroup floating label="Bay">
-        <Input type="select"
-               name="bay"
-               bind:value={bay}
-               onchange={() => onLocationChange()}>
-            {#each BayType.Types as type}
-                <option value="{type}">{type}</option>
-            {/each}
-        </Input>
-    </FormGroup>
 {/if}

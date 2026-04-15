@@ -7,7 +7,53 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 		%sveltekit.head%
 	</head>
-	<body data-sveltekit-preload-data="hover">
+
+	<style>
+		@media (prefers-color-scheme: dark) {
+			body {
+				background-color: #101828;
+			}
+		}
+		@media (prefers-color-scheme: light) {
+			body {
+				background-color: #eeeeee;
+			}
+		}
+		
+		#initial-loader-background {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			height: 100vh;
+		}
+
+		.initial-loader-spinner {
+			width: 6rem;
+			height: 6rem;
+			border: 1rem solid #e4115a;
+			border-top: 1rem solid transparent;
+			border-radius: 50%;
+			animation: spin 1s linear infinite;
+		}
+
+		@keyframes spin {
+			0% {
+				transform: rotate(0deg);
+			}
+			100% {
+				transform: rotate(360deg);
+			}
+		}
+	</style>
+	
+	<body data-sveltekit-preload-data="off">
+		<div id="initial-loader-background">
+			<!-- This is only visible until Svelte hydrates -->
+			<div class="initial-loader-spinner">
+			</div>
+		</div>
+		
 		<div style="display: contents">%sveltekit.body%</div>
 	</body>
 </html>

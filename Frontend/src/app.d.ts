@@ -28,8 +28,8 @@ declare global {
 	}
 	
 	class PrepSelect {
-		prepId: string;
-		prepName: string;
+		id: string;
+		name: string;
 		isSelected: boolean;
 	}
 	

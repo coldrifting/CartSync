@@ -1,11 +1,18 @@
 <script lang="ts">
+    import { navigating } from '$app/state';
     import '$lib/css/fonts/fontawesome-webfont.eot';
     import '$lib/css/app.css';
     import {page} from '$app/state';
     import Appbar from "$lib/components/nav/Appbar.svelte";
     import Sidebar from "$lib/components/nav/Sidebar.svelte";
+    import LoadingPage from "$lib/components/LoadingPage.svelte";
+    import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query'
+    
+    const queryClient = new QueryClient()
 
     let {children} = $props();
+    
+    document.getElementById("initial-loader-background")?.classList.add("d-none");
 
     let storesIcon: string = "M160-720v-80h640v80H160Zm0 560v-240h-40v-80l40-200h640l40 200v80h-40v240h-80v-240H560v240H160Zm80-80h240v-160H240v160Zm-38-240h556-556Zm0 0h556l-24-120H226l-24 120Z";
     let itemsIcon: string = "M280-600v-80h560v80H280Zm0 160v-80h560v80H280Zm0 160v-80h560v80H280ZM160-600q-17 0-28.5-11.5T120-640q0-17 11.5-28.5T160-680q17 0 28.5 11.5T200-640q0 17-11.5 28.5T160-600Zm0 160q-17 0-28.5-11.5T120-480q0-17 11.5-28.5T160-520q17 0 28.5 11.5T200-480q0 17-11.5 28.5T160-440Zm0 160q-17 0-28.5-11.5T120-320q0-17 11.5-28.5T160-360q17 0 28.5 11.5T200-320q0 17-11.5 28.5T160-280Z";
@@ -18,7 +25,6 @@
         {url: "/recipes", name: "Recipes", icon: recipeIcon},
         {url: "/cart", name: "Cart", icon: cartIcon},
     ])
-
     let showNavigation: boolean = $derived(!page.url.pathname.startsWith("/login"))
 </script>
 
@@ -43,9 +49,15 @@
 {#if showNavigation}
     <Sidebar navLinks={navLinks} />
 
-    <main>
-        {@render children()}
-    </main>
+    <QueryClientProvider client={queryClient}>
+        <main>
+            {#if navigating.to}
+                <LoadingPage/>
+            {:else}
+                {@render children()}
+            {/if}
+        </main>
+    </QueryClientProvider>
 
     <Appbar navLinks={navLinks} />
 {:else}

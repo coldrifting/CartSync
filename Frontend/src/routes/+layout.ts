@@ -12,7 +12,7 @@ export const load: LayoutLoad = async ({url}) => {
     }
     
     if (!isCookieExpired && url.pathname.startsWith("/login")) {
-        throw redirect(307, `/login`);
+        throw redirect(307, `/cart`);
     }
     
     if (url.pathname === '/') {

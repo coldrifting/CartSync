@@ -8,20 +8,21 @@
     import {ValidItem, type AllValidItems} from "$lib/models/ValidItemsAndPreps.js";
     import ModalSearch from "$lib/components/modal/generic/ModalSearch.svelte";
     import ModalCustom from "$lib/components/modal/ModalCustom.svelte";
-    import {invalidateAll} from "$app/navigation";
     import {post, postAndGetId} from "$lib/functions/requests.js";
     import type Amount from "$lib/models/Amount.ts";
     import Fraction from "$lib/models/Fraction.js";
+    import {useQueryClient} from "@tanstack/svelte-query";
 
     interface Props {
         recipeId: string;
         sections: RecipeSection[];
         items: AllValidItems;
-        scrollOnAdd?: boolean;
     }
 
-    let {recipeId, sections, items, scrollOnAdd = undefined}: Props = $props();
+    let {recipeId, sections, items}: Props = $props();
 
+    const client = useQueryClient()
+    
     let isOpen: boolean = $state(false);
 
     let sectionId: string | undefined = $derived(sections.length > 0 ? sections[0].id : undefined);
@@ -92,23 +93,30 @@
     let filteredItems: ValidItem[] = $derived(items.sections
         .filter(section => section.id === sectionId)[0].items);
     
+    let isLoading: boolean = $state(false);
     async function onAdd() {
+        isLoading = true;
         if (sectionId === undefined) {
             // Create new section first
-            const newSectionId: string = await postAndGetId(`/api/recipes/sections/add?recipeId=${recipeId}`, {name: newSectionName})
-            await post(`/api/recipes/entries/add?recipeSectionId=${newSectionId}`, {itemId: itemId, prepId: prepId ?? null, amount: amount})
-        } else {
-            await post(`/api/recipes/entries/add?recipeSectionId=${sectionId}`, {itemId: itemId, prepId: prepId ?? null, amount: amount})
-        }
+            const newSectionId: string = await postAndGetId(`/api/recipes/sections/add?recipeId=${recipeId}`, {
+                name: newSectionName
+            });
             
-        isOpen = false
-        await invalidateAll();
-        
-        if (scrollOnAdd) {
-            tick().then(() => {
-                window.scrollTo(0, document.body.scrollHeight);
+            await post(`/api/recipes/entries/add?recipeSectionId=${newSectionId}`, {
+                itemId: itemId, 
+                prepId: prepId ?? null, 
+                amount: amount
+            });
+        } else {
+            await post(`/api/recipes/entries/add?recipeSectionId=${sectionId}`, {
+                itemId: itemId, 
+                prepId: prepId ?? null, 
+                amount: amount
             });
         }
+        await client.invalidateQueries({queryKey: ['recipes', recipeId]});
+        isLoading = false;
+        isOpen = false;
     }
     
     let firstElement: HTMLButtonElement | undefined = $state(undefined);
@@ -123,6 +131,7 @@
 
 <ModalCustom title="Add Recipe Entry"
              bind:isOpen
+             bind:isLoading
              action={{label: "Add", action: onAdd}}
              actionIsDisabled={isSubmitDisabled}
              autoFocusElement={firstElement}>

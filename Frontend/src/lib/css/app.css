@@ -50,6 +50,10 @@ button {
 
 header {
 }
+
+textarea {
+    min-height: 10rem !important;
+}
     
 .list-item {
     color: var(--theme-fg);

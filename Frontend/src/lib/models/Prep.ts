@@ -1,6 +1,6 @@
 class Prep {
-    id: string = "";
-    name: string = "";
+    id: string = $state("");
+    name: string = $state("");
 }
 
 export default Prep;

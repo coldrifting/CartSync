@@ -10,7 +10,7 @@
     import Fraction from "$lib/models/Fraction.js";
     import type Amount from "$lib/models/Amount.ts";
     import {put} from "$lib/functions/requests.js";
-    import {invalidateAll} from "$app/navigation";
+    import {useQueryClient} from "@tanstack/svelte-query";
 
     interface Props {
         remainingRecipes: Recipe[];
@@ -19,6 +19,8 @@
 
     let {remainingRecipes, remainingItems}: Props = $props();
 
+    const client = useQueryClient()
+    
     let isOpen: boolean = $state(false);
     let isRecipeSelectionEnabled: boolean = $state(true);
 
@@ -120,21 +122,21 @@
 
     let isRecipeSearchOpen: boolean = $state(false);
     let isItemSearchOpen: boolean = $state(false);
-    let allowEscapeKey: boolean = $derived(!isRecipeSearchOpen && !isItemSearchOpen);
 
     let modalSearchRecipe: ModalSearch<Recipe>;
     let modalSearchItem: ModalSearch<ItemWithPreps>;
     
+    let isLoading = $state(false);
     async function onSubmit() {
+        isLoading = true;
         if (itemId !== undefined) {
             await put(`/api/cart/selection/items/${itemId}/edit` + (prepId !== undefined ? `?prepId=${prepId}` : ''), {amount: amount});
-        }
-        else {
+        } else {
             await put(`/api/cart/selection/recipes/${recipeId}/edit`, {quantity: recipeQuantity});
         }
-        
+        isLoading = false;
         isOpen = false;
-        await invalidateAll();
+        await client.invalidateQueries({queryKey: ['cart']});
     }
 </script>
 
@@ -154,67 +156,68 @@
 
 <ModalCustom title="Add Cart Entry"
              bind:isOpen
+             bind:isLoading
              action={{label: "Add", action: onSubmit}}
              actionIsDisabled={isSubmitDisabled}>
-            <FormGroup floating label="Cart Item Type">
-                <Input id="isRecipeTypeInput" name="isRecipeType" type="select" bind:value={isRecipeSelectionEnabled}>
-                    <option value={true}>Recipe</option>
-                    <option value={false}>Item</option>
+    <FormGroup floating label="Cart Item Type">
+        <Input id="isRecipeTypeInput" name="isRecipeType" type="select" bind:value={isRecipeSelectionEnabled}>
+            <option value={true}>Recipe</option>
+            <option value={false}>Item</option>
+        </Input>
+    </FormGroup>
+
+    {#if isRecipeSelectionEnabled}
+        <div>
+            <FormLink label="Recipe Selection"
+                      text={recipe?.name ?? "(None)"}
+                      onclick={onRecipeClick}/>
+        </div>
+
+        <FormGroup floating label="Quantity">
+            <Input id="recipeQuantityInput"
+                   name="recipeQuantity"
+                   type="number"
+                   min={0}
+                   step={1}
+                   onfocus={onfocus}
+                   onfocusout={onfocusout}
+                   bind:value={recipeQuantity}/>
+        </FormGroup>
+
+    {:else}
+        <div>
+            <FormLink label="Item Selection"
+                      text={item?.item.name ?? "(None)"}
+                      onclick={onItemClick}/>
+        </div>
+
+        {#if showPrepsSelect}
+            <FormGroup floating label="Prep">
+                <Input type="select" name="prepId" bind:value={prepId}>
+                    {#each preps as prep}
+                        <option value={prep?.id}>{prep?.name ?? '(None)'}</option>
+                    {/each}
                 </Input>
             </FormGroup>
-
-            {#if isRecipeSelectionEnabled}
-                <div>
-                    <FormLink label="Recipe Selection"
-                              text={recipe?.name ?? "(None)"}
-                              onclick={onRecipeClick}/>
-                </div>
-
-                <FormGroup floating label="Quantity">
-                    <Input id="recipeQuantityInput"
-                           name="recipeQuantity" 
-                           type="number"
-                           min={0} 
-                           step={1} 
-                           onfocus={onfocus}
-                           onfocusout={onfocusout}
-                           bind:value={recipeQuantity}/>
-                </FormGroup>
-
-            {:else}
-                <div>
-                    <FormLink label="Item Selection"
-                              text={item?.item.name ?? "(None)"}
-                              onclick={onItemClick}/>
-                </div>
-
-                {#if showPrepsSelect}
-                    <FormGroup floating label="Prep">
-                        <Input type="select" name="prepId" bind:value={prepId}>
-                            {#each preps as prep}
-                                <option value={prep?.id}>{prep?.name ?? '(None)'}</option>
-                            {/each}
-                        </Input>
-                    </FormGroup>
-                {/if}
-                <div class="d-flex flex-column flex-sm-row justify-content-between">
-                    <FormGroup floating label="Amount" class="flex-sm-grow-1">
-                        <Input id="fractionInput" 
-                               name="fraction" 
-                               type="number" 
-                               min={0} 
-                               step={0.001} 
-                               onfocus={onfocus} 
-                               bind:value={fraction}>
-                        </Input>
-                    </FormGroup>
-                    <FormGroup floating label="Units" class="ms-sm-3">
-                        <Input type="select" name="unitType" bind:value={unitType}>
-                            {#each UnitType.Types as type}
-                                <option value={type}>{UnitType.asString(type)}</option>
-                            {/each}
-                        </Input>
-                    </FormGroup>
-                </div>
-            {/if}
+        {/if}
+        <div class="d-flex flex-column flex-sm-row justify-content-between">
+            <FormGroup floating label="Amount" class="flex-sm-grow-1">
+                <Input id="fractionInput"
+                       name="fraction"
+                       type="number"
+                       min={0}
+                       step={0.001}
+                       onfocus={onfocus}
+                       bind:value={fraction}>
+                </Input>
+            </FormGroup>
+            <FormGroup floating label="Units" class="ms-sm-3">
+                <Input type="select" name="unitType" bind:value={unitType}>
+                    {#each UnitType.Types as type}
+                        <option value={type}>{UnitType.asString(type)}</option>
+                    {/each}
+                </Input>
+            </FormGroup>
+        </div>
+    {/if}
 </ModalCustom>
