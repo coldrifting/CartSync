@@ -177,6 +177,7 @@
             <Input id="recipeQuantityInput"
                    name="recipeQuantity"
                    type="number"
+                   inputmode="decimal"
                    min={0}
                    step={1}
                    onfocus={onfocus}
@@ -205,6 +206,7 @@
                 <Input id="fractionInput"
                        name="fraction"
                        type="number"
+                       inputmode="decimal"
                        min={0}
                        step={0.001}
                        onfocus={onfocus}

@@ -90,7 +90,14 @@
 <div class="d-flex justify-content-center align-items-center p-3 login-window">
     <div class="login-container p-3 rounded-3">
         <form onsubmit={handleSubmit}>
-            <h2 class="p-3">Login</h2>
+            <div class="d-flex flex-row align-items-center">
+                <h2 class="p-3">Login</h2>
+                {#if isLoading}
+                    <div in:fade={{duration: 0, delay: 300}} class="ms-auto me-3">
+                        <Spinner/>
+                    </div>
+                {/if}
+            </div>
             <FormInputText id="username" 
                            label="Username" 
                            autocomplete="username" 
@@ -113,11 +120,6 @@
                            bind:element={passwordElement}
                            required/>
             <div class="d-flex flex-column flex-sm-row align-items-center login-info">
-                {#if isLoading}
-                    <div in:fade={{duration: 0, delay: 300}}>
-                        <Spinner/>
-                    </div>
-                {/if}
                 {#if isError}
                     <h6 in:fade={{duration: 0, delay: 100}} class="text-danger m-2">Invalid username or password</h6>
                 {/if}

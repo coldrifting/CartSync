@@ -169,7 +169,7 @@
     </FormGroup>
     <div class="d-flex flex-column flex-sm-row justify-content-between">
         <FormGroup floating label="Amount" class="flex-sm-grow-1">
-            <Input name="fraction" type="number" min={0} step={0.001} bind:value={fraction}>
+            <Input name="fraction" type="number" inputmode="decimal" min={0} step={0.001} bind:value={fraction}>
             </Input>
         </FormGroup>
         <FormGroup floating label="Units" class="ms-sm-3">

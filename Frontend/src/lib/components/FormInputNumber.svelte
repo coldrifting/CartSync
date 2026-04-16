@@ -36,6 +36,7 @@
 <div class="mb-3 form-floating flex-sm-grow-1">
     <input id={id} 
            type='number'
+           inputmode="decimal"
            bind:value
            bind:this={element}
            class:form-control={true} 
