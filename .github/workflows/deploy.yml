@@ -23,6 +23,10 @@ jobs:
       - name: Build Backend API
         run: dotnet build --configuration Release
         working-directory: API/CartSync
+        
+      - name: Publish Backend API
+        run: dotnet publish --configuration Release --output ../../build
+        working-directory: API/CartSync
 
       - name: Setup Node
         uses: actions/setup-node@v6
@@ -37,40 +41,39 @@ jobs:
         run: npm run build
         working-directory: Frontend
         
-      - name: Publish Backend API
-        run: dotnet publish --configuration Release --output ../../output
-        working-directory: API/CartSync
-
-      - name: Stop Server
+      - name: Stop Server and remove old files
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.HOST }}
           username: root
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
-          script: systemctl stop cartsync.service
-          
-      - name: Clear server files
-        uses: appleboy/ssh-action@v1
+          script: |
+            systemctl stop cartsync.service
+            rm /usr/local/bin/cartsync || true
+            rm -r /var/www/cartsync || true
+
+      - name: Deploy Server Executable to VPS
+        uses: appleboy/scp-action@v1
         with:
           host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
+          username: root
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
-          script: |
-            rm -r /var/www/cartsync || true
-            mkdir /var/www/cartsync || true
+          source: "build/cartsync"
+          target: /usr/local/bin
+          strip_components: 1
 
-      - name: Deploy to VPS
+      - name: Deploy Static files to VPS
         uses: appleboy/scp-action@v1
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
-          source: "output/cartsync,output/appsettings.json,output/wwwroot"
-          target: /var/www/cartsync
-          strip_components: 1
+          source: "Frontend/build/cartsync"
+          target: /var/www
+          strip_components: 2
 
       - name: Restart Server
         uses: appleboy/ssh-action@v1

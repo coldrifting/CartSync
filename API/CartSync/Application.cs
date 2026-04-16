@@ -155,7 +155,6 @@ builder.Services.AddSystemd();
 
 WebApplication app = builder.Build();
 
-app.UseStaticFiles();
 app.UseRouting();
 app.UseCors("AllowAnyLocalhost");
 app.UseAuthorization();

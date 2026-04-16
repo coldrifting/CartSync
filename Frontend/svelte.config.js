@@ -6,9 +6,9 @@ const config = {
 		adapter: adapter({
 			// default options are shown. On some platforms
 			// these options are set automatically — see below
-			pages: '../API/CartSync/wwwroot',
-			assets: '../API/CartSync/wwwroot',
-			fallback: '200.html',
+			pages: 'build/cartsync',
+			assets: 'build/cartsync',
+			fallback: 'index.html',
 			precompress: false,
 			strict: true
 		})
