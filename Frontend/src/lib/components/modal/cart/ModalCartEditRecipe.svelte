@@ -63,5 +63,5 @@
              autoFocusElement={firstElement}>
     <h4>{recipe?.name}</h4>
 
-    <FormInputNumber id="recipeQuantityInput" label="Quantity" min={0} step={1} bind:value={recipeQuantity} bind:element={firstElement} />
+    <FormInputNumber id="recipeQuantityInput" label="Quantity" min={1} step={1} bind:value={recipeQuantity} bind:element={firstElement} />
 </ModalCustom>

@@ -26,8 +26,10 @@
     }
 
     function onfocusout(_: Event) {
-        value = Math.round(value);
-        if (value < 1) {
+        if (step === 1) {
+            value = Math.round(value);
+        }
+        if (value < (min ?? 1)) {
             value = 1;
         }
     }

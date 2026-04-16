@@ -94,7 +94,7 @@
         </FormGroup>
     {/if}
     <div class="d-flex flex-column flex-sm-row justify-content-between">
-        <FormInputNumber id="fractionInput" label="Amount" min={0} step={0.001} bind:value={fraction} bind:element={firstElement} />
+        <FormInputNumber id="fractionInput" label="Amount" min={0.001} step={0.001} bind:value={fraction} bind:element={firstElement} />
 
         <FormGroup floating label="Units" class="ms-sm-3">
             <Input type="select"

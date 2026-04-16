@@ -178,7 +178,7 @@
                    name="recipeQuantity"
                    type="number"
                    inputmode="decimal"
-                   min={0}
+                   min={1}
                    step={1}
                    onfocus={onfocus}
                    onfocusout={onfocusout}
@@ -207,7 +207,7 @@
                        name="fraction"
                        type="number"
                        inputmode="decimal"
-                       min={0}
+                       min={0.001}
                        step={0.001}
                        onfocus={onfocus}
                        bind:value={fraction}>
