@@ -5,6 +5,7 @@ using CartSync.Utils;
 using CartSync.Utils.Scalar;
 using CartSync.Utils.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -158,6 +159,11 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseCors("AllowAnyLocalhost");
 app.UseAuthorization();
+
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

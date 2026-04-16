@@ -40,19 +40,15 @@ jobs:
       - name: Publish Backend API
         run: dotnet publish --configuration Release --output ../../output
         working-directory: API/CartSync
-        
-      - name: Update appsettings.json
-        run: |
-          sed -i 's/"AllowedHosts": "localhost"/"AllowedHosts": "localhost;${{ secrets.HOST }};${{ secrets.DOMAIN }}"/g' output/appsettings.json
 
       - name: Stop Server
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
+          username: root
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
-          script: systemctl --user stop cartsync.service
+          script: systemctl stop cartsync.service
           
       - name: Clear server files
         uses: appleboy/ssh-action@v1
@@ -80,7 +76,7 @@ jobs:
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
+          username: root
           key: ${{ secrets.KEY }}
           port: ${{ secrets.PORT }}
-          script: systemctl --user restart cartsync.service
+          script: systemctl restart cartsync.service
