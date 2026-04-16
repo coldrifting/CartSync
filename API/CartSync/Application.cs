@@ -150,6 +150,8 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddSystemd();
+
 WebApplication app = builder.Build();
 
 app.UseStaticFiles();
