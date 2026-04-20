@@ -19,12 +19,18 @@ public class ControllerCore(CartSyncContext context) : ControllerBase
         string? username = User.Claims.FirstOrDefault(x => x.Type == "sub")?.Value;
         return (await Db.Users.FirstAsync(u => u.Username == username)).UserId;
     }
+
+    protected async Task<UserInfo?> GetUserInfo()
+    {
+        Ulid id = await GetUserId();
+        return await Db.UserInfo.FindAsync(id);
+    }
     
     protected async Task<Ulid> GetSelectedStoreId()
     {
         Ulid userId = await GetUserId();
-        UserSelectedStore selStore = (await Db.UserSelectedStores.FindAsync(userId))!;
-        return selStore.StoreId;
+        UserInfo userInfo = (await Db.UserInfo.FindAsync(userId))!;
+        return userInfo.StoreId;
     }
     
     protected async Task<Store> GetSelectedStore()
@@ -37,10 +43,10 @@ public class ControllerCore(CartSyncContext context) : ControllerBase
     protected async Task SetSelectedStore(Ulid storeId)
     {
         Ulid userId = await GetUserId();
-        UserSelectedStore? selStore = await Db.UserSelectedStores.FindAsync(userId);
-        if (selStore == null)
+        UserInfo? userInfo = await Db.UserInfo.FindAsync(userId);
+        if (userInfo == null)
         {
-            Db.Add(new UserSelectedStore
+            Db.Add(new UserInfo
             {
                 UserId = userId,
                 StoreId = storeId
@@ -48,7 +54,7 @@ public class ControllerCore(CartSyncContext context) : ControllerBase
         }
         else
         {
-            selStore.StoreId = storeId;
+            userInfo.StoreId = storeId;
         }
         
         await Db.SaveChangesAsync();

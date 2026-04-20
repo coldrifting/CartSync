@@ -22,7 +22,7 @@ public class CartSyncContext(DbContextOptions options) : DbContext(options)
     public DbSet<RecipeSection> RecipeSections { get; set; }
     public DbSet<RecipeEntry> RecipeEntries { get; set; }
     
-    public DbSet<UserSelectedStore> UserSelectedStores { get; set; }
+    public DbSet<UserInfo> UserInfo { get; set; }
     public DbSet<CartSelectItem> CartSelectItems { get; set; } 
     public DbSet<CartEntry> CartEntries { get; set; }
 

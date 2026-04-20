@@ -61,6 +61,10 @@ public class CartController(CartSyncContext context) : ControllerCore(context)
                 Amounts = cartInfo.Amounts
             });
         }
+
+        UserInfo? info = await GetUserInfo();
+        info?.CartLastGeneratedTime = DateTime.UtcNow;
+
         await Db.SaveChangesAsync();
 
         return TypedResults.NoContent();
@@ -151,9 +155,13 @@ public class CartController(CartSyncContext context) : ControllerCore(context)
             .Where(item => !item.Preps.Equals(cartItemsWithPrep.GetValueOrDefault(item.Item.Id)))
             .Select(item => item with { Preps = item.Preps.Except(cartItemsWithPrep.GetValueOrDefault(item.Item.Id) ?? []).ToReadOnlyList() })
             .ToReadOnlyList();
+
+        UserInfo? info = await GetUserInfo();
         
         CartSelectResponse result = new()
         {
+            CartLastGeneratedTime = info?.CartLastGeneratedTime ?? DateTime.UnixEpoch,
+            CartSelectionLastUpdatedTime = info?.CartSelectionLastUpdatedTime ?? DateTime.UnixEpoch,
             Items = cartItems,
             Recipes = cartRecipes,
             RemainingItems = remainingItems,
@@ -206,6 +214,9 @@ public class CartController(CartSyncContext context) : ControllerCore(context)
             });
         }
         
+        UserInfo? info = await GetUserInfo();
+        info?.CartSelectionLastUpdatedTime = DateTime.UtcNow;
+        
         await Db.SaveChangesAsync();
         
         return TypedResults.NoContent();
@@ -225,6 +236,9 @@ public class CartController(CartSyncContext context) : ControllerCore(context)
         {
             return Recipe.NotFound(recipeId);
         }
+        
+        UserInfo? info = await GetUserInfo();
+        info?.CartSelectionLastUpdatedTime = DateTime.UtcNow;
         
         recipe.CartQuantity = payload.Quantity;
         await Db.SaveChangesAsync();
@@ -257,6 +271,9 @@ public class CartController(CartSyncContext context) : ControllerCore(context)
             return CartSelectItem.NotFound(itemId, prepId);
         }
         
+        UserInfo? info = await GetUserInfo();
+        info?.CartSelectionLastUpdatedTime = DateTime.UtcNow;
+        
         Db.CartSelectItems.Remove(cartItem);
         await Db.SaveChangesAsync();
         
@@ -273,8 +290,12 @@ public class CartController(CartSyncContext context) : ControllerCore(context)
             return Recipe.NotFound(recipeId);
         }
         
+        UserInfo? info = await GetUserInfo();
+        info?.CartSelectionLastUpdatedTime = DateTime.UtcNow;
+        
         recipe.CartQuantity = 0;
         await Db.SaveChangesAsync();
+        
         return TypedResults.NoContent();
     }
 }

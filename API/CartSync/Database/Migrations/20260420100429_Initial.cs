@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -190,23 +191,25 @@ namespace CartSync.Database.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "UserSelectedStores",
+                name: "UserInfo",
                 columns: table => new
                 {
                     UserId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
-                    StoreId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false)
+                    StoreId = table.Column<string>(type: "character varying(26)", unicode: false, maxLength: 26, nullable: false),
+                    CartLastGeneratedTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    CartSelectionLastUpdatedTime = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_UserSelectedStores", x => x.UserId);
+                    table.PrimaryKey("PK_UserInfo", x => x.UserId);
                     table.ForeignKey(
-                        name: "FK_UserSelectedStores_Stores_StoreId",
+                        name: "FK_UserInfo_Stores_StoreId",
                         column: x => x.StoreId,
                         principalTable: "Stores",
                         principalColumn: "StoreId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_UserSelectedStores_Users_UserId",
+                        name: "FK_UserInfo_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "UserId",
@@ -387,15 +390,15 @@ namespace CartSync.Database.Migrations
                 column: "RecipeId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_UserInfo_StoreId",
+                table: "UserInfo",
+                column: "StoreId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Users_Username",
                 table: "Users",
                 column: "Username",
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_UserSelectedStores_StoreId",
-                table: "UserSelectedStores",
-                column: "StoreId");
         }
 
         /// <inheritdoc />
@@ -420,7 +423,7 @@ namespace CartSync.Database.Migrations
                 name: "RecipeSteps");
 
             migrationBuilder.DropTable(
-                name: "UserSelectedStores");
+                name: "UserInfo");
 
             migrationBuilder.DropTable(
                 name: "Aisles");

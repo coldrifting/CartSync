@@ -5,7 +5,7 @@ namespace CartSync.SeedData;
 // ReSharper disable StringLiteralTypo
 public static partial class SeedData
 {
-    public static List<UserSelectedStore> SelectedStores =>
+    public static List<UserInfo> SelectedStores =>
     [
         new()
         {

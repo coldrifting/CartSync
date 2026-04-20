@@ -22,10 +22,12 @@
     let isCartGenerating: boolean = $state(false);
     const headerActions: HeaderAction[] = [
         {label: "Add", icon: "fa-plus", color: 'primary', action: async () => { modalCartAdd?.show() }},
-        {label: "Generate", icon: "fa-refresh", color: 'success', action: async () => { 
+        {label: "Cart", icon: "fa-shopping-cart", color: 'success', action: async () => { 
             isCartGenerating = true;
             try {
-                await post('/api/cart/generate', {});
+                if (queryCart.isSuccess && queryCart.data.cartLastGeneratedTime < queryCart.data.cartSelectionLastUpdatedTime) {
+                    await post('/api/cart/generate', {});
+                }
                     
                 if (browser) {
                     await goto('/cart/list');
@@ -51,7 +53,7 @@
     <title>CartSync - Cart</title>
 </svelte:head>
 
-<Header title="Cart" headerActions={headerActions}/>
+<Header title="Cart Setup" headerActions={headerActions}/>
 
 {#if isCartGenerating}
 <ModalLoading title="Generating Cart..."></ModalLoading>
