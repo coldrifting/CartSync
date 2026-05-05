@@ -32,7 +32,7 @@
     main {
         max-width: 960px;
         margin-top: 1rem;
-        padding: 1.25rem 1.5rem calc(var(--appbar-height) + 1.5rem) 1.5rem;
+        padding: 1.25rem 1.5rem calc(var(--appbar-height) + 1.5rem + env(safe-area-inset-bottom, 0)) 1.5rem;
         overflow-x: hidden;
         
         @media (width >= 576px) {
